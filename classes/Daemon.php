@@ -10,9 +10,6 @@ class Daemon extends AppBase
     private const PS_COMMAND = "ps fuwww -p";
     private const KILL_TIMEOUT = 10;
 
-    private const SIG_HUP = 1;
-    private const SIG_TERM = 15;
-
     /** @var string */
     private $pidFile = null;
 
@@ -24,8 +21,8 @@ class Daemon extends AppBase
 
     /** @var string[] */
     private static $signals = array (
-        self::SIG_HUP => 'signalSoftExit',
-        self::SIG_TERM => 'signalHardExit',
+        SIGHUP => 'signalSoftExit',
+        SIGTERM => 'signalHardExit',
     );
 
     private static $kills = array (		// последовательность сигналов при убивании зависшего демона
@@ -121,6 +118,7 @@ class Daemon extends AppBase
         foreach(static::$signals as $signal => $handler) {
             $sigHandler = array(&$this, $handler);
             pcntl_signal($signal, $sigHandler);
+            $this->log("For signal $signal setted handler " . var_export(pcntl_signal_get_handler($signal), true));
         }
 
         return true;
@@ -166,24 +164,24 @@ class Daemon extends AppBase
     }
 
     /**
-     * Signal SIG_TERM handler
+     * Signal SIGTERM handler
      * @param $signo
      * @param null $pid
      * @param null $status
      */
-    public function signalHardExit($signo, $pid = null, $status = null) {
+    public function signalHardExit($signo, $siginfo = null) {
         pcntl_signal($signo, SIG_IGN);
         $this->log("Hard finish by signal $signo");
         $this->app->server->hardFinish();
     }
 
     /**
-     * Signal SIG_HUP handler
+     * Signal SIGHUP handler
      * @param $signo
      * @param null $pid
      * @param null $status
      */
-    public function signalSoftExit($signo, $pid = null, $status = null) {
+    public function signalSoftExit($signo, $siginfo = null) {
         pcntl_signal($signo, SIG_IGN);
         $this->log("Soft finish by signal $signo");
         $this->app->server->softFinish();

@@ -36,7 +36,7 @@ class Server extends AppBase
 
     /** @var bool */
     private $end = false;
-    private $listen = null;
+    private $listenSocket = null;
     /** @var array */
     private $sockets = array();
     /** @var int */
@@ -146,7 +146,7 @@ class Server extends AppBase
     }
 
     private function listen() {
-        if ($this->listen) return;
+        if ($this->listenSocket) return;
 
 /*
         if (static::$inTransport == static::UNIX_TRANSPORT) {
@@ -160,13 +160,14 @@ class Server extends AppBase
         $target = $this->localIp . ":" . $this->localPort;
 
         $fd = stream_socket_server($transport . "://" . $target, $errno, $errstr);
+
         if (!$fd) {
             $this->err("ERROR: cannot create server socket ($errstr)");
         }
 
         $this->nonblock($fd);
 
-        $this->listen = $fd;
+        $this->listenSocket = $fd;
         $this->recvs[self::LISTEN_KEY] = $fd;
     }
 
@@ -175,10 +176,10 @@ class Server extends AppBase
      */
     private function nolisten()
     {
-        if ($this->listen) {
-            $this->closeSocket($this->listen);
+        if ($this->listenSocket) {
+            $this->closeSocket($this->listenSocket);
             unset($this->recvs[self::LISTEN_KEY]);
-            $this->listen = null;
+            $this->listenSocket = null;
         }
     }
 
@@ -372,16 +373,16 @@ class Server extends AppBase
         }
 
 // проверяем новые подключения
-        if ($this->listen) {
-            if (in_array($this->listen, $rd)) {
-                if (($fd = @stream_socket_accept($this->listen)) === false) {
+        if ($this->listenSocket) {
+            if (in_array($this->listenSocket, $rd)) {
+                if (($fd = @stream_socket_accept($this->listenSocket)) === false) {
                     $this->log("ERROR: accept error");
                     $this->softFinish();
                 } else {
                     $this->addNewClient($fd);
                 }
 
-                $key = array_search($this->listen, $rd);		// убираем листен-сокет из временного массива готовых для чтения, чтобы не пытаться из него читать, там все равно пусто
+                $key = array_search($this->listenSocket, $rd);		// убираем листен-сокет из временного массива готовых для чтения, чтобы не пытаться из него читать, там все равно пусто
                 unset($rd[$key]);
             }
         }
