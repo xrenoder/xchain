@@ -116,7 +116,7 @@ class Daemon extends AppBase
 
 // set signal handlers
         foreach(static::$signals as $signal => $handler) {
-            pcntl_signal($signal, array(&$this, 'signalHandler'));
+            pcntl_signal($signal, array($this, 'signalHandler'));
         }
 
         return true;
