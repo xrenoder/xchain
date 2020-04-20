@@ -26,7 +26,6 @@ class App
 
         try {
             $this->server = new Server($this,MY_IP, MY_PORT);
-
             $this->daemon = new Daemon($this,LOG_PATH, RUN_PATH);
 
             $command = null;
@@ -41,7 +40,7 @@ class App
 
             $this->server->run();
         } catch (Exception $e) {
-            throw new RuntimeException($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 

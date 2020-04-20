@@ -31,6 +31,9 @@ class Daemon extends AppBase
         "KILL"
     );
 
+    public $needSoftFinish = false;
+    public $needHardFinish = false;
+
     /**
      * Daemon constructor.
      * @param App $app
@@ -161,17 +164,6 @@ class Daemon extends AppBase
         return $answer;
     }
 
-    public function signalHandler($signo) {
-        $this->signalSubHandler($signo);
-    }
-
-    private function signalSubHandler($signo) {
-        if (isset(static::$signals[$signo])) {
-            $handler = static::$signals[$signo];
-            $this->{$handler}($signo);
-        }
-    }
-
     /**
      * Signal SIGTERM handler
      * @param $signo
@@ -179,9 +171,10 @@ class Daemon extends AppBase
      * @param null $status
      */
     public function signalHardExit($signo) {
-        pcntl_signal($signo, SIG_IGN);
-        $this->log("Hard finish by signal $signo");
-        $this->app->server->hardFinish();
+//        pcntl_signal($signo, SIG_IGN);
+        throw new Exception('SIGTERM');
+//        $this->log("Hard finish by signal $signo");
+//        $this->app->server->hardFinish();
     }
 
     /**
@@ -191,9 +184,10 @@ class Daemon extends AppBase
      * @param null $status
      */
     public function signalSoftExit($signo) {
-        pcntl_signal($signo, SIG_IGN);
-        $this->log("Soft finish by signal $signo");
-        $this->app->server->softFinish();
+        throw new Exception('SIGHUP');
+//        pcntl_signal($signo, SIG_IGN);
+//        $this->log("Soft finish by signal $signo");
+//        $this->app->server->softFinish();
     }
 
     /**
