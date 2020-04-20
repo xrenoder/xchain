@@ -10,13 +10,13 @@ $app = new App();
 
 $app->run();
 
-function signalSoftExit($signo, $siginfo = null)
+function signalSoftExit($signo)
 {
     throw new Exception('SIGHUP');
     $GLOBALS['softFinish'] = true;
 }
 
-function signalHardExit($signo, $siginfo = null)
+function signalHardExit($signo)
 {
     throw new Exception('SIGTERM');
     $GLOBALS['hardFinish'] = true;
