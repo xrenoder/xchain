@@ -2,7 +2,7 @@
 /**
  * Universal logging tool
  */
-class Log extends AppBase
+class Logger extends AppBase
 {
     /** @var string */
     private $logFile = null;

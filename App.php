@@ -4,7 +4,7 @@
  */
 class App
 {
-    /** @var Log */
+    /** @var Logger */
     public $logger = null;
 
     /** @var Daemon */
@@ -22,7 +22,7 @@ class App
     public function run()
     {
         $this->name = SCRIPT_NAME;
-        $this->logger = new Log($this,LOG_PATH . 'xchain.log', LOG_PATH . 'error.log');
+        $this->logger = new Logger($this,LOG_PATH . 'xchain.log', LOG_PATH . 'error.log');
 
         try {
             $this->server = new Server($this,MY_IP, MY_PORT);
