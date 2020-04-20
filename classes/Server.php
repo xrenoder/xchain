@@ -260,7 +260,7 @@ class Server extends AppBase
         $errstr = '';
 
         try {
-            $fd = stream_socket_client($transport . '://' . $target, $errno, $errstr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
+            $fd = @stream_socket_client($transport . '://' . $target, $errno, $errstr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
         } catch (Exception $e) {
             $this->log('ERROR: stream_socket_client exception ' . $e->getMessage());
             $this->log("DETAILS: stream_socket_client ($errno) $errstr");
@@ -333,9 +333,9 @@ class Server extends AppBase
         $fdCnt = 0;
 
         try {	// try нужен для подавления ошибки interrupted system call, возникающей при системном сигнале
-            if ($wrCnt && $rdCnt) $fdCnt = stream_select($rd, $wr, $en, $tSec, $tUsec);
-            else if ($wrCnt) $fdCnt = stream_select($rn, $wr, $en, $tSec, $tUsec);
-            else if ($rdCnt) $fdCnt = stream_select($rd, $wn, $en, $tSec, $tUsec);
+            if ($wrCnt && $rdCnt) $fdCnt = @stream_select($rd, $wr, $en, $tSec, $tUsec);
+            else if ($wrCnt) $fdCnt = @stream_select($rn, $wr, $en, $tSec, $tUsec);
+            else if ($rdCnt) $fdCnt = @stream_select($rd, $wn, $en, $tSec, $tUsec);
             else {
                 sleep($tSec);
                 usleep($tUsec);
@@ -374,7 +374,7 @@ class Server extends AppBase
 // проверяем новые подключения
         if ($this->listen) {
             if (in_array($this->listen, $rd)) {
-                if (($fd = stream_socket_accept($this->listen)) === false) {
+                if (($fd = @stream_socket_accept($this->listen)) === false) {
                     $this->log("ERROR: accept error");
                     $this->softFinish();
                 } else {

@@ -117,9 +117,7 @@ class Daemon extends AppBase
         fclose(STDOUT);
         fclose(STDERR);
 
-// назначаем обработку сигналов
-        declare(ticks = 1);
-
+// set signal handlers
         foreach(static::$signals as $signal => $handler) {
             $sigHandler = array(&$this, $handler);
             pcntl_signal($signal, $sigHandler);

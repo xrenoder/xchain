@@ -24,6 +24,8 @@ if (!is_dir(RUN_PATH)) {
 }
 
 mt_srand((double) microtime() * 1000000);
+//declare(ticks = 1);
+//pcntl_async_signals(true);
 
 spl_autoload_register(
     function (string $className)
