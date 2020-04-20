@@ -31,8 +31,8 @@ class Daemon extends AppBase
         "KILL"
     );
 
-    public $needSoftFinish = false;
-    public $needHardFinish = false;
+    public static $needSoftFinish = false;
+    public static $needHardFinish = false;
 
     /**
      * Daemon constructor.
@@ -114,12 +114,15 @@ class Daemon extends AppBase
         ini_set('error_log', $this->phpErrLogFile);
 
         fclose(STDIN);
+        $stdIn = fopen('/dev/null', 'r');
         fclose(STDOUT);
+        $stdOut = fopen('/dev/null', 'ab');
         fclose(STDERR);
+        $stdErr = fopen('/dev/null', 'ab');
 
 // set signal handlers
         foreach(static::$signals as $signal => $handler) {
-            pcntl_signal($signal, array($this, $handler));
+            pcntl_signal($signal, array(__CLASS__, $handler));
         }
 
         return true;
@@ -170,7 +173,7 @@ class Daemon extends AppBase
      * @param null $pid
      * @param null $status
      */
-    public function signalHardExit($signo) {
+    public static function signalHardExit($signo) {
 //        pcntl_signal($signo, SIG_IGN);
         throw new Exception('SIGTERM');
 //        $this->log("Hard finish by signal $signo");
@@ -183,7 +186,7 @@ class Daemon extends AppBase
      * @param null $pid
      * @param null $status
      */
-    public function signalSoftExit($signo) {
+    public static function signalSoftExit($signo) {
         throw new Exception('SIGHUP');
 //        pcntl_signal($signo, SIG_IGN);
 //        $this->log("Soft finish by signal $signo");
