@@ -10,7 +10,7 @@ define('CLASS_EXT', '.php');
 define('LOG_EXT', '.log');
 
 define('CLASS_PATH', XCHAIN_DIR . 'classes' . DS);
-define('LOG_PATH', XCHAIN_DIR . 'logs' . DS);
+define('LOG_PATH', XCHAIN_DIR . 'logs');
 define('RUN_PATH', XCHAIN_DIR . 'run' . DS);
 
 
