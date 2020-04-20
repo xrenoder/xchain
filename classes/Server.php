@@ -72,18 +72,6 @@ class Server extends AppBase
 
         while (true) {
             pcntl_signal_dispatch();	// проверка наличия неперехваченых сигналов
-            if ($GLOBALS['hardFinish']) {
-                throw new Exception('SIGTERM');
-                $GLOBALS['hardFinish'] = false;
-                $this->app->daemon->signalHardExit();
-            }
-
-            if ($GLOBALS['softFinish']) {
-                throw new Exception('SIGHUP');
-                $GLOBALS['softFinish'] = false;
-                $this->app->daemon->signalSoftExit();
-            }
-
             $this->garbageCollect();
 
             $this->select();

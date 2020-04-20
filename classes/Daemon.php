@@ -120,10 +120,8 @@ class Daemon extends AppBase
 // set signal handlers
         foreach(static::$signals as $signal => $handler) {
             pcntl_signal($signal, $handler);
-            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
+//            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
         }
-
-        pcntl_async_signals(true);
 
         return true;
     }

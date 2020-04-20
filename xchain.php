@@ -10,14 +10,14 @@ $app = new App();
 
 $app->run();
 
-function signalSoftExit($signo)
+function signalSoftExit($signo = null)
 {
     throw new Exception('SIGHUP');
-    $GLOBALS['softFinish'] = true;
+//    $GLOBALS['softFinish'] = true;
 }
 
-function signalHardExit($signo)
+function signalHardExit($signo = null)
 {
     throw new Exception('SIGTERM');
-    $GLOBALS['hardFinish'] = true;
+//    $GLOBALS['hardFinish'] = true;
 }
