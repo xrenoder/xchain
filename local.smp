@@ -4,7 +4,7 @@ define('MY_PORT', 9597);                       // port of this node
 define('REMOTE_HOST', '103.195.6.214:9597');   // remote node "IP:port" for first connect or "0.0.0.0:0" if this is first node in network
 
 define('DS', DIRECTORY_SEPARATOR);
-define('XCHAIN_DIR', '~' . DS . 'xchain' . DS); // default xchain work directory (You can change it)
+define('XCHAIN_DIR', $_SERVER['HOME'] . DS . 'xchain' . DS); // default xchain work directory (You can change it)
 
 define('SCRIPT_NAME', 'xchain.php');            // name of this file to autorestart if down
 
