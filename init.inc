@@ -12,8 +12,8 @@ if (!defined('CLASS_EXT')) {
 }
 
 if (!is_dir(LOG_PATH)) {
-    if (!mkdir($concurrentDirectory = LOG_PATH) && !is_dir($concurrentDirectory)) {
-        throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+    if (!mkdir(LOG_PATH) || !is_dir(LOG_PATH)) {
+        throw new RuntimeException(sprintf('Directory "%s" was not created', LOG_PATH));
     }
 }
 
