@@ -132,9 +132,9 @@ class Server extends AppBase
             $this->closeSocket($this->sockets[$key][self::FD_KEY]);
         }
 
-        $this->simpleLog("Maximum sockets: " . $this->maxClients);
-        $this->simpleLog(" ******** Daemon " . $this->app->daemon->getPid() . " close all sockets & finished");
-        $this->simpleLog(" ******** ");
+        $this->log("Maximum sockets: " . $this->maxClients);
+        $this->log(" ******** Daemon " . $this->app->daemon->getPid() . " close all sockets & finished");
+        $this->log(" ******** ");
 
         exit(0);
     }
@@ -262,8 +262,8 @@ class Server extends AppBase
         try {
             $fd = stream_socket_client($transport . '://' . $target, $errno, $errstr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
         } catch (Exception $e) {
-            $this->simpleLog('ERROR: stream_socket_client exception ' . $e->getMessage());
-            $this->simpleLog("DETAILS: stream_socket_client ($errno) $errstr");
+            $this->log('ERROR: stream_socket_client exception ' . $e->getMessage());
+            $this->log("DETAILS: stream_socket_client ($errno) $errstr");
         }
 
         if (!$fd) return null;
@@ -343,7 +343,7 @@ class Server extends AppBase
                 return false;
             }
         } catch (Exception $e) {
-            $this->simpleLog("ERROR: select exception " . $e->getMessage());
+            $this->log("ERROR: select exception " . $e->getMessage());
         }
 
         $this->nowTime = time();
@@ -375,7 +375,7 @@ class Server extends AppBase
         if ($this->listen) {
             if (in_array($this->listen, $rd)) {
                 if (($fd = stream_socket_accept($this->listen)) === false) {
-                    $this->simpleLog("ERROR: accept error");
+                    $this->log("ERROR: accept error");
                     $this->softFinish();
                 } else {
                     $this->addNewClient($fd);
@@ -484,7 +484,8 @@ class Server extends AppBase
         return $result;			// true возвращается только при получении пакета "демон жив"
     }
 
-    private function clientPacket($packet, $key) {
+    private function clientPacket($packet, $key)
+    {
         if ($packet === self::ALIVE_REQ) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
             $this->addSending(self::ALIVE_RES, $key);
             return false;
@@ -518,7 +519,8 @@ class Server extends AppBase
         return false;
     }
 
-    private function externalPacket($packet, $key) {
+    private function externalPacket($packet, $key)
+    {
         if ($packet === self::ALIVE_RES) {			// ответ "демон жив" не перенаправляем клиенту
             return true;
         }
@@ -531,7 +533,8 @@ class Server extends AppBase
         return false;
     }
 
-    private function garbageCollect() {
+    private function garbageCollect()
+    {
         if (($this->nowTime - $this->garbTime) < self::GARBAGE_TIMEOUT) return;
 
         gc_enable();

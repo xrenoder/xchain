@@ -74,7 +74,7 @@ class Daemon extends AppBase
                 }
             }
 
-            $this->simpleLog("Daemon will be killed (pid $oldPid)");
+            $this->log("Daemon will be killed (pid $oldPid)");
             $this->kill($oldPid);
         }
 
@@ -95,7 +95,7 @@ class Daemon extends AppBase
             flock($fd, LOCK_UN);
             fclose($fd);
 
-            $this->simpleLog("Daemon will be started (pid $this->pid)");
+            $this->log("Daemon will be started (pid $this->pid)");
             exit(0);
         }
 
@@ -106,7 +106,7 @@ class Daemon extends AppBase
         flock($fd, LOCK_UN);
         fclose($fd);
 
-        $this->simpleLog("Daemon started (pid $this->pid)");
+        $this->log("Daemon started (pid $this->pid)");
 
 // unmount console and standard IO channels, set new PHP error log
         posix_setsid();
@@ -137,11 +137,11 @@ class Daemon extends AppBase
             $check = shell_exec($checkCmd);
 
             if (strpos($check, $this->app->getName()) !== false) {
-                $this->simpleLog("Old daemon process $pid will be killed by SIG$sig");
+                $this->log("Old daemon process $pid will be killed by SIG$sig");
                 $killCmd = "kill -$sig " . $pid;
                 $nokill = $this->commandExec($killCmd, 0);
             } else {
-                $this->simpleLog("Old daemon process $pid is dead");
+                $this->log("Old daemon process $pid is dead");
                 break;
             }
 
@@ -175,7 +175,7 @@ class Daemon extends AppBase
      */
     public function signalHardExit($signo, $pid = null, $status = null) {
         pcntl_signal($signo, SIG_IGN);
-        $this->simpleLog("Hard finish by signal $signo");
+        $this->log("Hard finish by signal $signo");
         $this->app->server->hardFinish();
     }
 
@@ -187,7 +187,7 @@ class Daemon extends AppBase
      */
     public function signalSoftExit($signo, $pid = null, $status = null) {
         pcntl_signal($signo, SIG_IGN);
-        $this->simpleLog("Soft finish by signal $signo");
+        $this->log("Soft finish by signal $signo");
         $this->app->server->softFinish();
     }
 
