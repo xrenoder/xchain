@@ -162,7 +162,7 @@ class Daemon extends AppBase
     }
 
 
-    public function signalHandler($signo, $siginfo = null) {
+    public function signalHandler($signo) {
         $this->signalSubHandler($signo);
     }
 
