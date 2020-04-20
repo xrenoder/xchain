@@ -6,10 +6,6 @@ define('REMOTE_HOST', '103.195.6.214:9597');   // remote node "IP:port" for firs
 define('DS', DIRECTORY_SEPARATOR);
 define('XCHAIN_DIR', '~' . DS . 'xchain' . DS); // default xchain work directory (You can change it)
 
-define('DAEMON_NAME', 'xchain.php');        // name of this file to autorestart if down
-define('PS_COMMAND', 'ps fuwww -p');        // TODO check to crossplatform command
-
-
+define('SCRIPT_NAME', 'xchain.php');            // name of this file to autorestart if down
 
 require_once 'global.inc';
-

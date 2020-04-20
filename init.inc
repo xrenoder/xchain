@@ -1,4 +1,7 @@
 <?php
+error_reporting (E_ALL ^ E_NOTICE);
+ini_set('display_errors', 'Off');
+set_time_limit(0);
 
 if (!defined('CLASS_PATH')) {
     throw new Exception('CLASS_PATH should be defined');
@@ -8,9 +11,17 @@ if (!defined('CLASS_EXT')) {
     throw new Exception('CLASS_EXT should be defined');
 }
 
-error_reporting (E_ALL ^ E_NOTICE);
-ini_set('display_errors', 'Off');
-set_time_limit(0);
+if (!is_dir(LOG_PATH)) {
+    if (!mkdir($concurrentDirectory = LOG_PATH) && !is_dir($concurrentDirectory)) {
+        throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+    }
+}
+
+if (!is_dir(RUN_PATH)) {
+    if (!mkdir($concurrentDirectory = RUN_PATH) && !is_dir($concurrentDirectory)) {
+        throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+    }
+}
 
 mt_srand((double) microtime() * 1000000);
 
@@ -39,7 +50,7 @@ function deepToDirsFileSearch(string $dir, string $fileName)
 
     if ($handle = opendir($dir)) {
         while (($item = readdir($handle)) !== false) {
-            if ($item === "." || $item === "..") continue;
+            if ($item === '.' || $item === '..') continue;
 
             $subDir = $dir . DS . $item;
             $subDir = str_replace(DS . DS, DS, $subDir);
