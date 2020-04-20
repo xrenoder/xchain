@@ -41,7 +41,7 @@ class App
 
             $this->server->run();
         } catch (Exception $e) {
-
+            throw new RuntimeException($e->getMessage());
         }
     }
 
