@@ -23,12 +23,12 @@ class Logger extends AppBase
         $this->errFile = $errFile;
     }
 
-    public function log(string $message)
+    public function simpleLog(string $message)
     {
         $this->write($this->logFile, $this->getDate() . ' ' . $message . "\n");
     }
 
-    public function error(string $message)
+    public function errorLog(string $message)
     {
         $this->write($this->errFile, $this->getDate() . ' ' . $message . "\n");
     }

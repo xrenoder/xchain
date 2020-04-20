@@ -22,7 +22,7 @@ class AppBase
      * @param $message
      */
     protected function log($message) {
-        $this->app->logger->log($message);
+        $this->app->logger->simpleLog($message);
     }
 
     /**
@@ -30,7 +30,7 @@ class AppBase
      * @param $message
      */
     protected function err($message) {
-        $this->app->logger->error($message);
+        $this->app->logger->errorLog($message);
     }
 
     public function getAppName() {

@@ -132,9 +132,9 @@ class Server extends AppBase
             $this->closeSocket($this->sockets[$key][self::FD_KEY]);
         }
 
-        $this->log("Maximum sockets: " . $this->maxClients);
-        $this->log(" ******** Daemon " . $this->app->daemon->getPid() . " close all sockets & finished");
-        $this->log(" ******** ");
+        $this->simpleLog("Maximum sockets: " . $this->maxClients);
+        $this->simpleLog(" ******** Daemon " . $this->app->daemon->getPid() . " close all sockets & finished");
+        $this->simpleLog(" ******** ");
 
         exit(0);
     }
@@ -262,8 +262,8 @@ class Server extends AppBase
         try {
             $fd = stream_socket_client($transport . '://' . $target, $errno, $errstr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
         } catch (Exception $e) {
-            $this->log('ERROR: stream_socket_client exception ' . $e->getMessage());
-            $this->log("DETAILS: stream_socket_client ($errno) $errstr");
+            $this->simpleLog('ERROR: stream_socket_client exception ' . $e->getMessage());
+            $this->simpleLog("DETAILS: stream_socket_client ($errno) $errstr");
         }
 
         if (!$fd) return null;
@@ -343,7 +343,7 @@ class Server extends AppBase
                 return false;
             }
         } catch (Exception $e) {
-            $this->log("ERROR: select exception " . $e->getMessage());
+            $this->simpleLog("ERROR: select exception " . $e->getMessage());
         }
 
         $this->nowTime = time();
@@ -375,7 +375,7 @@ class Server extends AppBase
         if ($this->listen) {
             if (in_array($this->listen, $rd)) {
                 if (($fd = stream_socket_accept($this->listen)) === false) {
-                    $this->log("ERROR: accept error");
+                    $this->simpleLog("ERROR: accept error");
                     $this->softFinish();
                 } else {
                     $this->addNewClient($fd);
