@@ -12,7 +12,7 @@ if (!defined('CLASS_EXT')) {
 }
 
 if (!is_dir(LOG_PATH)) {
-    if (!mkdir(LOG_PATH) || !is_dir(LOG_PATH)) {
+    if (!mkdir(LOG_PATH)) {
         throw new RuntimeException(sprintf('Directory "%s" was not created', LOG_PATH));
     }
 }
