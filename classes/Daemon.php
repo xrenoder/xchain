@@ -120,13 +120,13 @@ class Daemon extends AppBase
 // set signal handlers
         foreach(static::$signals as $signal => $handler) {
             pcntl_signal($signal, $handler);
-//            $this->log(var_export(pcntl_signal_get_handler($signal), true));
+            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
         }
 
         return true;
     }
 
-// прибиваем зависшего демона сигналами: мягкий, жесткий, контрольный в голову
+// прибиваем демона сигналами: мягкий, жесткий, контрольный в голову
     private function kill($pid) {
         foreach(static::$kills as $sig) {
             $nokill = 1;
