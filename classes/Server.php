@@ -1,9 +1,19 @@
 <?php
 /**
- * Work with sockets: listen, select, read, write
+ * Work with sockets: listen, select, accept, read, write
  */
 class Server extends AppBase
 {
+    /** @var string */
+    private $ip;
+    public function setIp($val) {$this->ip = $val; return $this;}
+//    public function getIp() {return $this->ip;}
+
+    /** @var string */
+    private $port;
+    public function setPort($val) {$this->port = $val; return $this;}
+//    public function getPort() {return $this->port;}
+
     private const ALIVE_TIMEOUT = 10;
     private const SELECT_TIMEOUT_SEC = 0;
     private const SELECT_TIMEOUT_USEC = 50000;
@@ -28,12 +38,6 @@ class Server extends AppBase
     private const EXT_KEY_PREFIX = 'ext';
     private const CLIENTS_KEY_PREFIX = 'cln';
 
-    /** @var string */
-    private $localIp = null;
-
-    /** @var string */
-    private $localPort = null;
-
     /** @var bool */
     private $end = false;
     private $listenSocket = null;
@@ -45,23 +49,27 @@ class Server extends AppBase
     private $recvs = array();
     private $sockCounter = 0;
     private $maxSockCounter = 1024;
-    /**
-     * @var int
-     */
+
     private $nowTime = null;
     private $garbTime = null;
 
     /**
-     * Server constructor.
+     * Creating Server object
      * @param App $app
      * @param string $localIp
      * @param string $localPort
+     * @return Server
      */
-    public function __construct(App $app, string $localIp, string $localPort)
+    public static function create(App $app, string $localIp, string $localPort): Server
     {
-        parent::__construct($app);
-        $this->localIp = $localIp;
-        $this->localPort = $localPort;
+        $me = new self($app);
+
+        $me->setIp($localIp);
+        $me->setPort($localPort);
+
+        $me->getApp()->setServer($me);
+
+        return $me;
     }
 
     public function run() {
@@ -108,7 +116,7 @@ class Server extends AppBase
     {
         $result = false;
 
-        $key = $this->connect($this->localIp, $this->localPort);
+        $key = $this->connect($this->ip, $this->port);
 
         if ($key) {
             $this->addSending(self::ALIVE_REQ, $key);
@@ -137,7 +145,7 @@ class Server extends AppBase
         }
 
         $this->log("Maximum sockets: " . $this->maxClients);
-        $this->log(" ******** Daemon " . $this->app->daemon->getPid() . " close all sockets & finished");
+        $this->log(" ******** Daemon " . $this->getApp()->getDaemon()->getPid() . " close all sockets & finished");
         $this->log(" ******** ");
 
         exit(0);
@@ -161,7 +169,7 @@ class Server extends AppBase
         }
 */
         $transport = self::TCP_TRANSPORT;
-        $target = $this->localIp . ":" . $this->localPort;
+        $target = $this->ip . ":" . $this->port;
 
         $fd = stream_socket_server($transport . "://" . $target, $errno, $errstr);
 

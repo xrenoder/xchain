@@ -4,23 +4,25 @@
  */
 class Daemon extends AppBase
 {
+    /** @var string */
+    private $pidFile;
+    public function setPidFile($val) {$this->pidFile = $val; return $this;}
+    public function getPidFile() {return $this->pidFile;}
+
+    /** @var string */
+    private $runPath;
+    public function setRunPath($val) {$this->runPath = $val; return $this;}
+    public function getRunPath() {return $this->runPath;}
+
     private const READ_BUFFER = 8192;
     private const CMD_RESTART = 'restart';				// command to force daemon restart
     private const CMD_STOP = 'stop';					// command to force daemon stop
     private const PS_COMMAND = "ps fuwww -p";
     private const KILL_TIMEOUT = 10;
 
-    /** @var string */
-    private $pidFile = null;
-
-    /** @var string */
-    private $phpErrLogFile = null;
-
-    /** @var string */
-    private $runPath = null;
-
     /** @var int */
     private $pid = null;
+    public function getPid() {return $this->pid;}
 
     /** @var string[] */
     private static $signals = array (
@@ -39,23 +41,26 @@ class Daemon extends AppBase
      * @param App $app
      * @param string $logPath
      * @param string $runPath
+     * @return Daemon
      */
-    public function __construct(App $app, string $logPath, string $runPath)
+    public static function create(App $app, string $logPath, string $runPath): Daemon
     {
-        parent::__construct($app);
-        $this->runPath = $runPath;
-        $this->pidFile = $runPath . 'pid';
-        $this->phpErrLogFile = $logPath . 'php.err';
+        $me = new self($app);
+
+        $me->setRunPath($runPath);
+        $me->setPidFile($runPath . 'pid');
+
+        $me->getApp()->setDaemon($me);
+
+        return $me;
     }
 
     /**
      * Daemon start or stop or restart
-     * @param string $localIp
-     * @param integer $localPort
      * @param string $command
      * @return bool
      */
-    public function start(string $command = null): bool
+    public function run(string $command = null): bool
     {
         set_time_limit(0);
 
@@ -67,7 +72,7 @@ class Daemon extends AppBase
         if ($oldPid) {
             if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP) {
 // exit if daemon is alive
-                if ($this->app->server->isDaemonAlive()) {
+                if ($this->getApp()->getServer()->isDaemonAlive()) {
                     flock($fd, LOCK_UN);
                     fclose($fd);
                     echo "Daemon alive ($oldPid) \n";
@@ -101,7 +106,7 @@ class Daemon extends AppBase
         }
 
 // read pid of new daemon from file
-        $fd = fopen($this->pidFile, 'r');
+        $fd = fopen($this->pidFile, 'rb');
         flock($fd, LOCK_SH);
         $this->pid = fread($fd, filesize($this->pidFile));
         flock($fd, LOCK_UN);
@@ -112,7 +117,7 @@ class Daemon extends AppBase
 // unmount console and standard IO channels, set new PHP error log
         posix_setsid();
         chdir('/');
-        ini_set('error_log', $this->phpErrLogFile);
+        ini_set('error_log', $this->getApp()->getLogger()->getPhpErrFile());
 
         fclose(STDIN);
         $stdIn = fopen('/dev/null', 'rb');
@@ -124,7 +129,7 @@ class Daemon extends AppBase
 // set signal handlers
         foreach(static::$signals as $signal => $handler) {
             pcntl_signal($signal, array($this, $handler));
-            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
+//            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
         }
 
         return true;
@@ -138,7 +143,7 @@ class Daemon extends AppBase
             $checkCmd = self::PS_COMMAND . " " . $pid;
             $check = shell_exec($checkCmd);
 
-            if (strpos($check, $this->app->getName()) !== false) {
+            if (strpos($check, $this->getApp()->getName()) !== false) {
                 $killCmd = "kill -$sig " . $pid;
                 $this->log("Old daemon process $pid will be killed by SIG$sig  : " . $killCmd);
                 $nokill = $this->commandExec($killCmd, 0);
@@ -177,8 +182,8 @@ class Daemon extends AppBase
      */
     public function signalHardExit($signo) {
         pcntl_signal($signo, SIG_IGN);
-//        $this->log("Hard finish by signal $signo");
-//        $this->app->server->hardFinish();
+        $this->log("Hard finish by signal $signo");
+        $this->getApp()->getServer()->hardFinish();
     }
 
     /**
@@ -189,14 +194,7 @@ class Daemon extends AppBase
      */
     public function signalSoftExit($signo) {
         pcntl_signal($signo, SIG_IGN);
-//        $this->log("Soft finish by signal");
-//        $this->app->server->softFinish();
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getPid() {
-        return $this->pid;
+        $this->log("Soft finish by signal");
+        $this->getApp()->getServer()->softFinish();
     }
 }

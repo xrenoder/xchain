@@ -1,18 +1,17 @@
 #!/usr/local/bin/php
 <?php
 require_once 'local.inc';
-require_once 'App.php';
 
-$app = new App();
+$app = new App(SCRIPT_NAME);
+Logger::create($app,LOG_PATH, 'xchain.log', 'error.log', 'php.err');
+Server::create($app,MY_IP, MY_PORT);
+Daemon::create($app,LOG_PATH, RUN_PATH);
 
-$app->run();
+$command = null;
 
-function signalSoftExit($signo = null)
-{
-    pcntl_signal($signo, SIG_IGN);
+if ($_SERVER['argc'] >= 2) {
+    $command = $_SERVER['argv'][1];
 }
 
-function signalHardExit($signo = null)
-{
-    pcntl_signal($signo, SIG_IGN);
-}
+$app->run($command);
+

@@ -6,7 +6,9 @@
 class AppBase
 {
     /** @var App */
-    protected $app = null;
+    private $app;
+    protected function setApp($val) {$this->app = $val; return $this;}
+    protected function getApp() {return $this->app;}
 
     /**
      * AppBase constructor.
@@ -14,7 +16,7 @@ class AppBase
      */
     protected function __construct(App $app)
     {
-        $this->app = $app;
+        $this->setApp($app);
     }
 
     /**
@@ -22,7 +24,7 @@ class AppBase
      * @param $message
      */
     protected function log($message) {
-        $this->app->logger->simpleLog($message);
+        $this->getApp()->getLogger()->simpleLog($message);
     }
 
     /**
@@ -30,10 +32,10 @@ class AppBase
      * @param $message
      */
     protected function err($message) {
-        $this->app->logger->errorLog($message);
+        $this->getApp()->getLogger()->errorLog($message);
     }
 
     public function getAppName() {
-        return $this->app->getName();
+        return $this->getApp()->getName();
     }
 }

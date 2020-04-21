@@ -5,22 +5,41 @@
 class Logger extends AppBase
 {
     /** @var string */
-    private $logFile = null;
+    private $logFile;
+    public function setLogFile($val) {$this->logFile = $val; return $this;}
+//    public function getLogFile() {return $this->logFile;}
 
     /** @var string */
-    private $errFile = null;
+    private $errFile;
+    public function setErrFile($val) {$this->errFile = $val; return $this;}
+//    public function getErrFile() {return $this->errFile;}
+
+    /** @var string */
+    private $phpErrFile;
+    public function setPhpErrFile($val) {$this->phpErrFile = $val; return $this;}
+    public function getPhpErrFile() {return $this->phpErrFile;}
 
     /**
-     * Log constructor.
+     * Creating Logger object
+     *
      * @param App $app
-     * @param string $logFile
-     * @param string $errFile
+     * @param string $logPath
+     * @param string $logName
+     * @param string $errName
+     * @param string $phpErrName
+     * @return Logger
      */
-    public function __construct(App $app, string $logFile, string $errFile)
+    public static function create(App $app, string $logPath, string $logName, string $errName, string $phpErrName): Logger
     {
-        parent::__construct($app);
-        $this->logFile = $logFile;
-        $this->errFile = $errFile;
+        $me = new self($app);
+
+        $me->setLogFile($logPath . $logName);
+        $me->setErrFile($logPath . $errName);
+        $me->setPhpErrFile($logPath . $phpErrName);
+
+        $me->getApp()->setLogger($me);
+
+        return $me;
     }
 
     public function simpleLog(string $message)
