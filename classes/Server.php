@@ -178,9 +178,10 @@ class Server extends AppBase
         if ($this->listenSocket) {
             if (in_array($this->listenSocket, $rd)) {
                 if (($fd = @stream_socket_accept($this->listenSocket)) === false) {
-                    $this->err("ERROR: accept error");
+                    $this->err('ERROR: accept error');
                     $this->softFinish();
                 } else {
+                    $this->log('Accept connection');
                     $this->addNewClient($fd);
                 }
 
@@ -524,6 +525,7 @@ class Server extends AppBase
     private function clientPacket($packet, $key): bool
     {
         if ($packet === self::ALIVE_REQ) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
+            $this->log('Alive request');
             $this->addSending(self::ALIVE_RES, $key);
             return false;
         }
@@ -548,6 +550,7 @@ class Server extends AppBase
     private function externalPacket($packet, $key): bool
     {
         if ($packet === self::ALIVE_RES) {			// ответ "демон жив" не перенаправляем клиенту
+            $this->log('Alive response');
             return true;
         }
 
