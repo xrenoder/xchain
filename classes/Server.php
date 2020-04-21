@@ -71,7 +71,8 @@ class Server extends AppBase
         $this->listen();
 
         while (true) {
-            pcntl_signal_dispatch();
+//            pcntl_signal_dispatch();
+            pcntl_async_signals(true);
             $this->garbageCollect();
 
             $this->select();
@@ -542,7 +543,7 @@ class Server extends AppBase
         if (($this->nowTime - $this->garbTime) < self::GARBAGE_TIMEOUT) return;
 
         gc_enable();
-        $garbCnt = gc_collect_cycles();
+        gc_collect_cycles();
         gc_disable();
 
         $this->garbTime = $this->nowTime;
