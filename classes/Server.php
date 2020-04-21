@@ -70,6 +70,9 @@ class Server extends AppBase
 
         $this->listen();
 
+        $this->log("Sig SIGHUP : "  . var_export(pcntl_signal_get_handler(SIGHUP), true));
+        $this->log("Sig SIGTERM : "  . var_export(pcntl_signal_get_handler(SIGTERM), true));
+
         while (true) {
             pcntl_signal_dispatch();	// проверка наличия неперехваченых сигналов
             $this->garbageCollect();
