@@ -123,8 +123,8 @@ class Daemon extends AppBase
 
 // set signal handlers
         foreach(static::$signals as $signal => $handler) {
-            pcntl_signal($signal, $handler);
-//            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
+            pcntl_signal($signal, array($this, $handler));
+            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
         }
 
         return true;
@@ -176,8 +176,7 @@ class Daemon extends AppBase
      * @param null $status
      */
     public function signalHardExit($signo) {
-        throw new Exception('SIGTERM');
-//        pcntl_signal($signo, SIG_IGN);
+        pcntl_signal($signo, SIG_IGN);
 //        $this->log("Hard finish by signal $signo");
 //        $this->app->server->hardFinish();
     }
@@ -189,8 +188,7 @@ class Daemon extends AppBase
      * @param null $status
      */
     public function signalSoftExit($signo) {
-        throw new Exception('SIGHUP');
-//        pcntl_signal($signo, SIG_IGN);
+        pcntl_signal($signo, SIG_IGN);
 //        $this->log("Soft finish by signal");
 //        $this->app->server->softFinish();
     }
