@@ -135,8 +135,8 @@ class Daemon extends AppBase
             $check = shell_exec($checkCmd);
 
             if (strpos($check, $this->app->getName()) !== false) {
-                $this->log("Old daemon process $pid will be killed by SIG$sig");
                 $killCmd = "kill -$sig " . $pid;
+                $this->log("Old daemon process $pid will be killed by SIG$sig  : " . $killCmd);
                 $nokill = $this->commandExec($killCmd, 0);
             } else {
                 $this->log("Old daemon process $pid is dead");
