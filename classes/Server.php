@@ -78,9 +78,10 @@ class Server extends AppBase
 
         $this->listen();
 
+        pcntl_async_signals(true);
+
         while (true) {
             pcntl_signal_dispatch();
-//            pcntl_async_signals(true);
             $this->garbageCollect();
 
             $this->select();
