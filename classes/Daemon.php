@@ -72,11 +72,13 @@ class Daemon extends AppBase
 
         if ($oldPid) {
             // exit if daemon is alive
-            if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP && $this->getApp()->getServer()->isDaemonAlive()) {
-                flock($fd, LOCK_UN);
-                fclose($fd);
-                echo "Daemon alive ($oldPid) \n";
-                exit(0);
+            if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP) {
+                if ($this->getApp()->getServer()->isDaemonAlive()) {
+                    flock($fd, LOCK_UN);
+                    fclose($fd);
+                    echo "Daemon alive ($oldPid) \n";
+                    exit(0);
+                }
             }
 
             $this->log("Daemon will be killed (pid $oldPid)");
