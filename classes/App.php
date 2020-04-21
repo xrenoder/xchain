@@ -5,7 +5,8 @@
 class App
 {
     /** @var string */
-    private $name = null;
+    private $name;
+
     public function setName($val) {$this->name = $val; return $this;}
     public function getName() {return $this->name;}
 
@@ -21,32 +22,15 @@ class App
 
     /** @var Server */
     private $server;
-    public function setServer($val) {$this->server = $val; return $this;}
+    public function setServer($val): App {$this->server = $val; return $this;}
     public function getServer() {return $this->server;}
 
     /**
      * AppBase constructor.
-     * @param App $app
+     * @param string $name
      */
     public function __construct(string $name)
     {
         $this->setName($name);
-    }
-
-    /**
-     * Running application
-     */
-    public function run(string $command)
-    {
-        try {
-            if (!$this->getDaemon()->run($command)) {
-                throw new Exception('Cannot daemon start');
-            }
-
-            $this->getServer()->run();
-
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage());
-        }
     }
 }

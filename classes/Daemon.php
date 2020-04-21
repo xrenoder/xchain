@@ -7,21 +7,21 @@ class Daemon extends AppBase
     /** @var string */
     private $pidFile;
     public function setPidFile($val) {$this->pidFile = $val; return $this;}
-    public function getPidFile() {return $this->pidFile;}
+//    public function getPidFile() {return $this->pidFile;}
 
     /** @var string */
     private $runPath;
     public function setRunPath($val) {$this->runPath = $val; return $this;}
-    public function getRunPath() {return $this->runPath;}
+//    public function getRunPath() {return $this->runPath;}
 
     private const READ_BUFFER = 8192;
     private const CMD_RESTART = 'restart';				// command to force daemon restart
     private const CMD_STOP = 'stop';					// command to force daemon stop
-    private const PS_COMMAND = "ps fuwww -p";
+    private const PS_COMMAND = 'ps fuwww -p';
     private const KILL_TIMEOUT = 10;
 
     /** @var int */
-    private $pid = null;
+    private $pid;
     public function getPid() {return $this->pid;}
 
     /** @var string[] */
@@ -30,25 +30,26 @@ class Daemon extends AppBase
         SIGTERM => 'signalHardExit',
     );
 
+    /** @var string[] */
     private static $kills = array (		// последовательность сигналов при убивании зависшего демона
-        "HUP",
-        "TERM",
-        "KILL"
+        'HUP',
+        'TERM',
+        'KILL'
     );
 
     /**
      * Daemon constructor.
      * @param App $app
-     * @param string $logPath
      * @param string $runPath
+     * @param string $pidName
      * @return Daemon
      */
-    public static function create(App $app, string $logPath, string $runPath): Daemon
+    public static function create(App $app, string $runPath, string $pidName): Daemon
     {
         $me = new self($app);
 
         $me->setRunPath($runPath);
-        $me->setPidFile($runPath . 'pid');
+        $me->setPidFile($runPath . $pidName);
 
         $me->getApp()->setDaemon($me);
 
@@ -70,14 +71,12 @@ class Daemon extends AppBase
         fseek($fd, 0);
 
         if ($oldPid) {
-            if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP) {
-// exit if daemon is alive
-                if ($this->getApp()->getServer()->isDaemonAlive()) {
-                    flock($fd, LOCK_UN);
-                    fclose($fd);
-                    echo "Daemon alive ($oldPid) \n";
-                    exit(0);
-                }
+            // exit if daemon is alive
+            if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP && $this->getApp()->getServer()->isDaemonAlive()) {
+                flock($fd, LOCK_UN);
+                fclose($fd);
+                echo "Daemon alive ($oldPid) \n";
+                exit(0);
             }
 
             $this->log("Daemon will be killed (pid $oldPid)");
@@ -120,16 +119,15 @@ class Daemon extends AppBase
         ini_set('error_log', $this->getApp()->getLogger()->getPhpErrFile());
 
         fclose(STDIN);
-        $stdIn = fopen('/dev/null', 'rb');
+        fopen('/dev/null', 'rb');
         fclose(STDOUT);
-        $stdOut = fopen($this->runPath . 'stdout', 'ab');
+        fopen('/dev/null', 'ab');
         fclose(STDERR);
-        $stdErr = fopen($this->runPath . 'stderr', 'ab');
+        fopen('/dev/null', 'ab');
 
 // set signal handlers
         foreach(static::$signals as $signal => $handler) {
             pcntl_signal($signal, array($this, $handler));
-//            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
         }
 
         pcntl_async_signals(true);
@@ -137,12 +135,16 @@ class Daemon extends AppBase
         return true;
     }
 
-// прибиваем демона сигналами: мягкий, жесткий, контрольный в голову
-    private function kill($pid) {
+    /**
+     * Kill daemon with signals: SIGHUP, SIGTERM, SIGKILL
+     * @param $pid
+     */
+    private function kill($pid): void
+    {
         foreach(static::$kills as $sig) {
             $nokill = 1;
 
-            $checkCmd = self::PS_COMMAND . " " . $pid;
+            $checkCmd = self::PS_COMMAND . ' ' . $pid;
             $check = shell_exec($checkCmd);
 
             if (strpos($check, $this->getApp()->getName()) !== false) {
@@ -154,20 +156,26 @@ class Daemon extends AppBase
                 break;
             }
 
-            if (!$nokill) {
-                if ($sig !== "KILL") sleep(self::KILL_TIMEOUT);
+            if (!$nokill && $sig !== 'KILL') {
+                sleep(self::KILL_TIMEOUT);
             }
         }
     }
 
-    private function commandExec($command, $normalExitStatus)
+    /**
+     * Execute command in *nix command line
+     * @param $command
+     * @param $normalExitStatus
+     * @return string
+     */
+    private function commandExec($command, $normalExitStatus): string
     {
         $output = array();
-        $answer = "";
+        $answer = '';
 
         exec($command, $output, $status);
 
-        if ($normalExitStatus >=0 && $status != $normalExitStatus) {    //ошибка
+        if ($normalExitStatus >= 0 && $status !== $normalExitStatus) {    //ошибка
             $answer = implode("\n", $output);
         } else if ($normalExitStatus < 0) {                             //ошибка если есть ответ
             $answer = @implode("\n", $output);
@@ -179,10 +187,9 @@ class Daemon extends AppBase
     /**
      * Signal SIGTERM handler
      * @param $signo
-     * @param null $pid
-     * @param null $status
      */
-    public function signalHardExit($signo) {
+    public function signalHardExit($signo): void
+    {
         pcntl_signal($signo, SIG_IGN);
         $this->log("Hard finish by signal $signo");
         $this->getApp()->getServer()->hardFinish();
@@ -191,12 +198,11 @@ class Daemon extends AppBase
     /**
      * Signal SIGHUP handler
      * @param $signo
-     * @param null $pid
-     * @param null $status
      */
-    public function signalSoftExit($signo) {
+    public function signalSoftExit($signo): void
+    {
         pcntl_signal($signo, SIG_IGN);
-        $this->log("Soft finish by signal");
+        $this->log('Soft finish by signal');
         $this->getApp()->getServer()->softFinish();
     }
 }

@@ -42,24 +42,37 @@ class Logger extends AppBase
         return $me;
     }
 
-    public function simpleLog(string $message)
+    /**
+     * @param string $message
+     */
+    public function simpleLog(string $message): void
     {
         $this->write($this->logFile, $this->getDate() . ' ' . $message . "\n");
     }
 
-    public function errorLog(string $message)
+    /**
+     * @param string $message
+     */
+    public function errorLog(string $message): void
     {
         $this->write($this->errFile, $this->getDate() . ' ' . $message . "\n");
     }
 
-    private function getDate()
+    /**
+     * @return string
+     */
+    private function getDate(): string
     {
-        return date("[Y-M-d H:i:s O]");
+        return date('[Y-M-d H:i:s O]');
     }
 
-    private function write($file, $message)
+    /**
+     * @param string $file
+     * @param string $message
+     */
+    private function write(string $file, string $message): void
     {
-        $fd = fopen($file, "ab");
+        $fd = fopen($file, 'ab');
         flock($fd, LOCK_EX);
         fwrite($fd, $message);
         flock($fd, LOCK_UN);

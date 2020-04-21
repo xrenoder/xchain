@@ -40,18 +40,16 @@ class Server extends AppBase
 
     /** @var bool */
     private $end = false;
-    private $listenSocket = null;
+    private $listenSocket;
     /** @var array */
     private $sockets = array();
-    /** @var int */
-    private $maxClients = 0;
     private $sends = array();
     private $recvs = array();
     private $sockCounter = 0;
     private $maxSockCounter = 1024;
 
-    private $nowTime = null;
-    private $garbTime = null;
+    private $nowTime;
+    private $garbTime;
 
     /**
      * Creating Server object
@@ -72,7 +70,11 @@ class Server extends AppBase
         return $me;
     }
 
-    public function run() {
+    /**
+     * Running server
+     */
+    public function run(): void
+    {
         $this->nowTime = time();
         $this->garbTime = time();
 
@@ -111,225 +113,12 @@ class Server extends AppBase
         $this->hardFinish();
     }
 
-    public function isDaemonAlive()
-    {
-        $result = false;
-
-        $key = $this->connect($this->ip, $this->port);
-
-        if ($key) {
-            $this->addSending(self::ALIVE_REQ, $key);
-
-            $beg = time();
-
-            while ((time() - $beg) < self::ALIVE_TIMEOUT) {
-                if ($this->select()) {
-                    $result = true;
-                    break;
-                }
-            }
-
-            $this->closeConnection($key);
-        }
-
-        return $result;
-    }
-
-    public function hardFinish()
-    {
-        $this->nolisten();
-
-        foreach ($this->sockets as $key => $socket) {
-            $this->closeSocket($this->sockets[$key][self::FD_KEY]);
-        }
-
-        $this->log("Maximum sockets: " . $this->maxClients);
-        $this->log(" ******** Daemon " . $this->getApp()->getDaemon()->getPid() . " close all sockets & finished");
-        $this->log(" ******** ");
-
-        exit(0);
-    }
-
-    public function softFinish()
-    {
-        $this->end = true;
-        $this->nolisten();
-    }
-
-    private function listen() {
-        if ($this->listenSocket) return;
-
-/*
-        if (static::$inTransport == static::UNIX_TRANSPORT) {
-            $target = static::$usock;
-        } else {
-//			$target = static::$ipIn . ":" . static::$portIn;
-            $target = static::LOCALHOST . ":" . static::$portIn;
-        }
-*/
-        $transport = self::TCP_TRANSPORT;
-        $target = $this->ip . ":" . $this->port;
-
-        $fd = stream_socket_server($transport . "://" . $target, $errno, $errstr);
-
-        if (!$fd) {
-            $this->err("ERROR: cannot create server socket ($errstr)");
-        }
-
-        $this->nonblock($fd);
-
-        $this->listenSocket = $fd;
-        $this->recvs[self::LISTEN_KEY] = $fd;
-    }
-
     /**
-     * Close listening socket if exists
+     * Select sockets
+     * @return bool
      */
-    private function nolisten()
+    private function select(): bool
     {
-        if ($this->listenSocket) {
-            $this->closeSocket($this->listenSocket);
-            unset($this->recvs[self::LISTEN_KEY]);
-            $this->listenSocket = null;
-        }
-    }
-
-    /**
-     * Close socket
-     * @param $fd
-     */
-    private function closeSocket($fd)
-    {
-        stream_socket_shutdown($fd, STREAM_SHUT_RDWR);
-        fclose($fd);
-    }
-
-    /**
-     * Close connection
-     * @param $key
-     */
-    private function closeConnection($key)
-    {
-        if (!$key) return;
-
-        if (isset($this->sockets[$key])) {
-            $this->closeSocket($this->sockets[$key][self::FD_KEY]);
-            unset($this->sockets[$key]);
-        }
-
-        if (isset($this->sends[$key])) unset($this->sends[$key]);
-        if (isset($this->recvs[$key])) unset($this->recvs[$key]);
-    }
-
-    private function fillSocket($key, $fd, $time, $clientKey = false) {
-        $this->sockets[$key][self::FD_KEY] = $fd;
-//		$this->sockets[$key][self::KEEP_KEY] = true;
-        $this->sockets[$key][self::BEG_KEY] = $time;
-        $this->sockets[$key][self::INDATA_KEY] = '';
-        $this->sockets[$key][self::OUTDATA_KEY] = '';
-        $this->sockets[$key][self::CLNT_KEY] = $clientKey;
-        $this->sockets[$key][self::EXT_KEY] = null;
-    }
-
-    private function connect(string $remote, string $port, string $clientKey = null)
-    {
-/*
-		if ($remote === static::$usock) {
-			$transport = static::UNIX_TRANSPORT;
-			$target = static::$usock;
-		} else if ($port) {
-			$target = $remote . ":" . $port;
-			if (static::$sslMode) $transport = static::SSL_TRANSPORT;
-			else $transport = static::TCP_TRANSPORT;
-		} else {
-			static::err("ERROR: TCP socket need port for connection");
-		}
-*/
-        $target = $remote . ':' . $port;
-        $transport = self::TCP_TRANSPORT;
-
-        $opts = array(
-            'socket' => array(
-                'bindto' => $remote . ':0',
-            ),
-        );
-
-        $context = stream_context_create($opts);
-
-        /*
-                if ($transport == static::SSL_TRANSPORT) {
-                    stream_context_set_option($context, 'ssl', 'verify_peer', false);	// или true?
-                    stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
-        //			stream_context_set_option($context, 'ssl', 'verify_host', true);
-        //			stream_context_set_option($context, 'ssl', 'cafile', static::$sslCert);
-                    stream_context_set_option($context, 'ssl', 'local_cert', static::$sslCert);
-                    stream_context_set_option($context, 'ssl', 'passphrase', static::$sslPass);
-                }
-        */
-
-        $fd = null;
-
-        $errno = -1;
-        $errstr = '';
-
-        try {
-            $fd = @stream_socket_client($transport . '://' . $target, $errno, $errstr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
-        } catch (Exception $e) {
-            $this->err('ERROR: stream_socket_client exception ' . $e->getMessage());
-            $this->err("DETAILS: stream_socket_client ($errno) $errstr");
-        }
-
-        if (!$fd) return null;
-
-        $this->nonblock($fd);
-
-        $key = $this->getNewExternalKey();
-
-        $this->fillSocket($key, $fd, time(), $clientKey);
-
-        if ($clientKey) {
-            $this->sockets[$clientKey][self::EXT_KEY] = $key;
-        }
-
-        $this->recvs[$key] = $fd;
-
-        $this->testMaxClients();
-
-        return $key;
-    }
-
-    private function nonblock($fd) {
-        if (!stream_set_blocking($fd, 0)) {
-            $this->err('ERROR: cannot set nonblock mode');
-        }
-    }
-
-    private function getNewExternalKey() {
-        while(true) {
-            $this->sockCounter++;
-            if ($this->sockCounter === $this->maxSockCounter) $this->sockCounter = 1;
-
-            $key = self::EXT_KEY_PREFIX . $this->sockCounter;
-            if(!isset($this->sockets[$key])) break;
-        }
-
-        return $key;
-    }
-
-    private function testMaxClients() {
-        if (($now = count($this->sockets) - 1) > $this->maxClients) {
-            $this->maxClients = $now;
-        }
-    }
-
-    private function addSending($packet, $key) {
-        if (isset($this->sockets[$key])) {
-            $this->sockets[$key][self::OUTDATA_KEY] .= $packet;
-            $this->sends[$key] = $this->sockets[$key][static::FD_KEY];
-        }
-    }
-
-    private function select() {
         if ($rdCnt = count($this->recvs)) $rd = $this->recvs;
         else $rd = array();
 
@@ -356,7 +145,7 @@ class Server extends AppBase
                 return false;
             }
         } catch (Exception $e) {
-            $this->err("ERROR: select exception " . $e->getMessage());
+            $this->err('ERROR: select exception ' . $e->getMessage());
         }
 
         $this->nowTime = time();
@@ -385,68 +174,72 @@ class Server extends AppBase
         }
 
 // проверяем новые подключения
-        if ($this->listenSocket) {
-            if (in_array($this->listenSocket, $rd)) {
-                if (($fd = @stream_socket_accept($this->listenSocket)) === false) {
-                    $this->err("ERROR: accept error");
-                    $this->softFinish();
-                } else {
-                    $this->addNewClient($fd);
-                }
-
-                $key = array_search($this->listenSocket, $rd);		// убираем листен-сокет из временного массива готовых для чтения, чтобы не пытаться из него читать, там все равно пусто
-                unset($rd[$key]);
+        if ($this->listenSocket && in_array($this->listenSocket, $rd)) {
+            if (($fd = @stream_socket_accept($this->listenSocket)) === false) {
+                $this->err("ERROR: accept error");
+                $this->softFinish();
+            } else {
+                $this->addNewClient($fd);
             }
+
+            $key = array_search($this->listenSocket, $rd);		// убираем листен-сокет из временного массива готовых для чтения, чтобы не пытаться из него читать, там все равно пусто
+            unset($rd[$key]);
         }
 
 // читаем входящие
         foreach($rd as $fd) {
-            if ($key = array_search($fd, $this->recvs)) {
-                if ($this->read($key)) {	// возвращаем true, если получен ответ ALIVE_ANSWER
-                    return true;
-                }
+            if (($key = array_search($fd, $this->recvs)) && $this->read($key)) {	// возвращаем true, если получен ответ ALIVE_ANSWER
+                return true;
             }
         }
 
         return false;
     }
 
-    private function addNewClient($fd) {
-        $key = $this->getNewClientKey();
-
-        $this->nonblock($fd);
-
-        $this->fillSocket($key, $fd, $this->nowTime);
-
-        $this->recvs[$key] = $fd;
-
-//		static::addNewExternal($key);
-
-        $this->testMaxClients();
-    }
-
-    private function getNewClientKey() {
-        while(true) {
-            $this->sockCounter++;
-            if ($this->sockCounter == $this->maxSockCounter) $this->sockCounter = 1;
-
-            $key = self::CLIENTS_KEY_PREFIX . $this->sockCounter;
-            if (!isset($this->sockets[$key])) break;
+    /**
+     * Read data from socket
+     * @param $key
+     * @return bool
+     */
+    private function read($key) {
+        if (($data = stream_get_contents($this->sockets[$key][self::FD_KEY])) === false) {
+            $this->err('ERROR: read from stream error');
         }
 
-        return $key;
+        if (!$data)	{	// удаленный сервер (клиент или внешний) разорвал соединение
+            /*
+            if ($this->sockets[$key][self::EXT_KEY]) {		// если соединение разорвал клиентский сокет, то закрываем и внешний
+                $this->closeConnection($this->sockets[$key][self::EXT_KEY]);
+            }
+            */
+            $this->closeConnection($key);
+            return false;
+        }
+
+        $this->sockets[$key][self::INDATA_KEY] .= $data;
+
+//		static::log("RECV $key:" . $data);
+
+        return $this->packetParser($key);
     }
 
-    private function write($key) {
+    /**
+     * Write data to socket
+     * @param $key
+     */
+    private function write($key): void
+    {
         $buff = $this->sockets[$key][self::OUTDATA_KEY];
 
         if (($realLength = fwrite($this->sockets[$key][self::FD_KEY], $buff, strlen($buff))) === false) {
-            $this->err("ERROR: write to socket error");
+            $this->err('ERROR: write to socket error');
         }
 
-        if ($realLength) $this->sockets[$key][self::OUTDATA_KEY] = substr($this->sockets[$key][self::OUTDATA_KEY], $realLength);
+        if ($realLength) {
+            $this->sockets[$key][self::OUTDATA_KEY] = substr($this->sockets[$key][self::OUTDATA_KEY], $realLength);
+        }
 
-        if (!strlen($this->sockets[$key][self::OUTDATA_KEY])) {
+        if ($this->sockets[$key][self::OUTDATA_KEY] === '') {
             unset($this->sends[$key]);
 
             /*
@@ -466,38 +259,265 @@ class Server extends AppBase
         }
     }
 
-    private function read($key) {
-        if (($data = stream_get_contents($this->sockets[$key][self::FD_KEY])) === false) {
-            $this->err("ERROR: read from stream error");
+    /**
+     * Connecting to remote host
+     * @param string $host
+     * @param string $port
+     * @param string $clientKey
+     * @return string
+     */
+    private function connect(string $host, string $port, string $clientKey = null): ?string
+    {
+        /*
+                if ($host === static::$usock) {
+                    $transport = static::UNIX_TRANSPORT;
+                    $target = static::$usock;
+                } else if ($port) {
+                    $target = $host . ":" . $port;
+                    if (static::$sslMode) $transport = static::SSL_TRANSPORT;
+                    else $transport = static::TCP_TRANSPORT;
+                } else {
+                    static::err("ERROR: TCP socket need port for connection");
+                }
+        */
+        $target = $host . ':' . $port;
+        $transport = self::TCP_TRANSPORT;
+
+        $opts = array(
+            'socket' => array(
+                'bindto' => $this->ip . ':0',
+            ),
+        );
+
+        $context = stream_context_create($opts);
+
+        /*
+                if ($transport == static::SSL_TRANSPORT) {
+                    stream_context_set_option($context, 'ssl', 'verify_peer', false);	// или true?
+                    stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
+        //			stream_context_set_option($context, 'ssl', 'verify_host', true);
+        //			stream_context_set_option($context, 'ssl', 'cafile', static::$sslCert);
+                    stream_context_set_option($context, 'ssl', 'local_cert', static::$sslCert);
+                    stream_context_set_option($context, 'ssl', 'passphrase', static::$sslPass);
+                }
+        */
+
+        $fd = null;
+
+        $errNo = -1;
+        $errStr = '';
+
+        try {
+            $fd = @stream_socket_client($transport . '://' . $target, $errNo, $errStr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
+        } catch (Exception $e) {
+            $this->err('ERROR: stream_socket_client exception ' . $e->getMessage());
+            $this->err("DETAILS: stream_socket_client ($errNo) $errStr");
         }
 
-        if (!$data)	{	// удаленный сервер (клиент или внешний) разорвал соединение
-            if ($this->sockets[$key][self::EXT_KEY]) {		// если соединение разорвал клиентский сокет, то закрываем и внешний
-                $this->closeConnection($this->sockets[$key][self::EXT_KEY]);
-            }
+        if (!$fd) return null;
 
-            $this->closeConnection($key);
-            return false;
+        $this->nonblock($fd);
+
+        $key = $this->getNewExternalKey();
+
+        $this->fillSocket($key, $fd, time(), $clientKey);
+
+        if ($clientKey) {
+            $this->sockets[$clientKey][self::EXT_KEY] = $key;
         }
 
-        $this->sockets[$key][self::INDATA_KEY] .= $data;
+        $this->recvs[$key] = $fd;
 
-//		static::log("RECV $key:" . $data);
-
-        return $this->packetParser($key);
+        return $key;
     }
 
+    /**
+     * Listen socket
+     */
+    private function listen(): void
+    {
+        if ($this->listenSocket) return;
+
+/*
+        if (static::$inTransport == static::UNIX_TRANSPORT) {
+            $target = static::$usock;
+        } else {
+//			$target = static::$ipIn . ":" . static::$portIn;
+            $target = static::LOCALHOST . ":" . static::$portIn;
+        }
+*/
+        $transport = self::TCP_TRANSPORT;
+        $target = $this->ip . ':' . $this->port;
+
+        $fd = stream_socket_server($transport . '://' . $target, $errNo, $errStr);
+
+        if (!$fd) {
+            $this->err("ERROR: cannot create server socket ($errStr)");
+        }
+
+        $this->nonblock($fd);
+
+        $this->listenSocket = $fd;
+        $this->recvs[self::LISTEN_KEY] = $fd;
+    }
+
+    /**
+     * Close listening socket if exists
+     */
+    private function nolisten(): void
+    {
+        if ($this->listenSocket) {
+            $this->closeSocket($this->listenSocket);
+            unset($this->recvs[self::LISTEN_KEY]);
+            $this->listenSocket = null;
+        }
+    }
+
+    /**
+     * Close socket
+     * @param $fd
+     */
+    private function closeSocket($fd): void
+    {
+        stream_socket_shutdown($fd, STREAM_SHUT_RDWR);
+        fclose($fd);
+    }
+
+    /**
+     * Close connection
+     * @param $key
+     */
+    private function closeConnection($key): void
+    {
+        if (!$key) return;
+
+        if (isset($this->sockets[$key])) {
+            $this->closeSocket($this->sockets[$key][self::FD_KEY]);
+            unset($this->sockets[$key]);
+        }
+
+        if (isset($this->sends[$key])) unset($this->sends[$key]);
+        if (isset($this->recvs[$key])) unset($this->recvs[$key]);
+    }
+
+    /**
+     * Fill socket data
+     * @param string $key
+     * @param $fd
+     * @param int $time
+     * @param string $clientKey
+     */
+    private function fillSocket(string $key, $fd, int $time, string $clientKey = null): void
+    {
+        $this->sockets[$key][self::FD_KEY] = $fd;
+//		$this->sockets[$key][self::KEEP_KEY] = true;
+        $this->sockets[$key][self::BEG_KEY] = $time;
+        $this->sockets[$key][self::INDATA_KEY] = '';
+        $this->sockets[$key][self::OUTDATA_KEY] = '';
+        $this->sockets[$key][self::CLNT_KEY] = $clientKey;
+        $this->sockets[$key][self::EXT_KEY] = null;
+    }
+
+    /**
+     * Set nonblocking mode to socket
+     * @param $fd
+     */
+    private function nonblock($fd): void
+    {
+        if (!stream_set_blocking($fd, 0)) {
+            $this->err('ERROR: cannot set nonblock mode');
+        }
+    }
+
+    /**
+     * Create new key for connection socket
+     * @return string
+     */
+    private function getNewExternalKey(): string
+    {
+        while(true) {
+            $this->sockCounter++;
+            if ($this->sockCounter === $this->maxSockCounter) $this->sockCounter = 1;
+
+            $key = self::EXT_KEY_PREFIX . $this->sockCounter;
+            if(!isset($this->sockets[$key])) break;
+        }
+
+        return $key;
+    }
+
+    /**
+     * Add packet to socket for sending
+     * @param $packet
+     * @param $key
+     */
+    private function addSending($packet, $key): void
+    {
+        if (isset($this->sockets[$key])) {
+            $this->sockets[$key][self::OUTDATA_KEY] .= $packet;
+            $this->sends[$key] = $this->sockets[$key][static::FD_KEY];
+        }
+    }
+
+    /**
+     * Add new client connection to sockets
+     * @param $fd
+     */
+    private function addNewClient($fd): void
+    {
+        $key = $this->getNewClientKey();
+
+        $this->nonblock($fd);
+
+        $this->fillSocket($key, $fd, $this->nowTime);
+
+        $this->recvs[$key] = $fd;
+
+//		static::addNewExternal($key);
+    }
+
+    /**
+     * Create new key for client connection
+     * @return string
+     */
+    private function getNewClientKey(): string
+    {
+        while(true) {
+            $this->sockCounter++;
+            if ($this->sockCounter === $this->maxSockCounter) $this->sockCounter = 1;
+
+            $key = self::CLIENTS_KEY_PREFIX . $this->sockCounter;
+            if (!isset($this->sockets[$key])) break;
+        }
+
+        return $key;
+    }
+
+    /**
+     * Is paket from client or from external connection
+     * @param $key
+     * @return bool
+     */
     private function packetParser($key) {
         $packet = $this->sockets[$key][self::INDATA_KEY];
-        $this->sockets[$key][self::INDATA_KEY] = "";
+        $this->sockets[$key][self::INDATA_KEY] = '';
 
-        if ($this->sockets[$key][self::CLNT_KEY] === false) $result = $this->clientPacket($packet, $key);
-        else $result = $this->externalPacket($packet, $key);
+        if (!$this->sockets[$key][self::CLNT_KEY]) {
+            $result = $this->clientPacket($packet, $key);
+        } else {
+            $result = $this->externalPacket($packet, $key);
+        }
 
         return $result;			// true возвращается только при получении пакета "демон жив"
     }
 
-    private function clientPacket($packet, $key)
+    /**
+     * Parsing packet from client connection
+     * @param $packet
+     * @param $key
+     * @return bool
+     */
+    private function clientPacket($packet, $key): bool
     {
         if ($packet === self::ALIVE_REQ) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
             $this->addSending(self::ALIVE_RES, $key);
@@ -532,7 +552,13 @@ class Server extends AppBase
         return false;
     }
 
-    private function externalPacket($packet, $key)
+    /**
+     * Parsing packet from external connection
+     * @param $packet
+     * @param $key
+     * @return bool
+     */
+    private function externalPacket($packet, $key): bool
     {
         if ($packet === self::ALIVE_RES) {			// ответ "демон жив" не перенаправляем клиенту
             return true;
@@ -546,7 +572,10 @@ class Server extends AppBase
         return false;
     }
 
-    private function garbageCollect()
+    /**
+     * Collect garbage for optimal memory usage
+     */
+    private function garbageCollect(): void
     {
         if (($this->nowTime - $this->garbTime) < self::GARBAGE_TIMEOUT) return;
 
@@ -555,5 +584,59 @@ class Server extends AppBase
         gc_disable();
 
         $this->garbTime = $this->nowTime;
+    }
+
+    /**
+     * Check, is Daemon alive or not
+     * @return bool
+     */
+    public function isDaemonAlive(): bool
+    {
+        $result = false;
+
+        $key = $this->connect($this->ip, $this->port);
+
+        if ($key) {
+            $this->addSending(self::ALIVE_REQ, $key);
+
+            $beg = time();
+
+            while ((time() - $beg) < self::ALIVE_TIMEOUT) {
+                if ($this->select()) {
+                    $result = true;
+                    break;
+                }
+            }
+
+            $this->closeConnection($key);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Finish server without waiting end of current operations
+     */
+    public function hardFinish(): void
+    {
+        $this->nolisten();
+
+        foreach ($this->sockets as $key => $socket) {
+            $this->closeSocket($this->sockets[$key][self::FD_KEY]);
+        }
+
+        $this->log(' ******** Daemon ' . $this->getApp()->getDaemon()->getPid() . ' close all sockets & finished');
+        $this->log(' ******** ');
+
+        exit(0);
+    }
+
+    /**
+     * Finish server with waiting end of current operations
+     */
+    public function softFinish(): void
+    {
+        $this->end = true;
+        $this->nolisten();
     }
 }

@@ -23,7 +23,8 @@ class AppBase
      * Short work logging
      * @param $message
      */
-    protected function log($message) {
+    protected function log($message): void
+    {
         $this->getApp()->getLogger()->simpleLog($message);
     }
 
@@ -31,11 +32,8 @@ class AppBase
      * Short error logging
      * @param $message
      */
-    protected function err($message) {
+    protected function err($message): void
+    {
         $this->getApp()->getLogger()->errorLog($message);
-    }
-
-    public function getAppName() {
-        return $this->getApp()->getName();
     }
 }
