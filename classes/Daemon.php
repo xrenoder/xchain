@@ -132,6 +132,8 @@ class Daemon extends AppBase
 //            $this->log("Sig $signal : "  . var_export(pcntl_signal_get_handler($signal), true));
         }
 
+        pcntl_async_signals(true);
+
         return true;
     }
 

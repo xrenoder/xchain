@@ -78,8 +78,6 @@ class Server extends AppBase
 
         $this->listen();
 
-        pcntl_async_signals(true);
-
         while (true) {
             pcntl_signal_dispatch();
             $this->garbageCollect();
@@ -107,8 +105,8 @@ class Server extends AppBase
             }
         }
 
-        $this->log("Sig SIGHUP : "  . var_export(pcntl_signal_get_handler(SIGHUP), true));
-        $this->log("Sig SIGTERM : "  . var_export(pcntl_signal_get_handler(SIGTERM), true));
+//        $this->log("Sig SIGHUP : "  . var_export(pcntl_signal_get_handler(SIGHUP), true));
+//        $this->log("Sig SIGTERM : "  . var_export(pcntl_signal_get_handler(SIGTERM), true));
 
         $this->hardFinish();
     }
@@ -276,8 +274,8 @@ class Server extends AppBase
         try {
             $fd = @stream_socket_client($transport . '://' . $target, $errno, $errstr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
         } catch (Exception $e) {
-            $this->log('ERROR: stream_socket_client exception ' . $e->getMessage());
-            $this->log("DETAILS: stream_socket_client ($errno) $errstr");
+            $this->err('ERROR: stream_socket_client exception ' . $e->getMessage());
+            $this->err("DETAILS: stream_socket_client ($errno) $errstr");
         }
 
         if (!$fd) return null;
@@ -357,13 +355,13 @@ class Server extends AppBase
                 return false;
             }
         } catch (Exception $e) {
-            $this->log("ERROR: select exception " . $e->getMessage());
+            $this->err("ERROR: select exception " . $e->getMessage());
         }
 
         $this->nowTime = time();
 
-        if ($fdCnt === false) {
-            $this->err("ERROR: select error");
+        if ($fdCnt === false ) {
+//            $this->err("ERROR: select error");        // ошибка выдается только когда приходит сигнал завершения, поэтому ее не пишем в лог
         } else if ($fdCnt === 0) {
 
             /*
@@ -389,7 +387,7 @@ class Server extends AppBase
         if ($this->listenSocket) {
             if (in_array($this->listenSocket, $rd)) {
                 if (($fd = @stream_socket_accept($this->listenSocket)) === false) {
-                    $this->log("ERROR: accept error");
+                    $this->err("ERROR: accept error");
                     $this->softFinish();
                 } else {
                     $this->addNewClient($fd);
