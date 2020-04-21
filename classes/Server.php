@@ -266,6 +266,7 @@ class Server extends AppBase
                     stream_context_set_option($context, 'ssl', 'passphrase', static::$sslPass);
                 }
         */
+
         $fd = null;
 
         $errno = -1;
