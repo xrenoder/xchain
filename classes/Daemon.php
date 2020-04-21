@@ -16,6 +16,9 @@ class Daemon extends AppBase
     /** @var string */
     private $phpErrLogFile = null;
 
+    /** @var string */
+    private $runPath = null;
+
     /** @var int */
     private $pid = null;
 
@@ -40,6 +43,7 @@ class Daemon extends AppBase
     public function __construct(App $app, string $logPath, string $runPath)
     {
         parent::__construct($app);
+        $this->runPath = $runPath;
         $this->pidFile = $runPath . 'pid';
         $this->phpErrLogFile = $logPath . 'php.err';
     }
@@ -111,11 +115,11 @@ class Daemon extends AppBase
         ini_set('error_log', $this->phpErrLogFile);
 
         fclose(STDIN);
-        $stdIn = fopen('/dev/null', 'r');
+        $stdIn = fopen('/dev/null', 'rb');
         fclose(STDOUT);
-        $stdOut = fopen('/dev/null', 'ab');
+        $stdOut = fopen($this->runPath . 'stdout', 'ab');
         fclose(STDERR);
-        $stdErr = fopen('/dev/null', 'ab');
+        $stdErr = fopen($this->runPath . 'stderr', 'ab');
 
 // set signal handlers
         foreach(static::$signals as $signal => $handler) {
