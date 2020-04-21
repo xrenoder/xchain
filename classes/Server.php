@@ -151,7 +151,8 @@ class Server extends AppBase
         $this->nowTime = time();
 
         if ($fdCnt === false ) {
-//            $this->err("ERROR: select error");        // ошибка выдается только когда приходит сигнал завершения, поэтому ее не пишем в лог
+            $this->err('ERROR: select error (signal interruption?)');        // ошибка выдается только когда приходит сигнал завершения
+            return false;
         } else if ($fdCnt === 0) {
 
             /*
@@ -201,7 +202,8 @@ class Server extends AppBase
      * @param $key
      * @return bool
      */
-    private function read($key) {
+    private function read($key): bool
+    {
         if (($data = stream_get_contents($this->sockets[$key][self::FD_KEY])) === false) {
             $this->err('ERROR: read from stream error');
         }
@@ -419,7 +421,7 @@ class Server extends AppBase
     }
 
     /**
-     * Set nonblocking mode to socket
+     * Set socket to nonblocking mode
      * @param $fd
      */
     private function nonblock($fd): void
@@ -472,8 +474,6 @@ class Server extends AppBase
         $this->fillSocket($key, $fd, $this->nowTime);
 
         $this->recvs[$key] = $fd;
-
-//		static::addNewExternal($key);
     }
 
     /**
@@ -526,23 +526,6 @@ class Server extends AppBase
 
 // TODO вызов обработчика пакетов - определяем тип, необходимые действия, кому направлять пакет дальше, что отвечать клиенту
 //    $answer = $this->app->parser($this->app, $this, $key, $packet);
-
-         /*
-// если ранее не был назначен парный внешний сокет - назначаем здесь
-        if (!static::$sockets[$key][static::EXT_KEY]) {
-            if (!static::addNewExternal($key)) {
-                return false;
-            }
-        }
-
-        if (strpos($packet, static::$getinfoSearch) !== false) {								// пишем в лог IP клиента
-            $remote = stream_socket_get_name(static::$sockets[$key][static::FD_KEY], true);
-            $tmp = explode(":", $remote);
-            static::iplog($tmp[0]);
-        } else if (strpos($packet, static::$testSearch) === false) {							// пишем в лог боевые запросы от клиента
-            static::log("REAL RECV $key: " . $packet);
-        }
-        */
 
 // направляем сообщение во внешний канал (канал определяется обработчиком пакетов)
 //        $this->addSending($answerExt, $this->sockets[$key][self::EXT_KEY]);
@@ -625,7 +608,7 @@ class Server extends AppBase
             $this->closeSocket($this->sockets[$key][self::FD_KEY]);
         }
 
-        $this->log(' ******** Daemon ' . $this->getApp()->getDaemon()->getPid() . ' close all sockets & finished');
+        $this->log(' ******** Daemon ' . $this->getApp()->getDaemon()->getPid() . ' close all sockets & finished ********');
         $this->log(' ******** ');
 
         exit(0);
