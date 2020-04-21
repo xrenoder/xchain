@@ -97,8 +97,8 @@ class Server extends AppBase
             }
         }
 
-        $this->log("Sig SIGHUP : "  . var_export(pcntl_signal_get_handler(SIGHUP), true));
-        $this->log("Sig SIGTERM : "  . var_export(pcntl_signal_get_handler(SIGTERM), true));
+        $this->log("Sig SIGHUP : "  . var_export(pcntl_signal_get_handler(SIGHUP), true) . " flag is " . $GLOBALS['softFinish']);
+        $this->log("Sig SIGTERM : "  . var_export(pcntl_signal_get_handler(SIGTERM), true) . " flag is " . $GLOBALS['hardFinish']);
 
         $this->hardFinish();
     }
