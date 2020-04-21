@@ -40,7 +40,7 @@ class Server extends AppBase
 
     /** @var bool */
     private $end = false;
-    private $listenSocket;
+    private $listenSocket = null;
     /** @var array */
     private $sockets = array();
     private $sends = array();
@@ -175,16 +175,18 @@ class Server extends AppBase
         }
 
 // проверяем новые подключения
-        if ($this->listenSocket && in_array($this->listenSocket, $rd)) {
-            if (($fd = @stream_socket_accept($this->listenSocket)) === false) {
-                $this->err("ERROR: accept error");
-                $this->softFinish();
-            } else {
-                $this->addNewClient($fd);
-            }
+        if ($this->listenSocket) {
+            if (in_array($this->listenSocket, $rd)) {
+                if (($fd = @stream_socket_accept($this->listenSocket)) === false) {
+                    $this->err("ERROR: accept error");
+                    $this->softFinish();
+                } else {
+                    $this->addNewClient($fd);
+                }
 
-            $key = array_search($this->listenSocket, $rd);		// убираем листен-сокет из временного массива готовых для чтения, чтобы не пытаться из него читать, там все равно пусто
-            unset($rd[$key]);
+                $key = array_search($this->listenSocket, $rd);        // убираем листен-сокет из временного массива готовых для чтения, чтобы не пытаться из него читать, там все равно пусто
+                unset($rd[$key]);
+            }
         }
 
 // читаем входящие
@@ -361,6 +363,8 @@ class Server extends AppBase
 
         $this->listenSocket = $fd;
         $this->recvs[self::LISTEN_KEY] = $fd;
+
+        $this->log("Server listening");
     }
 
     /**
