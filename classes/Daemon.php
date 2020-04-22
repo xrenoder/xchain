@@ -98,19 +98,33 @@ class Daemon extends AppBase
         $pid = pcntl_fork();
 
         if ($pid) {
+            $this->log("Daemon will be started (pid $pid)");
+
 // write new daemon pid to file and exit
             ftruncate($fd, 0);
             fwrite($fd, $pid);
             flock($fd, LOCK_UN);
             fclose($fd);
 
-            $this->log("Daemon will be started (pid $pid)");
             exit(0);
         }
 
 // read pid of new daemon from file
+        $fd = fopen($this->pidFile, "rb");
+        flock($fd, LOCK_SH);
+        $pid = fread($fd, filesize($this->pidFile));
+        flock($fd, LOCK_UN);
+        fclose($fd);
+
         $this->setPid(posix_getpid());
-        $this->log('Daemon started (pid ' . $this->getPid() . ')');
+
+        if ($this->getPid() == $pid) {
+            $this->log('Daemon started (pid ' . $this->getPid() . ')');
+        } else {
+            $this->err('Daemon cannot started: (pid ' . $this->getPid() . " is not equal pid $pid from pid-file)");
+            exit(0);
+        }
+
 
 // unmount console and standard IO channels, set new PHP error log
         posix_setsid();
