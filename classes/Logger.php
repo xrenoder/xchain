@@ -60,7 +60,7 @@ class Logger extends AppBase
         if ($isErr) {
             $record .= '[error]' . "\t";
         } else if ($debug) {
-            $record .= "[debug $debug]" . "\t";
+            $record .= '[debug]' . "\t";
         } else {
             $record .= "\t";
         }

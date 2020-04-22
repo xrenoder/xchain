@@ -406,11 +406,11 @@ class Server extends AppBase
      * @param int $time
      * @param $clientKey
      */
-    private function fillSocket(string $key, $fd, int $time): void
+    private function fillSocket(string $key, $fd): void
     {
         $this->sockets[$key][self::FD_KEY] = $fd;
 //		$this->sockets[$key][self::KEEP_KEY] = true;
-        $this->sockets[$key][self::BEG_KEY] = $time;
+        $this->sockets[$key][self::BEG_KEY] = time();
         $this->sockets[$key][self::INDATA_KEY] = '';
         $this->sockets[$key][self::OUTDATA_KEY] = '';
     }
@@ -465,7 +465,7 @@ class Server extends AppBase
     {
         $key = $this->getSocketKey();
         $this->nonblock($fd);
-        $this->fillSocket($key, $fd, $this->nowTime);
+        $this->fillSocket($key, $fd);
         $this->recvs[$key] = $fd;
 
         return $key;
