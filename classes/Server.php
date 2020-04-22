@@ -32,11 +32,8 @@ class Server extends AppBase
     private const BEG_KEY = 'beg';
     private const INDATA_KEY = 'in';
     private const OUTDATA_KEY = 'out';
-    private const CLNT_KEY = 'cln';
-    private const EXT_KEY = 'ext';
     private const KEEP_KEY = 'keep';
-    private const EXT_KEY_PREFIX = 'ext';
-    private const CLIENTS_KEY_PREFIX = 'cln';
+    private const KEY_PREFIX = 'key';
 
     /** @var bool */
     private $end = false;
@@ -93,10 +90,6 @@ class Server extends AppBase
 
                             if ((static::$nowTime - $socket[static::BEG_KEY]) > static::CLIENT_TIMEOUT) {
                                 static::log("Client closed by timeout");
-
-            // закрываем все связаные сокеты
-                                static::closeConnection($socket[static::EXT_KEY]);
-                                static::closeConnection($socket[static::CLNT_KEY]);
                                 static::closeConnection($key);
                             }
                         }
@@ -181,12 +174,12 @@ class Server extends AppBase
                     $this->err('ERROR: accept error');
                     $this->softFinish();
                 } else {
-                    $this->dbg('Accept connection');
-                    $this->addNewClient($fd);
+                    $this->dbg(1,'Accept connection');
+                    $this->addNewSocket($fd);
                 }
 
-                $key = array_search($this->listenSocket, $rd);        // убираем листен-сокет из временного массива готовых для чтения, чтобы не пытаться из него читать, там все равно пусто
-                unset($rd[$key]);
+                $listenKey = array_search($this->listenSocket, $rd);        // убираем листен-сокет из временного массива готовых для чтения, чтобы не пытаться из него читать, там все равно пусто
+                unset($rd[$listenKey]);
             }
         }
 
@@ -231,7 +224,7 @@ class Server extends AppBase
 
         $this->sockets[$key][self::INDATA_KEY] .= $data;
 
-		$this->dbg("RECV $key:" . $data);
+		$this->dbg(1,"RECV $key:" . $data);
 
         return $this->packetParser($key);
     }
@@ -252,7 +245,7 @@ class Server extends AppBase
             $this->sockets[$key][self::OUTDATA_KEY] = substr($this->sockets[$key][self::OUTDATA_KEY], $realLength);
         }
 
-        $this->dbg("SEND $key: $realLength bytes");
+        $this->dbg(1,"SEND $key: $realLength bytes");
 
         if (!$this->sockets[$key][self::OUTDATA_KEY]) {
             unset($this->sends[$key]);
@@ -260,10 +253,6 @@ class Server extends AppBase
             /*
                         if (!static::$sockets[$key][static::KEEP_KEY]) {
                             static::testMaxTime($key);
-
-                            if (static::$sockets[$key][static::EXT_KEY]) {		// если закрываем клиентский сокет, то закрываем и внешний
-                                static::closeConnection(static::$sockets[$key][static::EXT_KEY]);
-                            }
 
                             static::closeConnection($key);
                         } else {
@@ -278,10 +267,9 @@ class Server extends AppBase
      * Connecting to remote host
      * @param string $host
      * @param string $port
-     * @param string $clientKey
      * @return string
      */
-    private function connect(string $host, string $port, string $clientKey = null): ?string
+    private function connect(string $host, string $port): string
     {
         /*
                 if ($host === static::$usock) {
@@ -331,19 +319,9 @@ class Server extends AppBase
 
         if (!$fd) return null;
 
-        $this->nonblock($fd);
+        $key = $this->addNewSocket($fd);
 
-        $key = $this->getNewExternalKey();
-
-        $this->fillSocket($key, $fd, time(), $clientKey);
-
-        if ($clientKey) {
-            $this->sockets[$clientKey][self::EXT_KEY] = $key;
-        }
-
-        $this->recvs[$key] = $fd;
-
-        $this->dbg('Connected to ' . $transport . '://' . $target);
+        $this->dbg(1,'Connected to ' . $transport . '://' . $target);
 
         return $key;
     }
@@ -377,7 +355,7 @@ class Server extends AppBase
         $this->listenSocket = $fd;
         $this->recvs[self::LISTEN_KEY] = $fd;
 
-        $this->dbg("Server listening");
+        $this->dbg(1,"Server listening");
     }
 
     /**
@@ -418,7 +396,7 @@ class Server extends AppBase
         if (isset($this->sends[$key])) unset($this->sends[$key]);
         if (isset($this->recvs[$key])) unset($this->recvs[$key]);
 
-        $this->dbg("Connection $key closed");
+        $this->dbg(1,"Connection $key closed");
     }
 
     /**
@@ -426,17 +404,15 @@ class Server extends AppBase
      * @param string $key
      * @param $fd
      * @param int $time
-     * @param string $clientKey
+     * @param $clientKey
      */
-    private function fillSocket(string $key, $fd, int $time, string $clientKey = null): void
+    private function fillSocket(string $key, $fd, int $time): void
     {
         $this->sockets[$key][self::FD_KEY] = $fd;
 //		$this->sockets[$key][self::KEEP_KEY] = true;
         $this->sockets[$key][self::BEG_KEY] = $time;
         $this->sockets[$key][self::INDATA_KEY] = '';
         $this->sockets[$key][self::OUTDATA_KEY] = '';
-        $this->sockets[$key][self::CLNT_KEY] = $clientKey;
-        $this->sockets[$key][self::EXT_KEY] = null;
     }
 
     /**
@@ -451,16 +427,16 @@ class Server extends AppBase
     }
 
     /**
-     * Create new key for connection socket
+     * Create new key for socket
      * @return string
      */
-    private function getNewExternalKey(): string
+    private function getSocketKey(): string
     {
         while(true) {
             $this->sockCounter++;
             if ($this->sockCounter === $this->maxSockCounter) $this->sockCounter = 1;
 
-            $key = self::EXT_KEY_PREFIX . $this->sockCounter;
+            $key = self::KEY_PREFIX . $this->sockCounter;
             if(!isset($this->sockets[$key])) break;
         }
 
@@ -483,31 +459,14 @@ class Server extends AppBase
     /**
      * Add new client connection to sockets
      * @param $fd
-     */
-    private function addNewClient($fd): void
-    {
-        $key = $this->getNewClientKey();
-
-        $this->nonblock($fd);
-
-        $this->fillSocket($key, $fd, $this->nowTime);
-
-        $this->recvs[$key] = $fd;
-    }
-
-    /**
-     * Create new key for client connection
      * @return string
      */
-    private function getNewClientKey(): string
+    private function addNewSocket($fd): string
     {
-        while(true) {
-            $this->sockCounter++;
-            if ($this->sockCounter === $this->maxSockCounter) $this->sockCounter = 1;
-
-            $key = self::CLIENTS_KEY_PREFIX . $this->sockCounter;
-            if (!isset($this->sockets[$key])) break;
-        }
+        $key = $this->getSocketKey();
+        $this->nonblock($fd);
+        $this->fillSocket($key, $fd, $this->nowTime);
+        $this->recvs[$key] = $fd;
 
         return $key;
     }
@@ -519,31 +478,18 @@ class Server extends AppBase
      */
     private function packetParser($key) {
         $packet = $this->sockets[$key][self::INDATA_KEY];
+        $this->dbg(1,'Packet: ' . $packet);
         $this->sockets[$key][self::INDATA_KEY] = '';
 
-        if (!$this->sockets[$key][self::CLNT_KEY]) {
-            $result = $this->clientPacket($packet, $key);
-        } else {
-            $result = $this->externalPacket($packet, $key);
-        }
-
-        return $result;			// true возвращается только при получении пакета "демон жив"
-    }
-
-    /**
-     * Parsing packet from client connection
-     * @param $packet
-     * @param $key
-     * @return bool
-     */
-    private function clientPacket($packet, $key): bool
-    {
-        $this->dbg('CLN packet: ' . $packet);
-
         if ($packet === self::ALIVE_REQ) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
-            $this->dbg('Alive request');
+            $this->dbg(1,'Alive request');
             $this->addSending(self::ALIVE_RES, $key);
             return false;
+        }
+
+        if ($packet === self::ALIVE_RES) {			// ответ "демон жив" не перенаправляем клиенту
+            $this->dbg(1,'Alive response');
+            return true;                            // true возвращается только при получении пакета "демон жив"
         }
 
 // TODO вызов обработчика пакетов - определяем тип, необходимые действия, кому направлять пакет дальше, что отвечать клиенту
@@ -554,30 +500,7 @@ class Server extends AppBase
 // направляем сообщение клиенту
 //        $this->addSending($answerClnt, $this->sockets[$key][self::CLNT_KEY]);
 
-        return false;
-    }
-
-    /**
-     * Parsing packet from external connection
-     * @param $packet
-     * @param $key
-     * @return bool
-     */
-    private function externalPacket($packet, $key): bool
-    {
-        $this->dbg('EXT packet: ' . $packet);
-
-        if ($packet === self::ALIVE_RES) {			// ответ "демон жив" не перенаправляем клиенту
-            $this->dbg('Alive response');
-            return true;
-        }
-
-// TODO вызов обработчика пакетов - определяем тип, необходимые действия, кому направлять пакет дальше, что отвечать клиенту
-//    $answer = $this->app->parser($this->app, $this, $key, $packet);
-
-//        static::addSending($packet, $this->sockets[$key][self::CLNT_KEY]);			// направляем пакет внешнего в клиентский канал
-
-        return false;
+        return false;			// true возвращается только при получении пакета "демон жив"
     }
 
     /**

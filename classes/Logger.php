@@ -20,7 +20,7 @@ class Logger extends AppBase
     public function getPhpErrFile() {return $this->phpErrFile;}
 
     /** @var bool */
-    private $dbgMode = true;
+    private $dbgMode = 1;
     public function setDbgMode($val) {$this->dbgMode = $val; return $this;}
     public function getDbgMode() {return $this->dbgMode;}
 
@@ -48,6 +48,29 @@ class Logger extends AppBase
     }
 
     /**
+     * Create log record
+     * @param $message
+     * @param bool $isErr
+     * @return string
+     */
+    private function createRecord($message, $isErr  = false, $debug = 0): string
+    {
+        $record = $this->getDate() . "\t" . $this->getApp()->getDaemon()->getPid() . "\t";
+
+        if ($isErr) {
+            $record .= '[error]' . "\t";
+        } else if ($debug) {
+            $record .= "[debug $debug]" . "\t";
+        } else {
+            $record .= "\t";
+        }
+
+        $record .= $message . "\n";
+
+        return $record;
+    }
+
+    /**
      * Usual log
      * @param string $message
      */
@@ -60,11 +83,11 @@ class Logger extends AppBase
      * Debug logging
      * @param string $message
      */
-    public function debugLog(string $message): void
+    public function debugLog(int $dbgLevel, string $message): void
     {
-        if (!$this->dbgMode) return;
+        if (!$this->dbgMode || $this->dbgMode > $dbgLevel) return;
 
-        $this->write($this->logFile, $this->createRecord($message, false, true));
+        $this->write($this->logFile, $this->createRecord($message, false, $dbgLevel));
     }
 
     /**
@@ -74,29 +97,6 @@ class Logger extends AppBase
     public function errorLog(string $message): void
     {
         $this->write($this->errFile, $this->createRecord($message, true));
-    }
-
-    /**
-     * Create log record
-     * @param $message
-     * @param bool $isErr
-     * @return string
-     */
-    private function createRecord($message, $isErr  = false, $isDebug = false): string
-    {
-        $record = $this->getDate() . "\t" . $this->getApp()->getDaemon()->getPid() . "\t";
-
-        if ($isErr) {
-            $record .= '[error]' . "\t";
-        } else if ($isDebug) {
-            $record .= '[debug]' . "\t";
-        } else {
-            $record .= "\t\t";
-        }
-
-        $record .= $message . "\n";
-
-        return $record;
     }
 
     /**

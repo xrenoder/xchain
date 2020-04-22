@@ -21,28 +21,29 @@ class AppBase
 
     /**
      * Short work logging
-     * @param $message
+     * @param string $message
      */
-    protected function log($message): void
+    protected function log(string $message): void
     {
         $this->getApp()->getLogger()->simpleLog($message);
     }
 
     /**
      * Short error logging
-     * @param $message
+     * @param string $message
      */
-    protected function err($message): void
+    protected function err(string $message): void
     {
         $this->getApp()->getLogger()->errorLog($message);
     }
 
     /**
      * Short debug logging
-     * @param $message
+     * @param int $lvl
+     * @param string $message
      */
-    protected function dbg($message): void
+    protected function dbg(int $lvl, $message): void
     {
-        $this->getApp()->getLogger()->debugLog($message);
+        $this->getApp()->getLogger()->debugLog($lvl, $message);
     }
 }
