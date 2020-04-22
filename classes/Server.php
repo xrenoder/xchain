@@ -174,7 +174,7 @@ class Server extends AppBase
                     $this->err('ERROR: accept error');
                     $this->softFinish();
                 } else {
-                    $this->dbg(1,'Accept connection');
+                    $this->dbg(Logger::DBG_SERV,'Accept connection');
                     $this->addNewSocket($fd);
                 }
 
@@ -224,7 +224,7 @@ class Server extends AppBase
 
         $this->sockets[$key][self::INDATA_KEY] .= $data;
 
-		$this->dbg(1,"RECV $key:" . $data);
+		$this->dbg(Logger::DBG_SERV,"RECV $key:" . $data);
 
         return $this->packetParser($key);
     }
@@ -245,7 +245,7 @@ class Server extends AppBase
             $this->sockets[$key][self::OUTDATA_KEY] = substr($this->sockets[$key][self::OUTDATA_KEY], $realLength);
         }
 
-        $this->dbg(1,"SEND $key: $realLength bytes");
+        $this->dbg(Logger::DBG_SERV,"SEND $key: $realLength bytes");
 
         if (!$this->sockets[$key][self::OUTDATA_KEY]) {
             unset($this->sends[$key]);
@@ -269,7 +269,7 @@ class Server extends AppBase
      * @param string $port
      * @return string
      */
-    private function connect(string $host, string $port): string
+    private function connect(string $host, string $port): ?string
     {
         /*
                 if ($host === static::$usock) {
@@ -321,7 +321,7 @@ class Server extends AppBase
 
         $key = $this->addNewSocket($fd);
 
-        $this->dbg(1,'Connected to ' . $transport . '://' . $target);
+        $this->dbg(Logger::DBG_SERV,'Connected to ' . $transport . '://' . $target);
 
         return $key;
     }
@@ -355,7 +355,7 @@ class Server extends AppBase
         $this->listenSocket = $fd;
         $this->recvs[self::LISTEN_KEY] = $fd;
 
-        $this->dbg(1,"Server listening");
+        $this->dbg(Logger::DBG_SERV,"Server listening");
     }
 
     /**
@@ -396,7 +396,7 @@ class Server extends AppBase
         if (isset($this->sends[$key])) unset($this->sends[$key]);
         if (isset($this->recvs[$key])) unset($this->recvs[$key]);
 
-        $this->dbg(1,"Connection $key closed");
+        $this->dbg(Logger::DBG_SERV,"Connection $key closed");
     }
 
     /**
@@ -478,17 +478,17 @@ class Server extends AppBase
      */
     private function packetParser($key) {
         $packet = $this->sockets[$key][self::INDATA_KEY];
-        $this->dbg(1,'Packet: ' . $packet);
+        $this->dbg(Logger::DBG_SERV,'Packet: ' . $packet);
         $this->sockets[$key][self::INDATA_KEY] = '';
 
         if ($packet === self::ALIVE_REQ) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
-            $this->dbg(1,'Alive request');
+            $this->dbg(Logger::DBG_SERV,'Alive request');
             $this->addSending(self::ALIVE_RES, $key);
             return false;
         }
 
         if ($packet === self::ALIVE_RES) {			// ответ "демон жив" не перенаправляем клиенту
-            $this->dbg(1,'Alive response');
+            $this->dbg(Logger::DBG_SERV,'Alive response');
             return true;                            // true возвращается только при получении пакета "демон жив"
         }
 
@@ -525,9 +525,7 @@ class Server extends AppBase
     {
         $result = false;
 
-        $key = $this->connect($this->ip, $this->port);
-
-        if ($key) {
+        if ($key = $this->connect($this->ip, $this->port)) {
             $this->addSending(self::ALIVE_REQ, $key);
 
             $beg = time();

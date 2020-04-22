@@ -4,6 +4,8 @@
  */
 class Logger extends AppBase
 {
+    public const DBG_SERV = 1;
+
     /** @var string */
     private $logFile;
     public function setLogFile($val) {$this->logFile = $val; return $this;}
@@ -20,7 +22,7 @@ class Logger extends AppBase
     public function getPhpErrFile() {return $this->phpErrFile;}
 
     /** @var bool */
-    private $dbgMode = 1;
+    private $dbgMode = 0;
     public function setDbgMode($val) {$this->dbgMode = $val; return $this;}
     public function getDbgMode() {return $this->dbgMode;}
 
@@ -29,18 +31,20 @@ class Logger extends AppBase
      *
      * @param App $app
      * @param string $logPath
+     * @param int $dbgLevels
      * @param string $logName
      * @param string $errName
      * @param string $phpErrName
      * @return Logger
      */
-    public static function create(App $app, string $logPath, string $logName, string $errName, string $phpErrName): Logger
+    public static function create(App $app, string $logPath, int $dbgLevels, string $logName, string $errName, string $phpErrName): Logger
     {
         $me = new self($app);
 
         $me->setLogFile($logPath . $logName);
         $me->setErrFile($logPath . $errName);
         $me->setPhpErrFile($logPath . $phpErrName);
+        $me->setDbgMode($dbgLevels);
 
         $me->getApp()->setLogger($me);
 
@@ -85,7 +89,7 @@ class Logger extends AppBase
      */
     public function debugLog(int $dbgLevel, string $message): void
     {
-        if (!$this->dbgMode || $this->dbgMode > $dbgLevel) return;
+        if (!($this->dbgMode && $dbgLevel)) return;
 
         $this->write($this->logFile, $this->createRecord($message, false, $dbgLevel));
     }
@@ -96,6 +100,7 @@ class Logger extends AppBase
      */
     public function errorLog(string $message): void
     {
+        $this->simpleLog($message);
         $this->write($this->errFile, $this->createRecord($message, true));
     }
 

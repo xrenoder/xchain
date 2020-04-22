@@ -14,15 +14,16 @@ class Daemon extends AppBase
     public function setRunPath($val) {$this->runPath = $val; return $this;}
 //    public function getRunPath() {return $this->runPath;}
 
+    /** @var int */
+    private $pid;
+    public function setPid($val) {$this->pid = $val; return $this;}
+    public function getPid() {return $this->pid;}
+
     private const READ_BUFFER = 8192;
     private const CMD_RESTART = 'restart';				// command to force daemon restart
     private const CMD_STOP = 'stop';					// command to force daemon stop
     private const PS_COMMAND = 'ps fuwww -p';
     private const KILL_TIMEOUT = 10;
-
-    /** @var int */
-    private $pid;
-    public function getPid() {return $this->pid;}
 
     /** @var string[] */
     private static $signals = array (
@@ -50,6 +51,7 @@ class Daemon extends AppBase
 
         $me->setRunPath($runPath);
         $me->setPidFile($runPath . $pidName);
+        $me->setPid(posix_getpid());
 
         $me->getApp()->setDaemon($me);
 
@@ -93,27 +95,22 @@ class Daemon extends AppBase
         }
 
 // daemonization
-        $this->pid = pcntl_fork();
+        $pid = pcntl_fork();
 
-        if ($this->pid) {
+        if ($pid) {
 // write new daemon pid to file and exit
             ftruncate($fd, 0);
-            fwrite($fd, $this->pid);
+            fwrite($fd, $pid);
             flock($fd, LOCK_UN);
             fclose($fd);
 
-            $this->log("Daemon will be started (pid $this->pid)");
+            $this->log("Daemon will be started (pid $pid)");
             exit(0);
         }
 
 // read pid of new daemon from file
-        $fd = fopen($this->pidFile, 'rb');
-        flock($fd, LOCK_SH);
-        $this->pid = fread($fd, filesize($this->pidFile));
-        flock($fd, LOCK_UN);
-        fclose($fd);
-
-        $this->log("Daemon started (pid $this->pid)");
+        $this->setPid(posix_getpid());
+        $this->log('Daemon started (pid ' . $this->getPid() . ')');
 
 // unmount console and standard IO channels, set new PHP error log
         posix_setsid();
