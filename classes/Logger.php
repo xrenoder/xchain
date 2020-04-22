@@ -100,7 +100,7 @@ class Logger extends AppBase
      */
     public function errorLog(string $message): void
     {
-        $this->simpleLog($message);
+        $this->write($this->logFile, $this->createRecord($message, true));
         $this->write($this->errFile, $this->createRecord($message, true));
     }
 
