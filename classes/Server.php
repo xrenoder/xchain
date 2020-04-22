@@ -223,7 +223,7 @@ class Server extends AppBase
 
         $this->sockets[$key][self::INDATA_KEY] .= $data;
 
-//		static::log("RECV $key:" . $data);
+		$this->log("RECV $key:" . $data);
 
         return $this->packetParser($key);
     }
@@ -244,7 +244,9 @@ class Server extends AppBase
             $this->sockets[$key][self::OUTDATA_KEY] = substr($this->sockets[$key][self::OUTDATA_KEY], $realLength);
         }
 
-        if ($this->sockets[$key][self::OUTDATA_KEY] === '') {
+        $this->log("SEND $key: $realLength bytes");
+
+        if (!$this->sockets[$key][self::OUTDATA_KEY]) {
             unset($this->sends[$key]);
 
             /*
@@ -592,8 +594,7 @@ class Server extends AppBase
             $beg = time();
 
             while ((time() - $beg) < self::ALIVE_TIMEOUT) {
-                if ($this->select()) {
-                    $result = true;
+                if ($result = $this->select()) {
                     break;
                 }
             }
