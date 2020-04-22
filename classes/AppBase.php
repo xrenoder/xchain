@@ -36,4 +36,13 @@ class AppBase
     {
         $this->getApp()->getLogger()->errorLog($message);
     }
+
+    /**
+     * Short debug logging
+     * @param $message
+     */
+    protected function dbg($message): void
+    {
+        $this->getApp()->getLogger()->debugLog($message);
+    }
 }

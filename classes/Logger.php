@@ -19,6 +19,11 @@ class Logger extends AppBase
     public function setPhpErrFile($val) {$this->phpErrFile = $val; return $this;}
     public function getPhpErrFile() {return $this->phpErrFile;}
 
+    /** @var bool */
+    private $dbgMode = true;
+    public function setDbgMode($val) {$this->dbgMode = $val; return $this;}
+    public function getDbgMode() {return $this->dbgMode;}
+
     /**
      * Creating Logger object
      *
@@ -43,19 +48,55 @@ class Logger extends AppBase
     }
 
     /**
+     * Usual log
      * @param string $message
      */
     public function simpleLog(string $message): void
     {
-        $this->write($this->logFile, $this->getDate() . ' ' . $message . "\n");
+        $this->write($this->logFile, $this->createRecord($message));
     }
 
     /**
+     * Debug logging
+     * @param string $message
+     */
+    public function debugLog(string $message): void
+    {
+        if (!$this->dbgMode) return;
+
+        $this->write($this->logFile, $this->createRecord($message, false, true));
+    }
+
+    /**
+     * Error logging
      * @param string $message
      */
     public function errorLog(string $message): void
     {
-        $this->write($this->errFile, $this->getDate() . ' ' . $message . "\n");
+        $this->write($this->errFile, $this->createRecord($message, true));
+    }
+
+    /**
+     * Create log record
+     * @param $message
+     * @param bool $isErr
+     * @return string
+     */
+    private function createRecord($message, $isErr  = false, $isDebug = false): string
+    {
+        $record = $this->getDate() . "\t" . $this->getApp()->getDaemon()->getPid() . "\t";
+
+        if ($isErr) {
+            $record .= '[error]' . "\t";
+        } else if ($isDebug) {
+            $record .= '[debug]' . "\t";
+        } else {
+            $record .= "\t\t";
+        }
+
+        $record .= $message . "\n";
+
+        return $record;
     }
 
     /**

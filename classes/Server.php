@@ -181,7 +181,7 @@ class Server extends AppBase
                     $this->err('ERROR: accept error');
                     $this->softFinish();
                 } else {
-                    $this->log('Accept connection');
+                    $this->dbg('Accept connection');
                     $this->addNewClient($fd);
                 }
 
@@ -191,10 +191,18 @@ class Server extends AppBase
         }
 
 // читаем входящие
+        $isAlive = false;
+
         foreach($rd as $fd) {
-            if (($key = array_search($fd, $this->recvs)) && $this->read($key)) {	// возвращаем true, если получен ответ ALIVE_ANSWER
-                return true;
+            if ($key = array_search($fd, $this->recvs)) {
+                if ($this->read($key)) {
+                    $isAlive = true;
+                }
             }
+        }
+
+        if ($isAlive) {
+            return true;    // возвращаем true, если получен ответ ALIVE_ANSWER
         }
 
         return false;
@@ -223,7 +231,7 @@ class Server extends AppBase
 
         $this->sockets[$key][self::INDATA_KEY] .= $data;
 
-		$this->log("RECV $key:" . $data);
+		$this->dbg("RECV $key:" . $data);
 
         return $this->packetParser($key);
     }
@@ -244,7 +252,7 @@ class Server extends AppBase
             $this->sockets[$key][self::OUTDATA_KEY] = substr($this->sockets[$key][self::OUTDATA_KEY], $realLength);
         }
 
-        $this->log("SEND $key: $realLength bytes");
+        $this->dbg("SEND $key: $realLength bytes");
 
         if (!$this->sockets[$key][self::OUTDATA_KEY]) {
             unset($this->sends[$key]);
@@ -335,6 +343,8 @@ class Server extends AppBase
 
         $this->recvs[$key] = $fd;
 
+        $this->dbg('Connected to ' . $transport . '://' . $target);
+
         return $key;
     }
 
@@ -367,7 +377,7 @@ class Server extends AppBase
         $this->listenSocket = $fd;
         $this->recvs[self::LISTEN_KEY] = $fd;
 
-        $this->log("Server listening");
+        $this->dbg("Server listening");
     }
 
     /**
@@ -407,6 +417,8 @@ class Server extends AppBase
 
         if (isset($this->sends[$key])) unset($this->sends[$key]);
         if (isset($this->recvs[$key])) unset($this->recvs[$key]);
+
+        $this->dbg("Connection $key closed");
     }
 
     /**
@@ -526,10 +538,10 @@ class Server extends AppBase
      */
     private function clientPacket($packet, $key): bool
     {
-        $this->log('CLN packet: ' . $packet);
+        $this->dbg('CLN packet: ' . $packet);
 
         if ($packet === self::ALIVE_REQ) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
-            $this->log('Alive request');
+            $this->dbg('Alive request');
             $this->addSending(self::ALIVE_RES, $key);
             return false;
         }
@@ -553,10 +565,10 @@ class Server extends AppBase
      */
     private function externalPacket($packet, $key): bool
     {
-        $this->log('EXT packet: ' . $packet);
+        $this->dbg('EXT packet: ' . $packet);
 
         if ($packet === self::ALIVE_RES) {			// ответ "демон жив" не перенаправляем клиенту
-            $this->log('Alive response');
+            $this->dbg('Alive response');
             return true;
         }
 
