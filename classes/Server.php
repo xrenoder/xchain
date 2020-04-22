@@ -526,6 +526,8 @@ class Server extends AppBase
      */
     private function clientPacket($packet, $key): bool
     {
+        $this->log('CLN packet: ' . $packet);
+
         if ($packet === self::ALIVE_REQ) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
             $this->log('Alive request');
             $this->addSending(self::ALIVE_RES, $key);
@@ -551,6 +553,8 @@ class Server extends AppBase
      */
     private function externalPacket($packet, $key): bool
     {
+        $this->log('EXT packet: ' . $packet);
+
         if ($packet === self::ALIVE_RES) {			// ответ "демон жив" не перенаправляем клиенту
             $this->log('Alive response');
             return true;
