@@ -2,8 +2,11 @@
 <?php
 require_once 'local.inc';
 
+//$debugMode = Logger::DBG_SERV;
+$debugMode = 0;
+
 $app = new App(SCRIPT_NAME);
-Logger::create($app,LOG_PATH, Logger::DBG_SERV, 'xchain.log', 'error.log', 'php.err');
+Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
 Server::create($app,MY_IP, MY_PORT);
 Daemon::create($app, RUN_PATH,  'pid');
 
