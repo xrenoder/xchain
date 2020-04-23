@@ -34,6 +34,11 @@ class Socket extends AppBase
     public function addInData($val) {$this->inData .= $val; return $this;}
     public function getInData() {return $this->inData;}
 
+    /** @var Request  */
+    private $request;
+    public function setRequest($val) {$this->request = $val; return $this;}
+    public function getRequest() {return $this->request;}
+
     /** @var string  */
     private $outData = '';
     public function setOutData($val) {$this->outData = $val; return $this;}
@@ -167,7 +172,7 @@ class Socket extends AppBase
             return false;
         }
 
-        $this->addInData($data);
+        $this->inData .= $data;
 
         $this->dbg(Logger::DBG_SOCK, 'RECV to ' . $this->getKey() . ': '. $data);
 
@@ -183,18 +188,34 @@ class Socket extends AppBase
         $packet = $this->inData;
         $this->dbg(Logger::DBG_SOCK,'Packet: ' . $packet);
         $this->inData = '';
-        $server = $this->getServer();
 
-        if ($packet === $server->getAliveReq()) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
-            $this->dbg(Logger::DBG_SOCK,'Alive request');
-            $this->addOutData($server->getAliveRes());
+        if (!$this->request) {
+            $this->request = Request::create($this, $packet);
+        } else {
+            $this->request->addStr($packet);
+        }
+
+        $aliveLen = Request::FLD_LENGTH_LEN + Request::FLD_TYPE_LEN;
+        $reqLen = $this->request->getLen();
+
+        if ($reqLen < $aliveLen) {
             return false;
+        } else if ($reqLen === $aliveLen) {
+            $server = $this->getServer();
+
+            if ($packet === $server->getAlive(Server::ALIVE_REQ)) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
+                $this->dbg(Logger::DBG_SOCK,'Alive request');
+                $this->addOutData($server->getAlive(Server::ALIVE_RES));
+                return false;
+            }
+
+            if ($packet === $server->getAlive(Server::ALIVE_RES)) {			// ответ "демон жив" не перенаправляем клиенту
+                $this->dbg(Logger::DBG_SOCK,'Alive response');
+                return true;                            // true возвращается только при получении пакета "демон жив"
+            }
         }
 
-        if ($packet === $server->getAliveRes()) {			// ответ "демон жив" не перенаправляем клиенту
-            $this->dbg(Logger::DBG_SOCK,'Alive response');
-            return true;                            // true возвращается только при получении пакета "демон жив"
-        }
+
 
 // TODO вызов обработчика пакетов - определяем тип, необходимые действия, кому направлять пакет дальше, что отвечать клиенту
 //    $answer = $this->app->parser($this->app, $this, $key, $packet);
@@ -203,7 +224,7 @@ class Socket extends AppBase
 // направляем сообщение клиенту
 //        $this->addSending($answerClnt, $this->sockets[$key][self::CLNT_KEY]);
 
-        return false;			// true возвращается только при получении пакета "демон жив"
+        return false;
     }
 
     /**

@@ -2,8 +2,8 @@
 <?php
 require_once 'local.inc';
 
-$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK;
-//$debugMode = 0;
+//$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK;
+$debugMode = 0;
 
 $app = new App(SCRIPT_NAME);
 
@@ -13,7 +13,6 @@ $listenTCPHost = Host::create($app, Host::TCP, MY_IP, MY_PORT);
 $bindTCPHost = Host::create($app, Host::TCP, MY_IP, 0);
 
 Server::create($app,$listenTCPHost, $bindTCPHost);
-
 Daemon::create($app, RUN_PATH,  'pid');
 
 $command = '';

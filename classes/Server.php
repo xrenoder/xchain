@@ -4,11 +4,13 @@
  */
 class Server extends AppBase
 {
-    private const ALIVE_REQ = 'xrenoping';
-    private const ALIVE_RES = 'xrenopong';
+    public const ALIVE_REQ = 'ping';
+    public const ALIVE_RES = 'pong';
 
-    public function getAliveReq() {return self::ALIVE_REQ;}
-    public function getAliveRes() {return self::ALIVE_RES;}
+    public function getAlive($req) {
+        $len = strlen($req) + Request::FLD_LENGTH_LEN;
+        return pack("L", $len) . $req;
+    }
 
     /** @var Host */
     private $listenHost;
@@ -374,7 +376,7 @@ class Server extends AppBase
         $result = false;
 
         if ($socket = $this->connect($this->getListenHost())) {
-            $socket->addOutData($this->getAliveReq());
+            $socket->addOutData($this->getAlive(Server::ALIVE_REQ));
 
             $beg = time();
 
