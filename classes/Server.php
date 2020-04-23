@@ -27,7 +27,7 @@ class Server extends AppBase
     private const GARBAGE_TIMEOUT = 3600;
 
     private const LISTEN_KEY = 'lst';
-    private const KEY_PREFIX = 'key';
+    private const KEY_PREFIX = 'sock_';
 
     /** @var bool */
     private $end = false;
@@ -96,8 +96,12 @@ class Server extends AppBase
                         }
             */
 
-            if ($this->end && count($this->sockets) <= 1) { 	// если установлен режим "мягкого завершения работы"
-                break;												// и нет подключенных клиентов - выходим
+            if ($this->end) { 	// если установлен режим "мягкого завершения работы"
+                $this->dbg(Logger::DBG_SERV,'Sockets: ' . count($this->sockets));
+
+                if (count($this->sockets) <= 1) {   // и нет подключенных клиентов - выходим
+                    break;
+                }
             }
         }
 

@@ -169,7 +169,7 @@ class Socket extends AppBase
 
         $this->addInData($data);
 
-        $this->dbg(Logger::DBG_SOCK, 'RECV :' . $this->getKey() . $data);
+        $this->dbg(Logger::DBG_SOCK, 'RECV to ' . $this->getKey() . ': '. $data);
 
         return $this->packetParser();
     }
