@@ -89,7 +89,7 @@ class Logger extends AppBase
      */
     public function debugLog(int $dbgLevel, string $message): void
     {
-        if (!($this->dbgMode && $dbgLevel)) return;
+        if (!($this->dbgMode & $dbgLevel)) return;
 
         $this->write($this->logFile, $this->createRecord($message, false, $dbgLevel));
     }

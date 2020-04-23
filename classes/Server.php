@@ -4,15 +4,15 @@
  */
 class Server extends AppBase
 {
-    /** @var string */
-    private $ip;
-    public function setIp($val) {$this->ip = $val; return $this;}
-//    public function getIp() {return $this->ip;}
+    /** @var Host */
+    private $listenHost;
+    public function setListenHost($val) {$this->listenHost = $val; return $this;}
+    public function getListenHost() {return $this->listenHost;}
 
-    /** @var string */
-    private $port;
-    public function setPort($val) {$this->port = $val; return $this;}
-//    public function getPort() {return $this->port;}
+    /** @var Host */
+    private $bindHost;
+    public function setBindHost($val) {$this->bindHost = $val; return $this;}
+    public function getBindHost() {return $this->bindHost;}
 
     private const ALIVE_TIMEOUT = 10;
     private const SELECT_TIMEOUT_SEC = 0;
@@ -22,10 +22,6 @@ class Server extends AppBase
 
     private const ALIVE_REQ = 'xrenoping';
     private const ALIVE_RES = 'xrenopong';
-    private const UNIX_TRANSPORT = 'unix';
-    private const SSL_TRANSPORT = 'ssl';
-    private const TCP_TRANSPORT = 'tcp';
-
 
     private const LISTEN_KEY = 'listen';
     private const FD_KEY = 'fd';
@@ -38,10 +34,15 @@ class Server extends AppBase
     /** @var bool */
     private $end = false;
     private $listenSocket = null;
-    /** @var array */
+
+    /** @var Socket[] */
     private $sockets = array();
+    public function setSocket($val, $key) {$this->sockets[$key] = $val; return $this;}
+    public function getSocket($key) {return $this->sockets[$key];}
+
     private $sends = array();
     private $recvs = array();
+
     private $sockCounter = 0;
     private $maxSockCounter = 1024;
 
@@ -51,16 +52,16 @@ class Server extends AppBase
     /**
      * Creating Server object
      * @param App $app
-     * @param string $localIp
-     * @param string $localPort
+     * @param Host $listenHost
+     * @param Host $bindHost
      * @return Server
      */
-    public static function create(App $app, string $localIp, string $localPort): Server
+    public static function create(App $app, Host $listenHost, Host $bindHost = null): Server
     {
         $me = new self($app);
 
-        $me->setIp($localIp);
-        $me->setPort($localPort);
+        $me->setListenHost($listenHost);
+        $me->setBindHost($bindHost);
 
         $me->getApp()->setServer($me);
 
@@ -112,6 +113,8 @@ class Server extends AppBase
      */
     private function select(): bool
     {
+        $this->nowTime = time();
+
         if ($rdCnt = count($this->recvs)) $rd = $this->recvs;
         else $rd = array();
 
@@ -265,11 +268,10 @@ class Server extends AppBase
 
     /**
      * Connecting to remote host
-     * @param string $host
-     * @param string $port
+     * @param Host $host
      * @return string
      */
-    private function connect(string $host, string $port): ?string
+    private function connect(Host $host): ?string
     {
         /*
                 if ($host === static::$usock) {
@@ -283,14 +285,17 @@ class Server extends AppBase
                     static::err("ERROR: TCP socket need port for connection");
                 }
         */
-        $target = $host . ':' . $port;
-        $transport = self::TCP_TRANSPORT;
 
+        // TODO проверить, как влияет на скорость опция TCP_DELAY и другие (so_reuseport,
         $opts = array(
             'socket' => array(
-                'bindto' => $this->ip . ':0',
+                'tcp_nodelay' => true,
             ),
         );
+
+        if ($this->bindHost) {
+            $opts['socket']['bindto'] = $this->getBindHost()->getPair();
+        }
 
         $context = stream_context_create($opts);
 
@@ -311,7 +316,7 @@ class Server extends AppBase
         $errStr = '';
 
         try {
-            $fd = @stream_socket_client($transport . '://' . $target, $errNo, $errStr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
+            $fd = @stream_socket_client($host->getTarget(), $errNo, $errStr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
         } catch (Exception $e) {
             $this->err('ERROR: stream_socket_client exception ' . $e->getMessage());
             $this->err("DETAILS: stream_socket_client ($errNo) $errStr");
@@ -321,7 +326,7 @@ class Server extends AppBase
 
         $key = $this->addNewSocket($fd);
 
-        $this->dbg(Logger::DBG_SERV,'Connected to ' . $transport . '://' . $target);
+        $this->dbg(Logger::DBG_SERV,'Connected to ' . $host->getTarget());
 
         return $key;
     }
@@ -341,10 +346,7 @@ class Server extends AppBase
             $target = static::LOCALHOST . ":" . static::$portIn;
         }
 */
-        $transport = self::TCP_TRANSPORT;
-        $target = $this->ip . ':' . $this->port;
-
-        $fd = stream_socket_server($transport . '://' . $target, $errNo, $errStr);
+        $fd = stream_socket_server($this->getListenHost()->getTarget(), $errNo, $errStr);
 
         if (!$fd) {
             $this->err("ERROR: cannot create server socket ($errStr)");
@@ -525,7 +527,7 @@ class Server extends AppBase
     {
         $result = false;
 
-        if ($key = $this->connect($this->ip, $this->port)) {
+        if ($key = $this->connect($this->getListenHost())) {
             $this->addSending(self::ALIVE_REQ, $key);
 
             $beg = time();
