@@ -2,8 +2,8 @@
 <?php
 require_once 'local.inc';
 
-//$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK;
-$debugMode = 0;
+$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK;
+//$debugMode = 0;
 
 $app = new App(SCRIPT_NAME);
 

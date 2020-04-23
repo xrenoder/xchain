@@ -113,8 +113,6 @@ class Server extends AppBase
      */
     private function select(): bool
     {
-        $this->nowTime = time();
-
         if ($rdCnt = count($this->recvs)) $rd = $this->recvs;
         else $rd = array();
 
