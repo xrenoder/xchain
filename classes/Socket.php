@@ -95,7 +95,7 @@ class Socket extends AppBase
      */
     public function unsetRecvs(): Socket
     {
-        $this->getServer()->setRecvs(null,$this->getKey());
+        $this->getServer()->unsetRecvs($this->getKey());
         return $this;
     }
 
@@ -115,7 +115,7 @@ class Socket extends AppBase
      */
     public function unsetSends(): Socket
     {
-        $this->getServer()->setSends(null,$this->getKey());
+        $this->getServer()->unsetSends($this->getKey());
         return $this;
     }
 

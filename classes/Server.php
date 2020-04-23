@@ -35,13 +35,16 @@ class Server extends AppBase
     /** @var Socket[] */
     private $sockets = array();
     public function setSocket($val, $key) {$this->sockets[$key] = $val; return $this;}
-    public function unsetSocket($key) {$this->sockets[$key] = null; return $this;}
+    public function unsetSocket($key) {unset($this->sockets[$key]); return $this;}
     public function getSocket($key) {return ($this->sockets[$key] ?? null);}
 
     private $sends = array();
     public function setSends($val, $key) {$this->sends[$key] = $val; return $this;}
+    public function unsetSends($key) {unset($this->sends[$key]); return $this;}
+
     private $recvs = array();
     public function setRecvs($val, $key) {$this->recvs[$key] = $val; return $this;}
+    public function unsetRecvs($key) {unset($this->recvs[$key]); return $this;}
 
     private $sockCounter = 0;
     private $maxSockCounter = 1024;
@@ -97,9 +100,9 @@ class Server extends AppBase
             */
 
             if ($this->end) { 	// если установлен режим "мягкого завершения работы"
-                $this->dbg(Logger::DBG_SERV,'Sockets: ' . count($this->sockets));
+                $this->dbg(Logger::DBG_SERV,'Sockets cnt: ' . count($this->sockets));
 
-                if (count($this->sockets) <= 1) {   // и нет подключенных клиентов - выходим
+                if (!count($this->sockets)) {   // и нет подключенных сокетов - выходим
                     break;
                 }
             }
