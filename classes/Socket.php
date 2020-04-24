@@ -56,7 +56,7 @@ class Socket extends AppBase
      * @param Host $host
      * @return Socket
      */
-    public static function create(Server $server, Host $host, $fd, string $key): Socket
+    public static function create(Server $server, $host, $fd, string $key): Socket
     {
         $me = new self($server->getApp());
 

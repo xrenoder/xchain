@@ -324,12 +324,12 @@ class Server extends AppBase
         $this->dbg(Logger::DBG_SERV, 'Server listening');
     }
 
-    private function newReadSocket($fd, Host $host, string $key = null): Socket
+    private function newReadSocket($fd, $host, string $key = null): Socket
     {
         return $this->newSocket($fd, $host, $key, true);
     }
 
-    private function newWriteSocket($fd, Host $host, string $key = null): Socket
+    private function newWriteSocket($fd, $host, string $key = null): Socket
     {
         return $this->newSocket($fd, $host, $key, false);
     }
@@ -343,7 +343,7 @@ class Server extends AppBase
      * @return Socket
      * @throws Exception
      */
-    private function newSocket($fd, Host $host, $key, bool $toRead ): Socket
+    private function newSocket($fd, $host, $key, bool $toRead ): Socket
     {
         if ($key === null) {
             $key = $this->getSocketKey();
