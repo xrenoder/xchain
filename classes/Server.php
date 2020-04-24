@@ -12,6 +12,8 @@ class Server extends AppBase
         return pack("L", $len) . $req;
     }
 
+    private const MAX_SOCK = MAX_SOCKETS;
+
     /** @var Host */
     private $listenHost;
     public function setListenHost($val) {$this->listenHost = $val; return $this;}
@@ -49,7 +51,7 @@ class Server extends AppBase
     public function unsetRecvs($key) {unset($this->recvs[$key]); return $this;}
 
     private $sockCounter = 0;
-    private $maxSockCounter = 1024;
+
 
     private $nowTime;
     private $garbTime;
@@ -189,7 +191,7 @@ class Server extends AppBase
                     $this->softFinish();
                 } else {
                     $this->dbg(Logger::DBG_SERV,'Accept connection');
-                    $this->addNewSocket($fd);
+                    $this->newReadSocket($fd);
                 }
             }
         }
@@ -217,9 +219,10 @@ class Server extends AppBase
     /**
      * Connecting to remote host
      * @param Host $host
+     * @param string $dataSend
      * @return Socket
      */
-    private function connect(Host $host): ?Socket
+    private function connect(Host $host, string $dataSend): ?Socket
     {
         /*
                 if ($host === static::$usock) {
@@ -264,7 +267,14 @@ class Server extends AppBase
         $errStr = '';
 
         try {
-            $fd = @stream_socket_client($host->getTarget(), $errNo, $errStr, static::CONNECT_TIMEOUT, STREAM_CLIENT_CONNECT, $context);
+            $fd = @stream_socket_client(
+                $host->getTarget(),
+                $errNo,
+                $errStr,
+                static::CONNECT_TIMEOUT,
+                STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT,
+                $context
+            );
         } catch (Exception $e) {
             $this->err('ERROR: stream_socket_client exception ' . $e->getMessage());
             $this->err("DETAILS: stream_socket_client ($errNo) $errStr");
@@ -272,9 +282,10 @@ class Server extends AppBase
 
         if (!$fd) return null;
 
-        $socket = $this->addNewSocket($fd);
+        $socket = $this->newWriteSocket($fd);
+        $socket->addOutData($dataSend);
 
-        $this->dbg(Logger::DBG_SERV,'Connected to ' . $host->getTarget());
+        $this->dbg(Logger::DBG_SERV,'Connect to ' . $host->getTarget());
 
         return $socket;
     }
@@ -300,17 +311,28 @@ class Server extends AppBase
             $this->err("ERROR: cannot create server socket ($errStr)");
         }
 
-        $socket = $this->addNewSocket($fd, self::LISTEN_KEY);
+        $socket = $this->newReadSocket($fd, self::LISTEN_KEY);
         $this->dbg(Logger::DBG_SERV,"Server listening");
     }
 
+    private function newReadSocket($fd, string $key = null): Socket
+    {
+        return $this->newSocket($fd, $key, true);
+    }
+
+    private function newWriteSocket($fd, string $key = null): Socket
+    {
+        return $this->newSocket($fd, $key, false);
+    }
+
     /**
-     * Create new socket and add it to reading array
+     * Create new socket, add it to reading select array ($toRead = true) or to writing select array ($toRead = false)
      * @param $fd
      * @param string $key
+     * @param bool $toRead
      * @return Socket
      */
-    private function addNewSocket($fd, string $key = null): Socket
+    private function newSocket($fd, string $key, bool $toRead ): Socket
     {
         if (!$key) {
             $key = $this->getSocketKey();
@@ -318,8 +340,13 @@ class Server extends AppBase
 
         $socket = Socket::create($this, $fd, $key);
         $socket
-            ->setBlockMode(false)
-            ->setRecvs();
+            ->setBlockMode(false);
+
+        if ($toRead) {
+            $socket->setRecvs();
+        } else {
+            $socket->setSends();
+        }
 
         return $socket;
     }
@@ -344,7 +371,7 @@ class Server extends AppBase
     {
         while(true) {
             $this->sockCounter++;
-            if ($this->sockCounter === $this->maxSockCounter) $this->sockCounter = 1;
+            if ($this->sockCounter === self::MAX_SOCK) $this->sockCounter = 1;
 
             $key = self::KEY_PREFIX . $this->sockCounter;
             if(!isset($this->sockets[$key])) break;
@@ -375,9 +402,12 @@ class Server extends AppBase
     {
         $result = false;
 
-        if ($socket = $this->connect($this->getListenHost())) {
-            $socket->addOutData($this->getAlive(Server::ALIVE_REQ));
-
+        if (
+            $socket = $this->connect(
+                $this->getListenHost(),
+                $this->getAlive(Server::ALIVE_REQ)
+            )
+        ) {
             $beg = time();
 
             while ((time() - $beg) < self::ALIVE_TIMEOUT) {

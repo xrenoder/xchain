@@ -13,6 +13,7 @@ define('CLASS_PATH', XCHAIN_DIR . 'classes' . DS);
 define('LOG_PATH', XCHAIN_DIR . 'logs' . DS);
 define('RUN_PATH', XCHAIN_DIR . 'run' . DS);
 
+define('MAX_SOCKETS', 512);
 
 require_once 'init.inc';
 

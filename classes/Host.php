@@ -5,15 +5,19 @@
 
 class Host extends AppBase
 {
-    public const UNIX = 'unix';
-    public const SSL = 'ssl';
+// https://www.php.net/manual/ru/transports.php
     public const TCP = 'tcp';
     public const UDP = 'udp';
+    public const SSL = 'ssl';
+    public const TLS = 'tls';
+
+    public const UNIX = 'unix';
+    public const UDG = 'udg';
 
     private static $transports = array(
         self::TCP,
-        self::UNIX,
         self::SSL,
+        self::UNIX,
         self::UDP,
     );
 

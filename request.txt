@@ -1,4 +1,0 @@
-4 bytes     length of request body
-4 bytes     ('ping' or 'pong' - alive test) or type of request
-2 bytes     remote node role
-2 bytes     this node role
