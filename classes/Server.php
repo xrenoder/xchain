@@ -328,13 +328,13 @@ class Server extends AppBase
     /**
      * Create new socket, add it to reading select array ($toRead = true) or to writing select array ($toRead = false)
      * @param $fd
-     * @param string $key
+     * @param $key
      * @param bool $toRead
      * @return Socket
      */
-    private function newSocket($fd, string $key, bool $toRead ): Socket
+    private function newSocket($fd, $key, bool $toRead ): Socket
     {
-        if (!$key) {
+        if ($key === null) {
             $key = $this->getSocketKey();
         }
 
