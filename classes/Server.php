@@ -157,19 +157,10 @@ class Server extends AppBase
         $this->nowTime = time();
 
         if ($fdCnt === false ) {
-            $this->err('ERROR: select error (signal interruption?)');        // ошибка выдается только когда приходит сигнал завершения
+            $e = error_get_last();
+            $this->err("ERROR: select error '" . $e['message'] . "'");        // ошибка выдается только когда приходит сигнал завершения
             return false;
         } else if ($fdCnt === 0) {
-
-            /*
-            if (count($this->reserve) < self::RESERVE_NEED) {					// при необходимости добиваем нужное количество внешних резервных соединений
-                if ($key = $this->connect(static::$hostOut, static::$portOut)) {
-                    array_push(static::$reserve, $key);
-                    static::log("Reserve connection created: $key");
-                }
-            }
-            */
-
             return false;
         }
 
@@ -198,7 +189,6 @@ class Server extends AppBase
                 } else {
                     list($host, $port) = explode(':',stream_socket_get_name($fd,true));
                     $this->dbg(Logger::DBG_SERV,"Accept connection $host : $port");
-                    $this->log("Accept connection $host : $port");
                     $this->newReadSocket($fd, Host::create($this->getApp(), $this->getListenHost()->getTransport(), $host, $port));
                 }
             }
