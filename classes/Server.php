@@ -196,10 +196,10 @@ class Server extends AppBase
                     $this->err('ERROR: accept error');
                     $this->softFinish();
                 } else {
-                    $hostName = stream_socket_get_name($fd,true);
-                    $this->dbg(Logger::DBG_SERV,"Accept connection $hostName");
-                    $this->log("Accept connection $hostName");
-                    $this->newReadSocket($fd, null);
+                    list($host, $port) = explode(':',stream_socket_get_name($fd,true));
+                    $this->dbg(Logger::DBG_SERV,"Accept connection $host : $port");
+                    $this->log("Accept connection $host : $port");
+                    $this->newReadSocket($fd, Host::create($this->getApp(), $this->getListenHost()->getTransport(), $host, $port));
                 }
             }
         }
@@ -319,17 +319,17 @@ class Server extends AppBase
             throw new Exception("ERROR: cannot create server socket ($errStr)");
         }
 
-        $socket = $this->newReadSocket($fd, null, self::LISTEN_KEY);
+        $socket = $this->newReadSocket($fd, $this->getListenHost(), self::LISTEN_KEY);
 
         $this->dbg(Logger::DBG_SERV, 'Server listening');
     }
 
-    private function newReadSocket($fd, $host, string $key = null): Socket
+    private function newReadSocket($fd, Host $host, string $key = null): Socket
     {
         return $this->newSocket($fd, $host, $key, true);
     }
 
-    private function newWriteSocket($fd, $host, string $key = null): Socket
+    private function newWriteSocket($fd, Host $host, string $key = null): Socket
     {
         return $this->newSocket($fd, $host, $key, false);
     }
@@ -343,7 +343,7 @@ class Server extends AppBase
      * @return Socket
      * @throws Exception
      */
-    private function newSocket($fd, $host, $key, bool $toRead ): Socket
+    private function newSocket($fd, Host $host, $key, bool $toRead ): Socket
     {
         if ($key === null) {
             $key = $this->getSocketKey();

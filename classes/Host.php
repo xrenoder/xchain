@@ -24,7 +24,7 @@ class Host extends AppBase
     /** @var string */
     private $transport;
     public function setTransport($val) {$this->transport = $val; return $this;}
-//    public function getTransport() {return $this->transport;}
+    public function getTransport() {return $this->transport;}
 
     /** @var string */
     private $host;
@@ -68,9 +68,9 @@ class Host extends AppBase
 
         $me = new self($app);
 
-        $me->setTransport($transport);
-        $me->setHost($host);
-        $me->setPort($port);
+        $me->setTransport(trim($transport));
+        $me->setHost(trim($host));
+        $me->setPort(trim($port));
 
         if ($port !== null) {
             $me->setTarget($transport . '://' . $host . ':' . $port);
