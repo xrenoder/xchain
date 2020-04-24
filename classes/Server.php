@@ -28,7 +28,7 @@ class Server extends AppBase
     private const SELECT_TIMEOUT_SEC = 0;
     private const SELECT_TIMEOUT_USEC = 50000;
     private const CONNECT_TIMEOUT = 30;
-    private const GARBAGE_TIMEOUT = 3600;
+    private const GARBAGE_TIMEOUT = 300;
 
     private const LISTEN_KEY = 'lst';
     private const KEY_PREFIX = 'sock_';
