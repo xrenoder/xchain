@@ -158,7 +158,7 @@ class Server extends AppBase
 
         if ($fdCnt === false ) {
             $e = error_get_last();
-            $this->err("ERROR: file '" . $e['file']. "', line " . $e['line'] . ", '" . $e['message'] . "'");        // ошибка выдается только когда приходит сигнал завершения
+            $this->err("ERROR: '" . $e['message'] . "' (line " . $e['line'] . " in '" . $e['file'] . "')");        // ошибка выдается только когда приходит сигнал завершения
             return false;
         } else if ($fdCnt === 0) {
             return false;
