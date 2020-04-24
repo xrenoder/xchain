@@ -44,15 +44,25 @@ class Socket extends AppBase
     public function setOutData($val) {$this->outData = $val; return $this;}
     public function getOutData() {return $this->outData;}
 
+    /** @var Host  */
+    private $host;
+    public function setHost($val) {$this->host = $val; return $this;}
+    public function getHost() {return $this->host;}
+
     /**
      * @param Server $server
      * @param $fd
-     * @param string|null $key
+     * @param string $key
+     * @param Host $host
      * @return Socket
      */
-    public static function create(Server $server, $fd, string $key): Socket
+    public static function create(Server $server, Host $host, $fd, string $key): Socket
     {
         $me = new self($server->getApp());
+
+        if ($host) {
+            $me->setHost($host);
+        }
 
         $me
             ->setServer($server)

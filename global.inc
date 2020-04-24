@@ -13,7 +13,8 @@ define('CLASS_PATH', XCHAIN_DIR . 'classes' . DS);
 define('LOG_PATH', XCHAIN_DIR . 'logs' . DS);
 define('RUN_PATH', XCHAIN_DIR . 'run' . DS);
 
-define('MAX_SOCKETS', 512);
+define('RESERVE_SOCKETS', 128);
+define('MAX_SOCKETS', 640);     // 512 + 128 reserve sockets
 
 require_once 'init.inc';
 

@@ -13,6 +13,7 @@ class Server extends AppBase
     }
 
     private const MAX_SOCK = MAX_SOCKETS;
+    private const RESERVE_SOCK = RESERVE_SOCKETS;
 
     /** @var Host */
     private $listenHost;
@@ -174,7 +175,7 @@ class Server extends AppBase
 
 // пишем исходящие (делаем это в первую очередь, чтобы внешний сервер не простаивал, пока мы читаем входящие)
         foreach($wr as $fd) {
-            if ($key = array_search($fd, $this->sends)) {
+            if ($key = array_search($fd, $this->sends, true)) {
                 $this->getSocket($key)->write();
             }
         }
@@ -185,13 +186,20 @@ class Server extends AppBase
         if ($listenSocket = $this->getSocket(self::LISTEN_KEY)) {
             $listenFd = $listenSocket->getFd();
 
-            if (in_array($listenFd, $rd)) {
-                if (($fd = @stream_socket_accept($listenFd)) === false) {
+            if (in_array($listenFd, $rd, true)) {
+// TODO добавить обработку ситуации "не хватает сокетов, чтобы принять соединение" - быстро ответить, что перегружен и отключиться
+                if (count($this->sockets) >= (self::MAX_SOCK - self::RESERVE_SOCK)) {
+                    throw new Exception('Cannot accept: reach maximal sockets count');
+                }
+
+                if (($fd = @stream_socket_accept($listenFd, -1)) === false) {
                     $this->err('ERROR: accept error');
                     $this->softFinish();
                 } else {
-                    $this->dbg(Logger::DBG_SERV,'Accept connection');
-                    $this->newReadSocket($fd);
+                    $hostName = stream_socket_get_name($fd,true);
+                    $this->dbg(Logger::DBG_SERV,"Accept connection $hostName");
+                    $this->log("Accept connection $hostName");
+                    $this->newReadSocket($fd, null);
                 }
             }
         }
@@ -202,7 +210,7 @@ class Server extends AppBase
         foreach($rd as $fd) {
             if ($fd === $listenFd) continue;
 
-            if ($key = array_search($fd, $this->recvs)) {
+            if ($key = array_search($fd, $this->recvs, true)) {
                 if ($this->getSocket($key)->read()) {
                     $isAlive = true;
                 }
@@ -224,6 +232,10 @@ class Server extends AppBase
      */
     private function connect(Host $host, string $dataSend): ?Socket
     {
+// TODO добавить обработку ситуации "не хватает сокетов, чтобы установить коннект"
+        if (count($this->sockets) >= self::MAX_SOCK) {
+            return null;
+        }
         /*
                 if ($host === static::$usock) {
                     $transport = static::UNIX_TRANSPORT;
@@ -237,7 +249,7 @@ class Server extends AppBase
                 }
         */
 
-// TODO проверить, как влияет на скорость опция TCP_DELAY и другие (so_reuseport,
+// TODO проверить, как влияет на скорость опция TCP_DELAY и другие (so_reuseport, backlog)
         $opts = array(
             'socket' => array(
                 'tcp_nodelay' => true,
@@ -282,7 +294,7 @@ class Server extends AppBase
 
         if (!$fd) return null;
 
-        $socket = $this->newWriteSocket($fd);
+        $socket = $this->newWriteSocket($fd, $host);
         $socket->addOutData($dataSend);
 
         $this->dbg(Logger::DBG_SERV,'Connect to ' . $host->getTarget());
@@ -297,48 +309,47 @@ class Server extends AppBase
     {
         if ($this->getSocket(self::LISTEN_KEY)) return;
 
-/*
-        if (static::$inTransport == static::UNIX_TRANSPORT) {
-            $target = static::$usock;
-        } else {
-//			$target = static::$ipIn . ":" . static::$portIn;
-            $target = static::LOCALHOST . ":" . static::$portIn;
+        if (count($this->sockets) >= self::MAX_SOCK) {
+            throw new Exception('Cannot listening: reach maximal sockets count');
         }
-*/
+
         $fd = stream_socket_server($this->getListenHost()->getTarget(), $errNo, $errStr);
 
         if (!$fd) {
-            $this->err("ERROR: cannot create server socket ($errStr)");
+            throw new Exception("ERROR: cannot create server socket ($errStr)");
         }
 
-        $socket = $this->newReadSocket($fd, self::LISTEN_KEY);
-        $this->dbg(Logger::DBG_SERV,"Server listening");
+        $socket = $this->newReadSocket($fd, null, self::LISTEN_KEY);
+
+        $this->dbg(Logger::DBG_SERV, 'Server listening');
     }
 
-    private function newReadSocket($fd, string $key = null): Socket
+    private function newReadSocket($fd, Host $host, string $key = null): Socket
     {
-        return $this->newSocket($fd, $key, true);
+        return $this->newSocket($fd, $host, $key, true);
     }
 
-    private function newWriteSocket($fd, string $key = null): Socket
+    private function newWriteSocket($fd, Host $host, string $key = null): Socket
     {
-        return $this->newSocket($fd, $key, false);
+        return $this->newSocket($fd, $host, $key, false);
     }
 
     /**
      * Create new socket, add it to reading select array ($toRead = true) or to writing select array ($toRead = false)
      * @param $fd
+     * @param Host $host
      * @param $key
      * @param bool $toRead
      * @return Socket
+     * @throws Exception
      */
-    private function newSocket($fd, $key, bool $toRead ): Socket
+    private function newSocket($fd, Host $host, $key, bool $toRead ): Socket
     {
         if ($key === null) {
             $key = $this->getSocketKey();
         }
 
-        $socket = Socket::create($this, $fd, $key);
+        $socket = Socket::create($this, $host,$fd, $key);
         $socket
             ->setBlockMode(false);
 
@@ -369,6 +380,11 @@ class Server extends AppBase
      */
     private function getSocketKey(): string
     {
+        // need checking before socket creating
+        if (count($this->sockets) >= self::MAX_SOCK) {
+            throw new Exception('Cannot get socket key: reach maximal sockets count');
+        }
+
         while(true) {
             $this->sockCounter++;
             if ($this->sockCounter === self::MAX_SOCK) $this->sockCounter = 1;
