@@ -5,10 +5,10 @@
 abstract class Request extends AppBase
 {
     protected const FLD_LENGTH_LEN = 4;
-    protected const FLD_LENGTH_FMT = 'L';
+    protected const FLD_LENGTH_FMT = 'N';   //unsigned long big-endian
 
     protected const FLD_TYPE_LEN = 4;
-    protected const FLD_TYPE_FMT = 'L';
+    protected const FLD_TYPE_FMT = 'N';     //unsigned long big-endian
 
     protected $enumId;
     public function setEnumId($val) {$this->enumId = $val; return $this;}
@@ -75,14 +75,14 @@ abstract class Request extends AppBase
     public static function getLength(string $data) : int
     {
         $offset = 0;
-        [$len] = unpack(static::FLD_LENGTH_FMT, substr($data, $offset, static::FLD_LENGTH_LEN));
-        return $len;
+        $tmp = unpack(static::FLD_LENGTH_FMT, substr($data, $offset, static::FLD_LENGTH_LEN));
+        return $tmp[1];
     }
 
     public static function getType(string $data) : int
     {
         $offset = static::FLD_LENGTH_LEN;
-        [$type] = unpack(static::FLD_TYPE_FMT, substr($data, $offset, static::FLD_TYPE_LEN));
-        return $type;
+        $tmp = unpack(static::FLD_TYPE_FMT, substr($data, $offset, static::FLD_TYPE_LEN));
+        return $tmp[1];
     }
 }
