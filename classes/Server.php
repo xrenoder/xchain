@@ -412,7 +412,7 @@ class Server extends AppBase
         if (
             $socket = $this->connect(
                 $this->getListenHost(),
-                AliveResRequest::createMessage()
+                AliveReqRequest::createMessage()
             )
         ) {
             $beg = time();
