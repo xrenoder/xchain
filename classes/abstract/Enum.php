@@ -23,4 +23,9 @@ abstract class Enum
 
         return false;
     }
+
+    public static function getItemsList(): array
+    {
+        return static::$items;
+    }
 }

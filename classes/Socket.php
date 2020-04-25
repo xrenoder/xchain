@@ -269,8 +269,9 @@ class Socket extends AppBase
 
 // if cannot create class of request by declared type - incoming data is bad
         $requestType = Request::getType($this->requestStr);
-        if (!$this->request = Request::spawn($this, $requestType)) {
+        if (!($this->request = Request::spawn($this, $requestType))) {
             $this->dbg(Logger::DBG_SOCK, "BAD DATA cannot create class of request by declared type: '$requestType'");
+            $this->dbg(Logger::DBG_SOCK, var_export(RequestEnum::getItemsList(), true));
             return $this->badData();
         }
 
