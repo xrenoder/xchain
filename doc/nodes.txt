@@ -1,24 +1,53 @@
-7    master node
+https://dou.ua/lenta/articles/12-konsensus-protocols/
+
+7    main node (M-node)
                 1st level
-                center of network
-                need for tests 2 master nodes
-                need for start 3 master nodes
-                receive packets from slave nodes and from all other masters
-                receive packets with BTC-transactions directly from clients (after verification transaction)
+                heart of network, create and keep critical network data
+
+                create & sign mainchain blocks & all base sidechains blocks
+                store mainchain & all base sidechains
+                manage S-nodes for other sidechains storing
+                communicate with other blockchains for exchange X-coins to other coins
+
+                need for tests 2 M-nodes
+                need for start 2 M-nodes
+                optimal 8 M-nodes
+                connected with own pool of S-nodes, with all other M-nodes, if one of M-nodes not worked - connect with their S-nodes
                 must be connected to BTC-network
+                must have own X capital + delegated Y capital
+                must have hi-perf CPU & good channel
 
+    6   master-aspirant node (MA-node) "I wanna be M-node!"
+                must work as S-node
+                must be connected to BTC-network
+                must have own X capital + delegated Y capital
+                must have hi-perf CPU & good channel
+                sometimes work and tested as master node (if S-nodes reached optimal count)
 
-6    slave node
+5    side node (S-node)
                 2nd level
-                need for tests 2 slave nodes for network (1 slave per 1 master node)
-                need for start 6 slave nodes for network (2 slave per 1 master node)
-                middle level of network
-                receive packets from proxy nodes and from own master nodes
+                wheelhorse of network: create & keep utility network data
 
-5   proxy node
+                create & sign utility sidechains blocks
+                store utility sidechains
+                optional store mainchain & all base sidechains
+
+                need for tests 2 slave nodes for network (1 slave per 1 M-node)
+                need for start 4 slave nodes for network (2 slave per 1 M-node)
+                optimal 64 S-nodes (8 per 1 M-node)
+                middle level of network
+                connected with own F-nodes and with one own M-node, if own M-node not worked - connect with other M-node
+
+    4   slave-aspirant node (SA-node)
+                must work as F-node
+
+    2   super-proxy node
+
+1   front node
                 3rd level
-                need for tests 2 proxy nodes for network (1 proxy per 1 slave node)
-                need for start 12 proxy nodes for network (2 proxy per 1 slave node)
+                need for tests 2 F-nodes for network (1 F-node per 1 S-node)
+                need for start 8 F-nodes for network (2 F-nodes per 1 S-node)
+                optimal 512 F-nodes (8 per 1 S-node)
                 outside border of network
 
 0   client

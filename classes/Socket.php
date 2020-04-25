@@ -34,10 +34,18 @@ class Socket extends AppBase
     public function addInData($val) {$this->inData .= $val; return $this;}
     public function getInData() {return $this->inData;}
 
+    /** @var string  */
+    private $requestStr = '';
+    public function setRequestStr($val) {$this->requestStr = $val; return $this;}
+    public function addRequestStr($val) {$this->requestStr .= $val; return $this;}
+    public function getRequestStr() {return $this->requestStr;}
+
     /** @var Request  */
     private $request;
     public function setRequest($val) {$this->request = $val; return $this;}
     public function getRequest() {return $this->request;}
+
+    private $requestLen;
 
     /** @var string  */
     private $outData = '';
@@ -187,54 +195,6 @@ class Socket extends AppBase
     }
 
     /**
-     * Is paket from client or from external connection
-     * @param $key
-     * @return bool
-     */
-    private function packetParser() {
-        $packet = $this->inData;
-        $this->dbg(Logger::DBG_SOCK,'Packet: ' . $packet);
-        $this->inData = '';
-
-        if (!$this->request) {
-            $this->request = Request::create($this, $packet);
-        } else {
-            $this->request->addStr($packet);
-        }
-
-        $aliveLen = Request::FLD_LENGTH_LEN + Request::FLD_TYPE_LEN;
-        $reqLen = $this->request->getLen();
-
-        if ($reqLen < $aliveLen) {
-            return false;
-        } else if ($reqLen === $aliveLen) {
-            $server = $this->getServer();
-
-            if ($packet === $server->getAlive(Server::ALIVE_REQ)) {				// запрос "жив ли демон" не отдаем обработчику пакетов, сразу отвечаем клиенту "жив"
-                $this->dbg(Logger::DBG_SOCK,'Alive request');
-                $this->addOutData($server->getAlive(Server::ALIVE_RES));
-                return false;
-            }
-
-            if ($packet === $server->getAlive(Server::ALIVE_RES)) {			// ответ "демон жив" не перенаправляем клиенту
-                $this->dbg(Logger::DBG_SOCK,'Alive response');
-                return true;                            // true возвращается только при получении пакета "демон жив"
-            }
-        }
-
-
-
-// TODO вызов обработчика пакетов - определяем тип, необходимые действия, кому направлять пакет дальше, что отвечать клиенту
-//    $answer = $this->app->parser($this->app, $this, $key, $packet);
-// направляем сообщение во внешний канал (канал определяется обработчиком пакетов)
-//        $this->addSending($answerExt, $this->sockets[$key][self::EXT_KEY]);
-// направляем сообщение клиенту
-//        $this->addSending($answerClnt, $this->sockets[$key][self::CLNT_KEY]);
-
-        return false;
-    }
-
-    /**
      * Add packet to socket for sending
      * @param $data
      * @return Socket
@@ -261,5 +221,58 @@ class Socket extends AppBase
             ->getServer()->unsetSocket($this->getKey());
 
         $this->dbg(Logger::DBG_SOCK, 'Socket ' . $this->getKey() . ' closed');
+    }
+
+    private function badData(): bool
+    {
+// TODO продумать действия при закрытии сокета, на который поступили плохие данные
+        $this->close();
+        return false;
+    }
+
+    /**
+     * Is paket from client or from external connection
+     * @param $key
+     * @return bool
+     */
+    private function packetParser(): bool
+    {
+        $packet = $this->inData;
+        $this->dbg(Logger::DBG_SOCK,'Packet: ' . $packet);
+        $this->inData = '';
+
+        if ($this->request) {
+            return $this->request->addPacket($packet);
+        }
+
+        $this->requestStr .= $packet;
+        $requestStrLen = strlen($this->requestStr);
+
+// if data length less than need for get declared length - return and wait more packets
+        if ($requestStrLen < Request::getLengthLen()) {
+            return false;
+        }
+
+        if (!$this->requestLen) {
+            $this->requestLen = Request::getLength($this->requestStr);
+        }
+
+// if real request length more than declared length - incoming data is bad
+        if ($requestStrLen > $this->requestLen) {
+            $this->dbg(Logger::DBG_SOCK,'BAD DATA real request length more than declared length: ' . $this->inData);
+            return $this->badData();
+        }
+
+        if ($requestStrLen < Request::getSpawnLen()) {
+            return false;
+        }
+
+// if cannot create class of request by declared type - incoming data is bad
+        if (!$this->request = Request::spawn($this, Request::getType($this->requestStr))) {
+            $this->dbg(Logger::DBG_SOCK,'BAD DATA cannot create class of request by declared type: ' . $this->inData);
+            return $this->badData();
+        }
+
+        return $this->request->addPacket($packet);
     }
 }

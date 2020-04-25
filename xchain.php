@@ -2,8 +2,8 @@
 <?php
 require_once 'local.inc';
 
-//$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK;
-$debugMode = 0;
+$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_REQ;
+//$debugMode = 0;
 
 $command = '';
 
@@ -16,8 +16,9 @@ $app = new App(SCRIPT_NAME);
 Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
 
 try {
-    $listenTCPHost = Host::create($app, Host::TCP, MY_IP, MY_PORT);
-    $bindTCPHost = Host::create($app, Host::TCP, MY_IP, 0);
+    $listenTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_ADDR);
+    $bindTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_ADDR);
+    $firstRemoteHost = Host::create($app, Host::TRANSPORT_TCP, FIRST_NODE_ADDR);
 
     Server::create($app,$listenTCPHost, $bindTCPHost);
     Daemon::create($app, RUN_PATH,  'pid');

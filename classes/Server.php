@@ -4,14 +4,6 @@
  */
 class Server extends AppBase
 {
-    public const ALIVE_REQ = 'ping';
-    public const ALIVE_RES = 'pong';
-
-    public function getAlive($req) {
-        $len = strlen($req) + Request::FLD_LENGTH_LEN;
-        return pack("L", $len) . $req;
-    }
-
     private const MAX_SOCK = MAX_SOCKETS;
     private const RESERVE_SOCK = RESERVE_SOCKETS;
 
@@ -160,7 +152,9 @@ class Server extends AppBase
             $e = error_get_last();
             $this->err("ERROR: '" . $e['message'] . "' (line " . $e['line'] . " in '" . $e['file'] . "')");        // ошибка выдается только когда приходит сигнал завершения
             return false;
-        } else if ($fdCnt === 0) {
+        }
+
+        if ($fdCnt === 0) {
             return false;
         }
 
@@ -187,9 +181,16 @@ class Server extends AppBase
                     $this->err('ERROR: accept error');
                     $this->softFinish();
                 } else {
-                    list($host, $port) = explode(':',stream_socket_get_name($fd,true));
-                    $this->dbg(Logger::DBG_SERV,"Accept connection $host : $port");
-                    $this->newReadSocket($fd, Host::create($this->getApp(), $this->getListenHost()->getTransport(), $host, $port));
+                    $acceptedSocket = $this->newReadSocket(
+                        $fd,
+                        Host::create(
+                            $this->getApp(),
+                            $this->getListenHost()->getTransport(),
+                            stream_socket_get_name($fd,true)
+                        )
+                    );
+
+                    $this->dbg(Logger::DBG_SERV, 'Accept connection from ' . $acceptedSocket->getHost()->getTarget());
                 }
             }
         }
@@ -411,7 +412,7 @@ class Server extends AppBase
         if (
             $socket = $this->connect(
                 $this->getListenHost(),
-                $this->getAlive(Server::ALIVE_REQ)
+                AliveResRequest::createMessage()
             )
         ) {
             $beg = time();

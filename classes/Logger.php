@@ -6,6 +6,7 @@ class Logger extends AppBase
 {
     public const DBG_SERV = 1;
     public const DBG_SOCK = 2;
+    public const DBG_REQ = 4;
 
     /** @var string */
     private $logFile;

@@ -6,19 +6,20 @@
 class Host extends AppBase
 {
 // https://www.php.net/manual/ru/transports.php
-    public const TCP = 'tcp';
-    public const UDP = 'udp';
-    public const SSL = 'ssl';
-    public const TLS = 'tls';
-
-    public const UNIX = 'unix';
-    public const UDG = 'udg';
+    public const TRANSPORT_TCP = 'tcp';
+    public const TRANSPORT_UDP = 'udp';
+    public const TRANSPORT_SSL = 'ssl';
+    public const TRANSPORT_TLS = 'tls';
+    public const TRANSPORT_UNIX = 'unix';
+    public const TRANSPORT_UDG = 'udg';
 
     private static $transports = array(
-        self::TCP,
-        self::SSL,
-        self::UNIX,
-        self::UDP,
+        self::TRANSPORT_TCP,
+        self::TRANSPORT_SSL,
+        self::TRANSPORT_UNIX,
+        self::TRANSPORT_UDP,
+        self::TRANSPORT_TLS,
+        self::TRANSPORT_UDG,
     );
 
     /** @var string */
@@ -55,16 +56,17 @@ class Host extends AppBase
     /**
      * @param App $app
      * @param string $transport
-     * @param string $host
-     * @param int|null $port
+     * @param string $pair
      * @return Host
      * @throws Exception
      */
-    public static function create(App $app, string $transport, string $host, int $port = null): Host
+    public static function create(App $app, string $transport, string $pair): Host
     {
         if (!in_array($transport, self::$transports)) {
             throw new Exception("Host class: Bad transport $transport");
         }
+
+        [$host, $port] = explode(':', trim($pair));
 
         $me = new self($app);
 
