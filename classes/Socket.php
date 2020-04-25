@@ -259,7 +259,7 @@ class Socket extends AppBase
 
 // if real request length more than declared length - incoming data is bad
         if ($requestStrLen > $this->requestLen) {
-            $this->dbg(Logger::DBG_SOCK,'BAD DATA real request length more than declared length: ' . $this->inData);
+            $this->dbg(Logger::DBG_SOCK,"BAD DATA real request length $requestStrLen more than declared length $this->requestLen: " . $this->requestStr);
             return $this->badData();
         }
 
@@ -268,8 +268,9 @@ class Socket extends AppBase
         }
 
 // if cannot create class of request by declared type - incoming data is bad
-        if (!$this->request = Request::spawn($this, Request::getType($this->requestStr))) {
-            $this->dbg(Logger::DBG_SOCK,'BAD DATA cannot create class of request by declared type: ' . $this->inData);
+        $requestType = Request::getType($this->requestStr);
+        if (!$this->request = Request::spawn($this, $requestType)) {
+            $this->dbg(Logger::DBG_SOCK,'BAD DATA cannot create class of request by declared type: ' . $requestType);
             return $this->badData();
         }
 

@@ -72,7 +72,7 @@ abstract class Request extends AppBase
         return static::FLD_LENGTH_LEN + static::FLD_TYPE_LEN;
     }
 
-    public static function getLength(string $data)
+    public static function getLength(string $data) : int
     {
         $offset = 0;
         [$len] = unpack(static::FLD_LENGTH_FMT, substr($data, $offset, static::FLD_LENGTH_LEN));
