@@ -52,7 +52,7 @@ abstract class Request extends AppBase
             throw new Exception( "$className is not instance of Request class");
         }
 
-        return new $className($socket, $enumId);
+        return $className::create($socket, $enumId);
     }
 
     public function addPacket(string $packet): bool
