@@ -8,16 +8,16 @@ abstract class Enum
     protected static $items = array(/* override me */);
 
     public static function getItem($id) {
-        if (!isset(self::$items[$id])) {
+        if (!isset(static::$items[$id])) {
             throw new Exception(__CLASS__ . ' knows nothing about ' . $id);
         }
 
-        return self::$items[$id];
+        return static::$items[$id];
     }
 
     public static function isSet($id): bool
     {
-        if (isset(self::$items[$id])) {
+        if (isset(static::$items[$id])) {
             return true;
         }
 
@@ -26,6 +26,6 @@ abstract class Enum
 
     public static function getItemsList(): array
     {
-        return self::$items;
+        return static::$items;
     }
 }
