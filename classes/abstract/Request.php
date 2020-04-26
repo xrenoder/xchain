@@ -48,7 +48,7 @@ abstract class Request extends AppBase
 
         $className = RequestEnum::getItem($enumId);
 
-        if (!is_a($className, __CLASS__)) {
+        if (!is_a($className, __CLASS__, true)) {
             throw new Exception( "$className is not instance of Request class");
         }
 
