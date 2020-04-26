@@ -33,7 +33,7 @@ abstract class AppBase
      * Short work logging
      * @param string $message
      */
-    protected function log(string $message): void
+    public function log(string $message): void
     {
         $this->getApp()->getLogger()->simpleLog($message);
     }
@@ -42,7 +42,7 @@ abstract class AppBase
      * Short error logging
      * @param string $message
      */
-    protected function err(string $message): void
+    public function err(string $message): void
     {
         $this->getApp()->getLogger()->errorLog($message);
     }
@@ -52,7 +52,7 @@ abstract class AppBase
      * @param int $lvl
      * @param string $message
      */
-    protected function dbg(int $lvl, $message): void
+    public function dbg(int $lvl, $message): void
     {
         $this->getApp()->getLogger()->debugLog($lvl, $message);
     }

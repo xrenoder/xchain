@@ -6,9 +6,6 @@ class Socket extends AppBase
 {
     protected static $dbgLvl = Logger::DBG_SOCK;
 
-//    /** @var Server */
-//    private $server;
-//    public function setServer($val) {$this->server = $val; return $this;}
     public function getServer() {return $this->getParent();}
 
     private $fd;
@@ -31,23 +28,14 @@ class Socket extends AppBase
     public function getTime() {return $this->time;}
 
     /** @var string  */
-    private $inData = '';
-    public function setInData($val) {$this->inData = $val; return $this;}
-    public function addInData($val) {$this->inData .= $val; return $this;}
-    public function getInData() {return $this->inData;}
+    private $messageStr = '';
+    public function addMessageStr($val) {$this->messageStr .= $val; return $this;}
+    public function getMessageStr() {return $this->messageStr;}
 
-    /** @var string  */
-    private $requestStr = '';
-    public function setRequestStr($val) {$this->requestStr = $val; return $this;}
-    public function addRequestStr($val) {$this->requestStr .= $val; return $this;}
-    public function getRequestStr() {return $this->requestStr;}
-
-    /** @var Request  */
-    private $request;
-    public function setRequest($val) {$this->request = $val; return $this;}
-    public function getRequest() {return $this->request;}
-
-    private $requestLen;
+    /** @var Message  */
+    private $message;
+    public function setMessage($val) {$this->message = $val; return $this;}
+    public function getMessage() {return $this->message;}
 
     /** @var string  */
     private $outData = '';
@@ -71,7 +59,6 @@ class Socket extends AppBase
         $me = new self($server);
 
         $me
-//            ->setServer($server)
             ->setHost($host)
             ->setFd($fd)
             ->setKey($key)
@@ -151,7 +138,7 @@ class Socket extends AppBase
 
         if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
             $this->err('ERROR: write to socket error');
-        }
+         }
 
         if ($realLength) {
             $this->setOutData(substr($this->getOutData(), $realLength));
@@ -186,14 +173,13 @@ class Socket extends AppBase
             }
             */
             $this->close();
+
             return false;
         }
 
-        $this->inData .= $data;
-
         $this->dbg(static::$dbgLvl, 'RECV ' . $this->getKey() . ': '. $data);
 
-        return $this->packetParser();
+        return Message::parser($this, $data);
     }
 
     /**
@@ -225,58 +211,10 @@ class Socket extends AppBase
         $this->dbg(static::$dbgLvl, 'Socket ' . $this->getKey() . ' closed');
     }
 
-    private function badData(): bool
+    public function badData(): bool
     {
 // TODO продумать действия при закрытии сокета, на который поступили плохие данные
         $this->close();
         return false;
-    }
-
-    /**
-     * Is paket from client or from external connection
-     * @param $key
-     * @return bool
-     */
-    private function packetParser(): bool
-    {
-        $packet = $this->inData;
-        $this->dbg(static::$dbgLvl,'Packet: ' . $packet);
-        $this->inData = '';
-
-        if ($this->request) {
-            return $this->request->addPacket($packet);
-        }
-
-        $this->requestStr .= $packet;
-        $requestStrLen = strlen($this->requestStr);
-
-// if data length less than need for get declared length - return and wait more packets
-        if ($requestStrLen < Request::getLengthLen()) {
-            return false;
-        }
-
-        if (!$this->requestLen) {
-            $this->requestLen = Request::getLength($this->requestStr);
-        }
-
-// if real request length more than declared length - incoming data is bad
-        if ($requestStrLen > $this->requestLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA real request length $requestStrLen more than declared length $this->requestLen: " . $this->requestStr);
-            return $this->badData();
-        }
-
-        if ($requestStrLen < Request::getSpawnLen()) {
-            return false;
-        }
-
-// if cannot create class of request by declared type - incoming data is bad
-        $requestType = Request::getType($this->requestStr);
-        if (!($this->request = Request::spawn($this, $requestType))) {
-            $this->dbg(static::$dbgLvl, "BAD DATA cannot create class of request by declared type: '$requestType'");
-//            $this->dbg(static::$dbgLvl, var_export(RequestEnum::getItemsList(), true));
-            return $this->badData();
-        }
-
-        return $this->request->addPacket($packet);
     }
 }

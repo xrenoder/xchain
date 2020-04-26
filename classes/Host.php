@@ -30,12 +30,10 @@ class Host extends AppBase
     /** @var string */
     private $host;
     public function setHost($val) {$this->host = $val; return $this;}
-//    public function getHost() {return $this->host;}
 
     /** @var int */
     private $port;
     public function setPort($val) {$this->port = $val; return $this;}
-//    public function getPort() {return $this->port;}
 
     /**
      * Pair is construction like 'host:port'

@@ -6,7 +6,6 @@ class App extends AppBase
 {
     /** @var string */
     private $name;
-
     public function setName($val) {$this->name = $val; return $this;}
     public function getName() {return $this->name;}
 

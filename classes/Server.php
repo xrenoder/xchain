@@ -47,7 +47,6 @@ class Server extends AppBase
 
     private $sockCounter = 0;
 
-
     private $nowTime;
     private $garbTime;
 
@@ -229,18 +228,6 @@ class Server extends AppBase
         if (count($this->sockets) >= self::MAX_SOCK) {
             return null;
         }
-        /*
-                if ($host === static::$usock) {
-                    $transport = static::UNIX_TRANSPORT;
-                    $target = static::$usock;
-                } else if ($port) {
-                    $target = $host . ":" . $port;
-                    if (static::$sslMode) $transport = static::SSL_TRANSPORT;
-                    else $transport = static::TCP_TRANSPORT;
-                } else {
-                    static::err("ERROR: TCP socket need port for connection");
-                }
-        */
 
 // TODO проверить, как влияет на скорость опция TCP_DELAY и другие (so_reuseport, backlog)
         $opts = array(
@@ -254,17 +241,6 @@ class Server extends AppBase
         }
 
         $context = stream_context_create($opts);
-
-        /*
-                if ($transport == static::SSL_TRANSPORT) {
-                    stream_context_set_option($context, 'ssl', 'verify_peer', false);	// или true?
-                    stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
-        //			stream_context_set_option($context, 'ssl', 'verify_host', true);
-        //			stream_context_set_option($context, 'ssl', 'cafile', static::$sslCert);
-                    stream_context_set_option($context, 'ssl', 'local_cert', static::$sslCert);
-                    stream_context_set_option($context, 'ssl', 'passphrase', static::$sslPass);
-                }
-        */
 
         $fd = null;
 
@@ -373,7 +349,7 @@ class Server extends AppBase
      */
     private function getSocketKey(): string
     {
-        // need checking before socket creating
+// need checking before socket creating
         if (count($this->sockets) >= self::MAX_SOCK) {
             throw new Exception('Cannot get socket key: reach maximal sockets count');
         }
@@ -383,7 +359,7 @@ class Server extends AppBase
             if ($this->sockCounter === self::MAX_SOCK) $this->sockCounter = 1;
 
             $key = self::KEY_PREFIX . $this->sockCounter;
-            if(!isset($this->sockets[$key])) break;
+            if (!isset($this->sockets[$key])) break;
         }
 
         return $key;
@@ -414,7 +390,7 @@ class Server extends AppBase
         if (
             $socket = $this->connect(
                 $this->getListenHost(),
-                AliveReqRequest::createMessage()
+                AliveReqMessage::createMessage()
             )
         ) {
             $beg = time();
@@ -436,7 +412,7 @@ class Server extends AppBase
      */
     public function hardFinish(): void
     {
-        $this->closeSocket(self::LISTEN_KEY);
+        $this->closeSocket(self::LISTEN_KEY);       // close first for not accepting new clients
 
         foreach ($this->sockets as $key => $socket) {
             $this->closeSocket($key);

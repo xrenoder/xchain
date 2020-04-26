@@ -6,23 +6,21 @@ class Logger extends AppBase
 {
     public const DBG_SERV = 1;
     public const DBG_SOCK = 2;
-    public const DBG_REQ = 4;
+    public const DBG_MESS = 4;
 
     private static $flags = array(
         self::DBG_SERV => 'Server',
         self::DBG_SOCK => 'Socket',
-        self::DBG_REQ => 'Request',
+        self::DBG_MESS => 'Message',
     );
 
     /** @var string */
     private $logFile;
     public function setLogFile($val) {$this->logFile = $val; return $this;}
-//    public function getLogFile() {return $this->logFile;}
 
     /** @var string */
     private $errFile;
     public function setErrFile($val) {$this->errFile = $val; return $this;}
-//    public function getErrFile() {return $this->errFile;}
 
     /** @var string */
     private $phpErrFile;
@@ -32,7 +30,6 @@ class Logger extends AppBase
     /** @var bool */
     private $dbgMode = 0;
     public function setDbgMode($val) {$this->dbgMode = $val; return $this;}
-    public function getDbgMode() {return $this->dbgMode;}
 
     /**
      * Creating Logger object

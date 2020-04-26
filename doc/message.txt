@@ -1,8 +1,9 @@
-4 bytes         length of request body (include this field)
-4 bytes         type of request (last field for "AliveReq" and "AliveRes")
+4 bytes         length of message body (include this field)
+4 bytes         type of message (last field for "AliveReq" and "AliveRes")
 1 byte          remote node type
 1 byte          this node type
-1 byte          step on way of request (1 - User to F-peer "transaction",
+1 byte          step on way of message between nodes
+                                        1 - User to F-peer "transaction",
                                         2 - momental response from F-peer to User "F-peer receive transaction"
                                         3 - F-peer to S-peer "transaction"
                                         4 - momental response from S-peer to F-peer "S-peer receive transaction"

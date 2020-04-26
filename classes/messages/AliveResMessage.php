@@ -1,9 +1,9 @@
 <?php
 
 
-class AliveResRequest extends Request
+class AliveResMessage extends Message
 {
-    protected static $enumId = RequestEnum::ALIVE_RES;
+    protected static $enumId = MessageEnum::ALIVE_RES;
 
     protected function handler(): bool
     {
@@ -14,8 +14,8 @@ class AliveResRequest extends Request
     public static function createMessage(): string
     {
         $type = pack(static::FLD_TYPE_FMT, static::$enumId);
-        $len = strlen($type) + Request::FLD_LENGTH_LEN;
-        $mess = pack(Request::FLD_LENGTH_FMT, $len) . $type;
+        $len = strlen($type) + Message::FLD_LENGTH_LEN;
+        $mess = pack(Message::FLD_LENGTH_FMT, $len) . $type;
 
         return $mess;
     }
