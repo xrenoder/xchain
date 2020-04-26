@@ -4,19 +4,20 @@
  */
 abstract class Request extends AppBase
 {
+    protected static $dbgLvl = Logger::DBG_REQ;
+
+    /** @var int  */ /* override me */
+    protected static $enumId;
+
     protected const FLD_LENGTH_LEN = 4;
     protected const FLD_LENGTH_FMT = 'N';   //unsigned long big-endian
 
     protected const FLD_TYPE_LEN = 4;
     protected const FLD_TYPE_FMT = 'N';     //unsigned long big-endian
 
-    protected $enumId;
-    public function setEnumId($val) {$this->enumId = $val; return $this;}
-    public function getEnumId() {return $this->enumId;}
-
-    protected $socket;
-    public function setSocket($val) {$this->socket = $val; return $this;}
-    public function getSocket() {return $this->socket;}
+//    protected $socket;
+//    public function setSocket($val) {$this->socket = $val; return $this;}
+    public function getSocket() {return $this->getParent();}
 
     private $str;
 //    public function setStr($val) {$this->str = $val; return $this;}
@@ -29,13 +30,9 @@ abstract class Request extends AppBase
     abstract protected function handler() : Bool;
     abstract public static function createMessage() : string;
 
-    public static function create(Socket $socket, int $enumId): Request
+    public static function create(Socket $socket): Request
     {
-        $me = new static($socket->getServer()->getApp());
-
-        $me
-            ->setSocket($socket)
-            ->setEnumId($enumId);
+        $me = new static($socket);
 
         return $me;
     }
@@ -52,7 +49,7 @@ abstract class Request extends AppBase
             throw new Exception( "$className is not instance of Request class");
         }
 
-        return $className::create($socket, $enumId);
+        return $className::create($socket);
     }
 
     public function addPacket(string $packet): bool

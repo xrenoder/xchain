@@ -4,10 +4,12 @@
  */
 class Socket extends AppBase
 {
-    /** @var Server */
-    private $server;
-    public function setServer($val) {$this->server = $val; return $this;}
-    public function getServer() {return $this->server;}
+    protected static $dbgLvl = Logger::DBG_SOCK;
+
+//    /** @var Server */
+//    private $server;
+//    public function setServer($val) {$this->server = $val; return $this;}
+    public function getServer() {return $this->getParent();}
 
     private $fd;
     public function setFd($val) {$this->fd = $val; return $this;}
@@ -66,10 +68,10 @@ class Socket extends AppBase
      */
     public static function create(Server $server, Host $host, $fd, string $key): Socket
     {
-        $me = new self($server->getApp());
+        $me = new self($server);
 
         $me
-            ->setServer($server)
+//            ->setServer($server)
             ->setHost($host)
             ->setFd($fd)
             ->setKey($key)
@@ -155,7 +157,7 @@ class Socket extends AppBase
             $this->setOutData(substr($this->getOutData(), $realLength));
         }
 
-        $this->dbg(Logger::DBG_SOCK, 'SEND ' . $this->getKey() . ": $realLength bytes");
+        $this->dbg(static::$dbgLvl, 'SEND ' . $this->getKey() . ": $realLength bytes");
 
         if (!$this->getOutData()) {
             $this
@@ -189,7 +191,7 @@ class Socket extends AppBase
 
         $this->inData .= $data;
 
-        $this->dbg(Logger::DBG_SOCK, 'RECV to ' . $this->getKey() . ': '. $data);
+        $this->dbg(static::$dbgLvl, 'RECV ' . $this->getKey() . ': '. $data);
 
         return $this->packetParser();
     }
@@ -220,7 +222,7 @@ class Socket extends AppBase
             ->unsetSends()
             ->getServer()->unsetSocket($this->getKey());
 
-        $this->dbg(Logger::DBG_SOCK, 'Socket ' . $this->getKey() . ' closed');
+        $this->dbg(static::$dbgLvl, 'Socket ' . $this->getKey() . ' closed');
     }
 
     private function badData(): bool
@@ -238,7 +240,7 @@ class Socket extends AppBase
     private function packetParser(): bool
     {
         $packet = $this->inData;
-        $this->dbg(Logger::DBG_SOCK,'Packet: ' . $packet);
+        $this->dbg(static::$dbgLvl,'Packet: ' . $packet);
         $this->inData = '';
 
         if ($this->request) {
@@ -259,7 +261,7 @@ class Socket extends AppBase
 
 // if real request length more than declared length - incoming data is bad
         if ($requestStrLen > $this->requestLen) {
-            $this->dbg(Logger::DBG_SOCK,"BAD DATA real request length $requestStrLen more than declared length $this->requestLen: " . $this->requestStr);
+            $this->dbg(static::$dbgLvl,"BAD DATA real request length $requestStrLen more than declared length $this->requestLen: " . $this->requestStr);
             return $this->badData();
         }
 
@@ -270,8 +272,8 @@ class Socket extends AppBase
 // if cannot create class of request by declared type - incoming data is bad
         $requestType = Request::getType($this->requestStr);
         if (!($this->request = Request::spawn($this, $requestType))) {
-            $this->dbg(Logger::DBG_SOCK, "BAD DATA cannot create class of request by declared type: '$requestType'");
-            $this->dbg(Logger::DBG_SOCK, var_export(RequestEnum::getItemsList(), true));
+            $this->dbg(static::$dbgLvl, "BAD DATA cannot create class of request by declared type: '$requestType'");
+//            $this->dbg(static::$dbgLvl, var_export(RequestEnum::getItemsList(), true));
             return $this->badData();
         }
 

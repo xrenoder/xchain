@@ -3,20 +3,30 @@
  * Base class for all other, used App object
  */
 
-class AppBase
+abstract class AppBase
 {
     /** @var App */
     private $app;
-    protected function setApp($val) {$this->app = $val; return $this;}
     protected function getApp() {return $this->app;}
+
+    /** @var AppBase */
+    private $parent;
+    protected function getParent() {return $this->parent;}
 
     /**
      * AppBase constructor.
-     * @param App $app
+     * @param AppBase $parent
      */
-    protected function __construct(App $app)
+    protected function __construct(AppBase $parent)
     {
-        $this->setApp($app);
+        $this->parent = $parent;
+        $app = $parent;
+
+        while (!is_a($app, 'App')) {
+            $app = $app->getParent();
+        }
+
+        $this->app = $app;
     }
 
     /**

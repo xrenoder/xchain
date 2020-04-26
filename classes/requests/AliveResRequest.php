@@ -3,17 +3,17 @@
 
 class AliveResRequest extends Request
 {
-    protected static $enum = RequestEnum::ALIVE_RES;
+    protected static $enumId = RequestEnum::ALIVE_RES;
 
     protected function handler(): bool
     {
-        $this->dbg(Logger::DBG_REQ,'Alive response');
+        $this->dbg(static::$dbgLvl,'Alive response');
         return true;
     }
 
     public static function createMessage(): string
     {
-        $type = pack(static::FLD_TYPE_FMT, static::$enum);
+        $type = pack(static::FLD_TYPE_FMT, static::$enumId);
         $len = strlen($type) + Request::FLD_LENGTH_LEN;
         $mess = pack(Request::FLD_LENGTH_FMT, $len) . $type;
 

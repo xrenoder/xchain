@@ -8,6 +8,12 @@ class Logger extends AppBase
     public const DBG_SOCK = 2;
     public const DBG_REQ = 4;
 
+    private static $flags = array(
+        self::DBG_SERV => 'Server',
+        self::DBG_SOCK => 'Socket',
+        self::DBG_REQ => 'Request',
+    );
+
     /** @var string */
     private $logFile;
     public function setLogFile($val) {$this->logFile = $val; return $this;}
@@ -61,14 +67,14 @@ class Logger extends AppBase
      */
     private function createRecord($message, $isErr  = false, $debug = 0): string
     {
-        $record = $this->getDate() . "\t" . $this->getApp()->getDaemon()->getPid() . "\t";
+        $record = $this->getDate() . "\t" . $this->getApp()->getDaemon()->getPid() . "\t\t";
 
         if ($isErr) {
-            $record .= '[error]' . "\t";
+            $record .= '[error]' . "\t\t";
         } else if ($debug) {
-            $record .= '[debug]' . "\t";
+            $record .= '[dbg ' . self::$flags[$debug] . ']' . "\t";
         } else {
-            $record .= "\t";
+            $record .= "\t\t";
         }
 
         $record .= $message . "\n";

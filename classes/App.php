@@ -2,7 +2,7 @@
 /**
  * Application class
  */
-class App
+class App extends AppBase
 {
     /** @var string */
     private $name;
@@ -26,11 +26,12 @@ class App
     public function getServer() {return $this->server;}
 
     /**
-     * AppBase constructor.
+     * App constructor.
      * @param string $name
      */
     public function __construct(string $name)
     {
+        parent::__construct($this);
         $this->setName($name);
     }
 }

@@ -4,6 +4,8 @@
  */
 class Server extends AppBase
 {
+    protected static $dbgLvl = Logger::DBG_SERV;
+
     private const MAX_SOCK = MAX_SOCKETS;
     private const RESERVE_SOCK = RESERVE_SOCKETS;
 
@@ -97,7 +99,7 @@ class Server extends AppBase
             */
 
             if ($this->end) { 	// если установлен режим "мягкого завершения работы"
-                $this->dbg(Logger::DBG_SERV,'Sockets cnt: ' . count($this->sockets));
+                $this->dbg(static::$dbgLvl,'Sockets cnt: ' . count($this->sockets));
 
                 if (!count($this->sockets)) {   // и нет подключенных сокетов - выходим
                     break;
@@ -190,7 +192,7 @@ class Server extends AppBase
                         )
                     );
 
-                    $this->dbg(Logger::DBG_SERV, 'Accept connection from ' . $acceptedSocket->getHost()->getTarget());
+                    $this->dbg(static::$dbgLvl, 'Accept connection from ' . $acceptedSocket->getHost()->getTarget());
                 }
             }
         }
@@ -288,7 +290,7 @@ class Server extends AppBase
         $socket = $this->newWriteSocket($fd, $host);
         $socket->addOutData($dataSend);
 
-        $this->dbg(Logger::DBG_SERV,'Connect to ' . $host->getTarget());
+        $this->dbg(static::$dbgLvl,'Connect to ' . $host->getTarget());
 
         return $socket;
     }
@@ -312,7 +314,7 @@ class Server extends AppBase
 
         $socket = $this->newReadSocket($fd, $this->getListenHost(), self::LISTEN_KEY);
 
-        $this->dbg(Logger::DBG_SERV, 'Server listening');
+        $this->dbg(static::$dbgLvl, 'Server listening at ' . $this->getListenHost()->getTarget());
     }
 
     private function newReadSocket($fd, Host $host, string $key = null): Socket
@@ -354,7 +356,7 @@ class Server extends AppBase
     }
 
     /**
-     * Close listening socket if exists
+     * Close socket if exists
      * @param $key
      */
     private function closeSocket($key): void
