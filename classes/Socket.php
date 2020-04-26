@@ -1,8 +1,8 @@
 <?php
 /**
- * Socket work
+ * Socket
  */
-class Socket extends AppBase
+class Socket extends aBaseApp
 {
     protected static $dbgLvl = Logger::DBG_SOCK;
 
@@ -25,14 +25,13 @@ class Socket extends AppBase
     /** @var int  */
     private $time = null;
     public function setTime($val) {$this->time = $val; return $this;}
-    public function getTime() {return $this->time;}
 
     /** @var string  */
     private $messageStr = '';
     public function addMessageStr($val) {$this->messageStr .= $val; return $this;}
     public function getMessageStr() {return $this->messageStr;}
 
-    /** @var Message  */
+    /** @var aMessage  */
     private $message;
     public function setMessage($val) {$this->message = $val; return $this;}
     public function getMessage() {return $this->message;}
@@ -167,19 +166,13 @@ class Socket extends AppBase
         }
 
         if (!$data)	{	// удаленный сервер разорвал соединение
-            /*
-            if ($this->sockets[$key][self::EXT_KEY]) {		// если соединение разорвал клиентский сокет, то закрываем и внешний
-                $this->closeConnection($this->sockets[$key][self::EXT_KEY]);
-            }
-            */
             $this->close();
-
             return false;
         }
 
         $this->dbg(static::$dbgLvl, 'RECV ' . $this->getKey() . ': '. $data);
 
-        return Message::parser($this, $data);
+        return aMessage::parser($this, $data);
     }
 
     /**

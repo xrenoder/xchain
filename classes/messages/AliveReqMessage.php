@@ -1,7 +1,9 @@
 <?php
+/**
+ * Request "Is daemon alive?"
+ */
 
-
-class AliveReqMessage extends Message
+class AliveReqMessage extends aMessage
 {
     protected static $enumId = MessageEnum::ALIVE_REQ;
 
@@ -15,9 +17,8 @@ class AliveReqMessage extends Message
     public static function createMessage(): string
     {
         $type = pack(static::FLD_TYPE_FMT, static::$enumId);
-//        $type = pack(static::FLD_TYPE_FMT, 3);
-        $len = strlen($type) + Message::FLD_LENGTH_LEN;
-        $mess = pack(Message::FLD_LENGTH_FMT, $len) . $type;
+        $len = strlen($type) + static::FLD_LENGTH_LEN;
+        $mess = pack(static::FLD_LENGTH_FMT, $len) . $type;
 
         return $mess;
     }

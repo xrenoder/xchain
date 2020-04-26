@@ -1,23 +1,23 @@
 <?php
 /**
- * Base class for all other, used App object
+ * Base class for other application classes, uses App class
  */
 
-abstract class AppBase
+abstract class aBaseApp
 {
     /** @var App */
     private $app;
     protected function getApp() {return $this->app;}
 
-    /** @var AppBase */
+    /** @var aBaseApp */
     private $parent;
     protected function getParent() {return $this->parent;}
 
     /**
      * AppBase constructor.
-     * @param AppBase $parent
+     * @param aBaseApp $parent
      */
-    protected function __construct(AppBase $parent)
+    protected function __construct(aBaseApp $parent)
     {
         $this->parent = $parent;
         $app = $parent;

@@ -1,18 +1,16 @@
 <?php
 /**
- * Script daemonization
+ * Daemonization
  */
-class Daemon extends AppBase
+class Daemon extends aBaseApp
 {
     /** @var string */
     private $pidFile;
     public function setPidFile($val) {$this->pidFile = $val; return $this;}
-//    public function getPidFile() {return $this->pidFile;}
 
     /** @var string */
     private $runPath;
     public function setRunPath($val) {$this->runPath = $val; return $this;}
-//    public function getRunPath() {return $this->runPath;}
 
     /** @var int */
     private $pid;

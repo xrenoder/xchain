@@ -1,11 +1,11 @@
 <?php
 /**
- * Enumeration of Messages "message type ID => message type class"
+ * Enumeration of messages: "message type ID => message class"
  */
 
-class MessageEnum extends ClassEnum
+class MessageEnum extends aClassEnum
 {
-    protected static $baseClassName = 'Message';
+    protected static $baseClassName = 'aMessage';
 
     public const ALIVE_REQ = 1;
     public const ALIVE_RES = 2;

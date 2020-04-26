@@ -3,7 +3,7 @@
  * Host
  */
 
-class Host extends AppBase
+class Host extends aBaseApp
 {
 // https://www.php.net/manual/ru/transports.php
     public const TRANSPORT_TCP = 'tcp';

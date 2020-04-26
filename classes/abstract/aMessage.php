@@ -1,19 +1,13 @@
 <?php
 /**
- * Incoming Request base class
+ * Base class for classes of messages between nodes
  */
-abstract class Message extends AppBase
+abstract class aMessage extends aBaseApp implements iMessage, icMessage
 {
     protected static $dbgLvl = Logger::DBG_MESS;
 
     /** @var int  */ /* override me */
     protected static $enumId;
-
-    protected const FLD_LENGTH_LEN = 4;
-    protected const FLD_LENGTH_FMT = 'N';   //unsigned long big-endian
-
-    protected const FLD_TYPE_LEN = 4;
-    protected const FLD_TYPE_FMT = 'N';     //unsigned long big-endian
 
 //    protected $socket;
 //    public function setSocket($val) {$this->socket = $val; return $this;}
@@ -30,25 +24,18 @@ abstract class Message extends AppBase
     abstract protected function handler() : Bool;
     abstract public static function createMessage() : string;
 
-    public static function create(Socket $socket): Message
+    public static function create(Socket $socket): aMessage
     {
         return new static($socket);
     }
 
-    public static function spawn(Socket $socket, int $enumId): ?Message
+    public static function spawn(Socket $socket, int $enumId): ?aMessage
     {
         if ($className = MessageEnum::getClassName($enumId)) {
             return $className::create($socket);
         }
 
         return null;
-    }
-
-    public function addPacket(string $packet): bool
-    {
-        $this->str .= $packet;
-        $this->len = strlen($this->str);
-        return $this->handler();
     }
 
     public static function parser(Socket $socket, string $packet) : bool
@@ -76,37 +63,12 @@ abstract class Message extends AppBase
         return $socket->getMessage()->addPacket($packet);
     }
 
-    private static function preHandler(Socket $socket, string $str): bool
-    {
-        $len = strlen($str);
-
-// if data length less than need for get declared length - return and wait more packets
-        if ($len < self::getLengthLen()) {
-            return false;
-        }
-
-        $declaredLen = Message::getLength($str);
-
-
-// if real request length more than declared length - incoming data is bad
-        if ($len > $declaredLen) {
-            $socket->dbg(static::$dbgLvl,"BAD DATA real request length $len more than declared length $declaredLen: " . $str);
-            return $socket->badData();
-        }
-
-        if ($len < static::getSpawnLen()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public static function getLengthLen()
+    public static function getLengthLen() : int
     {
         return static::FLD_LENGTH_LEN;
     }
 
-    public static function getSpawnLen()
+    public static function getSpawnLen() : int
     {
         return static::FLD_LENGTH_LEN + static::FLD_TYPE_LEN;
     }
@@ -123,5 +85,37 @@ abstract class Message extends AppBase
         $offset = static::FLD_LENGTH_LEN;
         $tmp = unpack(static::FLD_TYPE_FMT, substr($data, $offset, static::FLD_TYPE_LEN));
         return $tmp[1];
+    }
+
+    private static function preHandler(Socket $socket, string $str): bool
+    {
+        $len = strlen($str);
+
+// if data length less than need for get declared length - return and wait more packets
+        if ($len < self::getLengthLen()) {
+            return false;
+        }
+
+        $declaredLen = aMessage::getLength($str);
+
+
+// if real request length more than declared length - incoming data is bad
+        if ($len > $declaredLen) {
+            $socket->dbg(static::$dbgLvl,"BAD DATA real request length $len more than declared length $declaredLen: " . $str);
+            return $socket->badData();
+        }
+
+        if ($len < static::getSpawnLen()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function addPacket(string $packet): bool
+    {
+        $this->str .= $packet;
+        $this->len = strlen($this->str);
+        return $this->handler();
     }
 }

@@ -2,7 +2,7 @@
 /**
  * Work with sockets: listen, select, accept, read, write
  */
-class Server extends AppBase
+class Server extends aBaseApp
 {
     protected static $dbgLvl = Logger::DBG_SERV;
 

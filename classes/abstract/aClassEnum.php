@@ -1,26 +1,28 @@
 <?php
 /**
- * Enumeration of classes with checking pre-spawning tool
+ * Base class for enumerations of classes (with checking pre-spawning tool)
  */
 
-class ClassEnum extends Enum
+class aClassEnum extends aEnum
 {
     protected static $baseClassName = '';
 
-    public static function getBaseClassName() {
+    public static function getBaseClassName() : string
+    {
         if (!static::$baseClassName) {
             throw new Exception(static::class . ' knows nothing about his base class name');
         }
 
-        if (!is_a(static::$baseClassName, 'AppBase', true)) {
+        if (!is_a(static::$baseClassName, 'aBaseApp', true)) {
             throw new Exception( static::$baseClassName . ' is not instance of AppBase class');
         }
 
         return static::$baseClassName;
     }
 
-    public static function getClassName($enumId) {
-        if (!MessageEnum::isSet($enumId)) {
+    public static function getClassName($enumId) : ?string
+    {
+        if (!MessageEnum::isSetItem($enumId)) {
             return null;
         }
 

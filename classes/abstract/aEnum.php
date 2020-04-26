@@ -1,13 +1,14 @@
 <?php
 /**
- * Enumeration base class
+ * Base class for all enumerations
  */
 
-abstract class Enum
+abstract class aEnum implements iEnum
 {
     protected static $items = array(/* override me */);
 
-    public static function getItem($id) {
+    public static function getItem($id) : string
+    {
         if (!isset(static::$items[$id])) {
             throw new Exception(static::class . ' knows nothing about ' . $id);
         }
@@ -15,7 +16,7 @@ abstract class Enum
         return static::$items[$id];
     }
 
-    public static function isSet($id): bool
+    public static function isSetItem($id): bool
     {
         if (isset(static::$items[$id])) {
             return true;

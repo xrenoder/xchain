@@ -2,7 +2,7 @@
 /**
  * Application class
  */
-class App extends AppBase
+class App extends aBaseApp
 {
     /** @var string */
     private $name;

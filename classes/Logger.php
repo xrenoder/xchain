@@ -2,7 +2,7 @@
 /**
  * Universal logging tool
  */
-class Logger extends AppBase
+class Logger extends aBaseApp
 {
     public const DBG_SERV = 1;
     public const DBG_SOCK = 2;
