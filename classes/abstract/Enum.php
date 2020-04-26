@@ -9,7 +9,7 @@ abstract class Enum
 
     public static function getItem($id) {
         if (!isset(static::$items[$id])) {
-            throw new Exception(__CLASS__ . ' knows nothing about ' . $id);
+            throw new Exception(static::class . ' knows nothing about ' . $id);
         }
 
         return static::$items[$id];

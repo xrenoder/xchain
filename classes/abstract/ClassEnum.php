@@ -9,7 +9,7 @@ class ClassEnum extends Enum
 
     public static function getBaseClassName() {
         if (!static::$baseClassName) {
-            throw new Exception(__CLASS__ . ' knows nothing about his base class name');
+            throw new Exception(static::class . ' knows nothing about his base class name');
         }
 
         if (!is_a(static::$baseClassName, 'AppBase', true)) {
