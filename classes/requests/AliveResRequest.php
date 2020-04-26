@@ -7,7 +7,7 @@ class AliveResRequest extends Request
 
     protected function handler(): bool
     {
-        $this->dbg(static::$dbgLvl,'Alive response');
+        $this->dbg(static::$dbgLvl,'Alive response detected');
         return true;
     }
 

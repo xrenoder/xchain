@@ -7,7 +7,7 @@ class AliveReqRequest extends Request
 
     protected function handler(): bool
     {
-        $this->dbg(static::$dbgLvl,'Alive request');
+        $this->dbg(static::$dbgLvl,'Alive request detected');
         $this->getSocket()->addOutData(AliveResRequest::createMessage());
         return false;
     }

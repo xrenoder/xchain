@@ -13,6 +13,8 @@ abstract class AppBase
     private $parent;
     protected function getParent() {return $this->parent;}
 
+    abstract public static function create(AppBase $parent) : AppBase;
+
     /**
      * AppBase constructor.
      * @param AppBase $parent
