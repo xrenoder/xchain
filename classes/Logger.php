@@ -10,9 +10,10 @@ class Logger extends aBaseApp
     public const DBG_TASK = 8;
 
     private static $flags = array(
-        self::DBG_SERV => 'Server',
-        self::DBG_SOCK => 'Socket',
+        self::DBG_SERV => 'Server ',
+        self::DBG_SOCK => 'Socket ',
         self::DBG_MESS => 'Message',
+        self::DBG_TASK => 'Task   ',
     );
 
     /** @var string */

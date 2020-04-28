@@ -2,7 +2,7 @@
 <?php
 require_once 'local.inc';
 
-$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS;
+$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS | Logger::DBG_TASK;
 //$debugMode = 0;
 
 $command = '';
