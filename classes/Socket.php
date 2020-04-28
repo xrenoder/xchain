@@ -9,12 +9,13 @@ class Socket extends aBaseApp
     public function getServer() : Server {return $this->getParent();}
 
     private $fd;
-    public function setFd($val) {$this->fd = $val; return $this;}
+    public function setFd($val) : self {$this->fd = $val; return $this;}
     public function getFd() {return $this->fd;}
 
+    /** @var string */
     private $key;
-    public function setKey($val) {$this->key = $val; return $this;}
-    public function getKey() {return $this->key;}
+    public function setKey($val) : self {$this->key = $val; return $this;}
+    public function getKey() : string {return $this->key;}
 
     /** @var bool  */
     private $blockMode = true;
@@ -28,39 +29,44 @@ class Socket extends aBaseApp
 
     /** @var string  */
     private $messageStr = '';
-    public function addMessageStr($val) {$this->messageStr .= $val; return $this;}
-    public function getMessageStr() {return $this->messageStr;}
+    public function addMessageStr(string $val) : self {$this->messageStr .= $val; return $this;}
+    public function getMessageStr() : string {return $this->messageStr;}
 
     /** @var aMessage  */
     private $message;
-    public function setMessage($val) {$this->message = $val; return $this;}
-    public function getMessage() {return $this->message;}
+    public function setMessage(aMessage $val) : self {$this->message = $val; return $this;}
+    public function getMessage() : aMessage {return $this->message;}
 
     /** @var string  */
     private $outData = '';
-    public function setOutData($val) {$this->outData = $val; return $this;}
-    public function getOutData() {return $this->outData;}
+    public function setOutData(string $val) :  self {$this->outData = $val; return $this;}
+    public function getOutData() : string {return $this->outData;}
 
     /** @var Host  */
     private $host;
-    public function setHost($val) {$this->host = $val; return $this;}
-    public function getHost() {return $this->host;}
+    public function setHost(Host $val) : self {$this->host = $val; return $this;}
+    public function getHost() : Host {return $this->host;}
 
     /** @var bool  */
     private $freeAfterSend = false;
-    public function setFreeAfterSend() {$this->freeAfterSend = true; return $this;}
-    public function needFreeAfterSend() {return $this->freeAfterSend;}
+    public function setFreeAfterSend() : self {$this->freeAfterSend = true; return $this;}
+    public function needFreeAfterSend() : bool {return $this->freeAfterSend;}
 
     /** @var int  */ /* when busy - 0, when free - time of freedom moment */
     private $freeTime = 0;
-    public function getFreeTime() {return $this->freeTime;}
-    public function isFree() {return $this->freeTime !== 0;}
+    public function getFreeTime() : int {return $this->freeTime;}
+    public function isFree() : bool {return $this->freeTime !== 0;}
 
     /* is this socket create by 'connect' */
     /** @var bool  */
     private $connected = false;
-    public function setConnected() {$this->connected = true; return $this;}
-    public function isConnected() {return $this->connected;}
+    public function setConnected() : self {$this->connected = true; return $this;}
+    public function isConnected() : bool {return $this->connected;}
+
+    /** @var aTask  */
+    private $task;
+    public function setTask(aTask $val) : self {$this->task = $val; return $this;}
+    public function getTask() : aTask {return $this->task;}
 
     /**
      * @param Server $server
@@ -143,26 +149,41 @@ class Socket extends aBaseApp
         return $this;
     }
 
+    public function setBusy()
+    {
+        if ($this->connected) {
+            $this->getServer()->busyConnected($this->getHost(), $this->getKey());
+        } else {
+            $this->getServer()->busyAccepted($this->getHost(), $this->getKey());
+        }
+
+        $this->freeTime = 0;
+        $this->freeAfterSend = false;
+
+        return $this;
+    }
+
     public function setFree()
     {
         $this->freeTime = time();
         $this->freeAfterSend = false;
 
+        $this->task = null;
+
         if ($this->connected) {
-            $this->getServer()->setUnused($this, $this->getHost(), $this->getKey());
+            $this->getServer()->freeConnected($this, $this->getHost(), $this->getKey());
+        } else {
+            $this->getServer()->freeAccepted($this, $this->getHost(), $this->getKey());
         }
 
         return $this;
     }
 
-    public function setBusy()
+    public function taskFinish()
     {
-        if ($this->connected) {
-            $this->getServer()->unsetUnused($this->getHost(), $this->getKey());
+        if ($this->task) {
+            $this->task->finish();
         }
-
-        $this->freeTime = 0;
-        $this->freeAfterSend = false;
 
         return $this;
     }
@@ -254,6 +275,7 @@ class Socket extends aBaseApp
     public function badData(): bool
     {
 // TODO продумать действия при закрытии сокета, на который поступили плохие данные
+// например, закрыть все сокеты, соединенные с этим хостом
         $this->close();
         return false;
     }

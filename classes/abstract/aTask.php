@@ -10,6 +10,9 @@ abstract class aTask extends aBaseApp implements iTask
     public function getQueue() : Queue {return $this->getParent();}
     public function getServer() : Server {return $this->getQueue()->getServer();}
 
+    /** @var string */
+    protected $name; /* override me */
+
     /** @var int */
     protected $priority; /* override me */
     public function getPriority() {return $this->priority;}
@@ -18,6 +21,11 @@ abstract class aTask extends aBaseApp implements iTask
     protected $host;
     public function setHost($val) : self {$this->host = $val; return $this;}
     public function getHost() : Host {return $this->host;}
+
+    /** @var Socket */
+    protected $socket = null;
+    public function setSocket($val) : self {$this->socket = $val; return $this;}
+    public function getSocket() : Socket {return $this->socket;}
 
     abstract public function run() : bool;
 
@@ -33,24 +41,24 @@ abstract class aTask extends aBaseApp implements iTask
         return $this;
     }
 
-    protected function getSocket(): ?Socket
+    public function finish()
     {
-        if (!$socket = $this->getUnusedSocket()) {
-            if (!$socket = $this->getServer()->connect($this->getHost())) {
-                return null;
-            }
-        }
-
-        return $socket;
+        $this->dbg(static::$dbgLvl,$this->name . ' finished');
     }
 
-    private function getUnusedSocket(): ?Socket
+    protected function useSocket(): ?Socket
     {
-        if ($socket = $this->getServer()->getUnused($this->getHost())) {
-            $socket->setBusy();
-            return $socket;
+        if ($this->socket) return $this->socket;
+        if ($this->host) return null;
+
+        if ($this->socket = $this->getServer()->getFreeConnected($this->host)) {
+            $this->socket->setBusy();
+        } else if (!$this->socket = $this->getServer()->connect($this->host)) {
+            return null;
         }
 
-        return null;
+        $this->socket->setTask($this);
+
+        return $this->socket;
     }
 }

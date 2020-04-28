@@ -43,10 +43,16 @@ class Server extends aBaseApp
     public function getSocket($key) : ?Socket {return ($this->sockets[$key] ?? null);}
 
     /* unused connected socket (not include accepted)) */
-    private $unused = array(); /* 'host' => array('key' => socket) */
-    public function setUnused(Socket $val, Host $host, $key) : self {$ip = $host->getHost(); $this->unused[$ip][$key] = $val; return $this;}
-    public function unsetUnused(Host $host, $key) : self {$ip = $host->getHost(); unset($this->unused[$ip][$key]); return $this;}
-    public function getUnused(Host $host) : ?Socket {$ip = $host->getHost(); return (isset($this->unused[$ip]) && !empty($this->unused[$ip])) ? $this->unused[$ip][0] : null;}
+    private $freeConnected = array(); /* 'host' => array('key' => socket) */
+    public function freeConnected(Socket $val, Host $host, $key) : self {$ip = $host->getHost(); $this->freeConnected[$ip][$key] = $val; return $this;}
+    public function busyConnected(Host $host, $key) : self {$ip = $host->getHost(); unset($this->freeConnected[$ip][$key]); return $this;}
+    public function getFreeConnected(Host $host) : ?Socket {$ip = $host->getHost(); return (isset($this->freeConnected[$ip]) && !empty($this->freeConnected[$ip])) ? $this->freeConnected[$ip][0] : null;}
+
+    /* unused accepted socket (not include connected)) */
+    private $freeAccepted = array(); /* 'host' => array('key' => socket) */
+    public function freeAccepted(Socket $val, Host $host, $key) : self {$ip = $host->getHost(); $this->freeAccepted[$ip][$key] = $val; return $this;}
+    public function busyAccepted(Host $host, $key) : self {$ip = $host->getHost(); unset($this->freeAccepted[$ip][$key]); return $this;}
+    public function getFreeAccepted(Host $host) : ?Socket {$ip = $host->getHost(); return (isset($this->freeAccepted[$ip]) && !empty($this->freeAccepted[$ip])) ? $this->freeAccepted[$ip][0] : null;}
 
     private $sends = array();
     public function setSends($val, $key) : self {$this->sends[$key] = $val; return $this;}
@@ -188,7 +194,9 @@ class Server extends aBaseApp
             $listenFd = $listenSocket->getFd();
 
             if (in_array($listenFd, $rd, true)) {
-// TODO добавить обработку ситуации "не хватает сокетов, чтобы принять соединение" - быстро ответить, что перегружен и отключиться
+// TODO добавить обработку ситуации "не хватает сокетов, чтобы принять соединение"
+// - либо быстро ответить, что перегружен и отключиться
+// - либо сперва попытаться закрыть давно не используемые сокеты
                 if (count($this->sockets) >= (self::MAX_SOCK - self::RESERVE_SOCK)) {
                     throw new Exception('Cannot accept: reach maximal sockets count');
                 }
@@ -240,6 +248,7 @@ class Server extends aBaseApp
     public function connect(Host $host, string $dataSend = null): ?Socket
     {
 // TODO добавить обработку ситуации "не хватает сокетов, чтобы установить коннект"
+// - либо сперва попытаться закрыть давно не используемые сокеты
         if (count($this->sockets) >= self::MAX_SOCK) {
             return null;
         }
