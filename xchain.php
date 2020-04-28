@@ -21,6 +21,8 @@ try {
     $firstRemoteHost = Host::create($app, Host::TRANSPORT_TCP, FIRST_NODE_ADDR);
 
     Server::create($app,$listenTCPHost, $bindTCPHost);
+
+
     Daemon::create($app, RUN_PATH,  'pid');
 
     if (!$app->getDaemon()->run($command)) {

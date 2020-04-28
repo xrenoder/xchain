@@ -6,7 +6,7 @@ class Socket extends aBaseApp
 {
     protected static $dbgLvl = Logger::DBG_SOCK;
 
-    public function getServer() {return $this->getParent();}
+    public function getServer() : Server {return $this->getParent();}
 
     private $fd;
     public function setFd($val) {$this->fd = $val; return $this;}
@@ -24,7 +24,7 @@ class Socket extends aBaseApp
 
     /** @var int  */
     private $time = null;
-    public function setTime($val) {$this->time = $val; return $this;}
+    public function setTime() {$this->time = time(); return $this;}
 
     /** @var string  */
     private $messageStr = '';
@@ -46,6 +46,22 @@ class Socket extends aBaseApp
     public function setHost($val) {$this->host = $val; return $this;}
     public function getHost() {return $this->host;}
 
+    /** @var bool  */
+    private $freeAfterSend = false;
+    public function setFreeAfterSend() {$this->freeAfterSend = true; return $this;}
+    public function needFreeAfterSend() {return $this->freeAfterSend;}
+
+    /** @var int  */ /* when busy - 0, when free - time of freedom moment */
+    private $freeTime = 0;
+    public function getFreeTime() {return $this->freeTime;}
+    public function isFree() {return $this->freeTime !== 0;}
+
+    /* is this socket create by 'connect' */
+    /** @var bool  */
+    private $connected = false;
+    public function setConnected() {$this->connected = true; return $this;}
+    public function isConnected() {return $this->connected;}
+
     /**
      * @param Server $server
      * @param $fd
@@ -61,7 +77,7 @@ class Socket extends aBaseApp
             ->setHost($host)
             ->setFd($fd)
             ->setKey($key)
-            ->setTime(time())
+            ->setTime()
             ->getServer()->setSocket($me, $key);
 
         return $me;
@@ -127,17 +143,42 @@ class Socket extends aBaseApp
         return $this;
     }
 
+    public function setFree()
+    {
+        $this->freeTime = time();
+        $this->freeAfterSend = false;
+
+        if ($this->connected) {
+            $this->getServer()->setUnused($this, $this->getHost(), $this->getKey());
+        }
+
+        return $this;
+    }
+
+    public function setBusy()
+    {
+        if ($this->connected) {
+            $this->getServer()->unsetUnused($this->getHost(), $this->getKey());
+        }
+
+        $this->freeTime = 0;
+        $this->freeAfterSend = false;
+
+        return $this;
+    }
+
     /**
      * Write data to socket
      * @return Socket
      */
-    public function write(): Socket
+    public function send(): Socket
     {
+        $this->setTime();
         $buff = $this->getOutData();
 
         if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
             $this->err('ERROR: write to socket error');
-         }
+        }
 
         if ($realLength) {
             $this->setOutData(substr($this->getOutData(), $realLength));
@@ -149,6 +190,10 @@ class Socket extends aBaseApp
             $this
                 ->unsetSends()
                 ->setRecvs();
+
+            if ($this->needFreeAfterSend()) {
+                $this->setFree();
+            }
         }
 
         return $this;
@@ -159,8 +204,10 @@ class Socket extends aBaseApp
      * @param $key
      * @return bool
      */
-    public function read(): bool
+    public function receive(): bool
     {
+        $this->setTime();
+
         if (($data = stream_get_contents($this->fd)) === false) {
             $this->err('ERROR: read from stream error');
         }

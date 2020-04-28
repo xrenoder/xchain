@@ -11,13 +11,18 @@ class Server extends aBaseApp
 
     /** @var Host */
     private $listenHost;
-    public function setListenHost($val) {$this->listenHost = $val; return $this;}
-    public function getListenHost() {return $this->listenHost;}
+    public function setListenHost($val) : self {$this->listenHost = $val; return $this;}
+    public function getListenHost() : Host {return $this->listenHost;}
 
     /** @var Host */
     private $bindHost;
-    public function setBindHost($val) {$this->bindHost = $val; return $this;}
-    public function getBindHost() {return $this->bindHost;}
+    public function setBindHost($val) : self {$this->bindHost = $val; return $this;}
+    public function getBindHost() : Host {return $this->bindHost;}
+
+    /** @var Queue */
+    private $queue = null;
+    public function setQueue(): self {if (!$this->queue) $this->queue = Queue::create($this); return $this;}
+    public function getQueue() : Queue {return $this->queue;}
 
     private const ALIVE_TIMEOUT = 10;
     private const SELECT_TIMEOUT_SEC = 0;
@@ -33,19 +38,25 @@ class Server extends aBaseApp
 
     /** @var Socket[] */
     private $sockets = array();
-    public function setSocket($val, $key) {$this->sockets[$key] = $val; return $this;}
-    public function unsetSocket($key) {unset($this->sockets[$key]); return $this;}
-    public function getSocket($key) {return ($this->sockets[$key] ?? null);}
+    public function setSocket(Socket $val, $key) : self {$this->sockets[$key] = $val; return $this;}
+    public function unsetSocket($key) : self {unset($this->sockets[$key]); return $this;}
+    public function getSocket($key) : ?Socket {return ($this->sockets[$key] ?? null);}
+
+    /* unused connected socket (not include accepted)) */
+    private $unused = array(); /* 'host' => array('key' => socket) */
+    public function setUnused(Socket $val, Host $host, $key) : self {$ip = $host->getHost(); $this->unused[$ip][$key] = $val; return $this;}
+    public function unsetUnused(Host $host, $key) : self {$ip = $host->getHost(); unset($this->unused[$ip][$key]); return $this;}
+    public function getUnused(Host $host) : ?Socket {$ip = $host->getHost(); return (isset($this->unused[$ip]) && !empty($this->unused[$ip])) ? $this->unused[$ip][0] : null;}
 
     private $sends = array();
-    public function setSends($val, $key) {$this->sends[$key] = $val; return $this;}
-    public function unsetSends($key) {unset($this->sends[$key]); return $this;}
+    public function setSends($val, $key) : self {$this->sends[$key] = $val; return $this;}
+    public function unsetSends($key) : self {unset($this->sends[$key]); return $this;}
 
     private $recvs = array();
-    public function setRecvs($val, $key) {$this->recvs[$key] = $val; return $this;}
-    public function unsetRecvs($key) {unset($this->recvs[$key]); return $this;}
+    public function setRecvs($val, $key) : self {$this->recvs[$key] = $val; return $this;}
+    public function unsetRecvs($key) : self {unset($this->recvs[$key]); return $this;}
 
-    private $sockCounter = 0;
+    private $keyCounter = 0;
 
     private $nowTime;
     private $garbTime;
@@ -59,10 +70,13 @@ class Server extends aBaseApp
      */
     public static function create(App $app, Host $listenHost, Host $bindHost = null): Server
     {
-        $me = new self($app);
+        $me
+            = new self($app);
 
-        $me->setListenHost($listenHost);
-        $me->setBindHost($bindHost);
+        $me
+            ->setListenHost($listenHost)
+            ->setBindHost($bindHost)
+            ->setQueue();
 
         $me->getApp()->setServer($me);
 
@@ -97,10 +111,10 @@ class Server extends aBaseApp
                         }
             */
 
-            if ($this->end) { 	// если установлен режим "мягкого завершения работы"
+            if ($this->end) { 	// if mode 'soft finish' setted
                 $this->dbg(static::$dbgLvl,'Sockets cnt: ' . count($this->sockets));
 
-                if (!count($this->sockets)) {   // и нет подключенных сокетов - выходим
+                if (!count($this->sockets)) {   // and no have active sockets - go out
                     break;
                 }
             }
@@ -151,7 +165,8 @@ class Server extends aBaseApp
 
         if ($fdCnt === false ) {
             $e = error_get_last();
-            $this->err("ERROR: '" . $e['message'] . "' (line " . $e['line'] . " in '" . $e['file'] . "')");        // ошибка выдается только когда приходит сигнал завершения
+            // ошибка, видимо, выдается только когда приходит сигнал завершения
+            $this->err("ERROR: '" . $e['message'] . "' (line " . $e['line'] . " in '" . $e['file'] . "')");
             return false;
         }
 
@@ -162,7 +177,7 @@ class Server extends aBaseApp
 // пишем исходящие (делаем это в первую очередь, чтобы внешний сервер не простаивал, пока мы читаем входящие)
         foreach($wr as $fd) {
             if ($key = array_search($fd, $this->sends, true)) {
-                $this->getSocket($key)->write();
+                $this->getSocket($key)->send();
             }
         }
 
@@ -203,7 +218,7 @@ class Server extends aBaseApp
             if ($fd === $listenFd) continue;
 
             if ($key = array_search($fd, $this->recvs, true)) {
-                if ($this->getSocket($key)->read()) {
+                if ($this->getSocket($key)->receive()) {
                     $isAlive = true;
                 }
             }
@@ -222,7 +237,7 @@ class Server extends aBaseApp
      * @param string $dataSend
      * @return Socket
      */
-    private function connect(Host $host, string $dataSend): ?Socket
+    public function connect(Host $host, string $dataSend = null): ?Socket
     {
 // TODO добавить обработку ситуации "не хватает сокетов, чтобы установить коннект"
         if (count($this->sockets) >= self::MAX_SOCK) {
@@ -264,7 +279,11 @@ class Server extends aBaseApp
         if (!$fd) return null;
 
         $socket = $this->newWriteSocket($fd, $host);
-        $socket->addOutData($dataSend);
+        $socket->setConnected();
+
+        if ($dataSend) {
+            $socket->addOutData($dataSend);
+        }
 
         $this->dbg(static::$dbgLvl,'Connect to ' . $host->getTarget());
 
@@ -355,10 +374,10 @@ class Server extends aBaseApp
         }
 
         while(true) {
-            $this->sockCounter++;
-            if ($this->sockCounter === self::MAX_SOCK) $this->sockCounter = 1;
+            $this->keyCounter++;
+            if ($this->keyCounter === self::MAX_SOCK) $this->keyCounter = 1;
 
-            $key = self::KEY_PREFIX . $this->sockCounter;
+            $key = self::KEY_PREFIX . $this->keyCounter;
             if (!isset($this->sockets[$key])) break;
         }
 
@@ -385,26 +404,21 @@ class Server extends aBaseApp
      */
     public function isDaemonAlive(): bool
     {
-        $result = false;
+        AliveTask::create($this->getQueue())
+            ->setHost($this->getListenHost())
+            ->queue();
 
-        if (
-            $socket = $this->connect(
-                $this->getListenHost(),
-                AliveReqMessage::createMessage()
-            )
-        ) {
+        if ($this->getQueue()->runOneTask()) {
             $beg = time();
 
             while ((time() - $beg) < self::ALIVE_TIMEOUT) {
-                if ($result = $this->select()) {
-                    break;
+                if ($this->select()) {
+                    return true;
                 }
             }
-
-            $socket->close();
         }
 
-        return $result;
+        return false;
     }
 
     /**

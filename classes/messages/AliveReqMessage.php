@@ -11,6 +11,7 @@ class AliveReqMessage extends aMessage
     {
         $this->dbg(static::$dbgLvl,'Alive request detected');
         $this->getSocket()->addOutData(AliveResMessage::createMessage());
+        $this->getSocket()->setFreeAfterSend();
         return false;
     }
 

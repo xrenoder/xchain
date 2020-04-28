@@ -7,6 +7,7 @@ class Logger extends aBaseApp
     public const DBG_SERV = 1;
     public const DBG_SOCK = 2;
     public const DBG_MESS = 4;
+    public const DBG_TASK = 8;
 
     private static $flags = array(
         self::DBG_SERV => 'Server',

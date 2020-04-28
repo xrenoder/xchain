@@ -10,6 +10,7 @@ class AliveResMessage extends aMessage
     protected function handler(): bool
     {
         $this->dbg(static::$dbgLvl,'Alive response detected');
+        $this->getSocket()->setFree();
         return true;
     }
 

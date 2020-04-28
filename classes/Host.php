@@ -24,24 +24,25 @@ class Host extends aBaseApp
 
     /** @var string */
     private $transport;
-    public function setTransport($val) {$this->transport = $val; return $this;}
-    public function getTransport() {return $this->transport;}
+    public function setTransport($val) : self {$this->transport = $val; return $this;}
+    public function getTransport() : string {return $this->transport;}
 
     /** @var string */
     private $host;
-    public function setHost($val) {$this->host = $val; return $this;}
+    public function setHost($val) : self {$this->host = $val; return $this;}
+    public function getHost() : string {return $this->host;}
 
     /** @var int */
     private $port;
-    public function setPort($val) {$this->port = $val; return $this;}
+    public function setPort($val) : self {$this->port = $val; return $this;}
 
     /**
      * Pair is construction like 'host:port'
      * @var string
      */
     private $pair;
-    public function setPair($val) {$this->pair = $val; return $this;}
-    public function getPair() {return $this->pair;}
+    public function setPair($val) : self {$this->pair = $val; return $this;}
+    public function getPair() : string  {return $this->pair;}
 
     /**
      * Target is construction like 'transport://host:port' or 'transport://host' if port not used (Unix-socket)

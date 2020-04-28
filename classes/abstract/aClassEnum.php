@@ -3,7 +3,7 @@
  * Base class for enumerations of classes (with checking pre-spawning tool)
  */
 
-class aClassEnum extends aEnum
+class aClassEnum extends aEnum implements iClassEnum
 {
     protected static $baseClassName = '';
 

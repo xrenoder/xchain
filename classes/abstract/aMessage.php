@@ -9,9 +9,7 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
     /** @var int  */ /* override me */
     protected static $enumId;
 
-//    protected $socket;
-//    public function setSocket($val) {$this->socket = $val; return $this;}
-    public function getSocket() {return $this->getParent();}
+    public function getSocket() : Socket {return $this->getParent();}
 
     private $str;
 //    public function setStr($val) {$this->str = $val; return $this;}
@@ -63,24 +61,24 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $socket->getMessage()->addPacket($packet);
     }
 
-    public static function getLengthLen() : int
+    protected static function getLengthLen() : int
     {
         return static::FLD_LENGTH_LEN;
     }
 
-    public static function getSpawnLen() : int
+    protected static function getSpawnLen() : int
     {
         return static::FLD_LENGTH_LEN + static::FLD_TYPE_LEN;
     }
 
-    public static function getLength(string $data) : int
+    protected static function getLength(string $data) : int
     {
         $offset = 0;
         $tmp = unpack(static::FLD_LENGTH_FMT, substr($data, $offset, static::FLD_LENGTH_LEN));
         return $tmp[1];
     }
 
-    public static function getType(string $data) : int
+    protected static function getType(string $data) : int
     {
         $offset = static::FLD_LENGTH_LEN;
         $tmp = unpack(static::FLD_TYPE_FMT, substr($data, $offset, static::FLD_TYPE_LEN));
