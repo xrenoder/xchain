@@ -6,8 +6,11 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
 {
     protected static $dbgLvl = Logger::DBG_MESS;
 
-    /** @var int  */ /* override me */
-    protected static $enumId;
+    /** @var int  */
+    protected static $enumId;   /* override me */
+
+    /** @var string */
+    protected static $name = 'NotDeclaredMessageName'; /* override me */
 
     public function getSocket() : Socket {return $this->getParent();}
 
@@ -95,7 +98,6 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         }
 
         $declaredLen = aMessage::getLength($str);
-
 
 // if real request length more than declared length - incoming data is bad
         if ($len > $declaredLen) {

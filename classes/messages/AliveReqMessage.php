@@ -4,7 +4,10 @@
  */
 class AliveReqMessage extends aMessage
 {
-    protected static $enumId = MessageEnum::ALIVE_REQ;
+    /** @var int  */
+    protected static $enumId = MessageEnum::ALIVE_REQ;  /* overrided */
+    /** @var string */
+    protected static $name = 'AliveRequest Message';    /* overrided */
 
     public static function createMessage(): string
     {
@@ -17,7 +20,7 @@ class AliveReqMessage extends aMessage
 
     protected function handler(): bool
     {
-        $this->dbg(static::$dbgLvl,'Alive request detected');
+        $this->dbg(static::$dbgLvl,static::$name .  ' detected');
         $this->getSocket()->addOutData(AliveResMessage::createMessage());
         $this->getSocket()->setFreeAfterSend();
         return false;
