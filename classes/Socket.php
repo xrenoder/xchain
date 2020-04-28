@@ -35,7 +35,7 @@ class Socket extends aBaseApp
     /** @var aMessage  */
     private $message;
     public function setMessage(aMessage $val) : self {$this->message = $val; return $this;}
-    public function getMessage() : aMessage {return $this->message;}
+    public function getMessage() : ?aMessage {return $this->message;}
 
     /** @var string  */
     private $outData = '';

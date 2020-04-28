@@ -15,7 +15,7 @@ abstract class aTask extends aBaseApp implements iTask
 
     /** @var int */
     protected $priority; /* override me */
-    public function getPriority() {return $this->priority;}
+    public function getPriority() : int {return $this->priority;}
 
     /** @var Host */
     protected $host;
