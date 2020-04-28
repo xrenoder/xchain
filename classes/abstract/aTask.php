@@ -49,7 +49,7 @@ abstract class aTask extends aBaseApp implements iTask
     protected function useSocket(): ?Socket
     {
         if ($this->socket) return $this->socket;
-        if ($this->host) return null;
+        if (!$this->host) return null;
 
         if ($this->socket = $this->getServer()->getFreeConnected($this->host)) {
             $this->socket->setBusy();
