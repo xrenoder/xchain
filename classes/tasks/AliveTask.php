@@ -11,7 +11,10 @@ class AliveTask extends aTask
 
     public function run() : bool
     {
+        $this->dbg(static::$dbgLvl,$this->name . ' started');
+
         if (!$this->useSocket()) {
+            $this->dbg(static::$dbgLvl,$this->name . ' cannot get socket');
             return false;
         }
 
