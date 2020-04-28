@@ -11,11 +11,11 @@ abstract class aTask extends aBaseApp implements iTask
     public function getServer() : Server {return $this->getQueue()->getServer();}
 
     /** @var string */
-    protected $name; /* override me */
+    protected $name = 'NotDeclaredTaskName'; /* override me */
 
     /** @var int */
-    protected $priority; /* override me */
-    public function getPriority() : int {return $this->priority;}
+    protected $priority = null; /* override me */
+    public function getPriority() : ?int {return $this->priority;}
 
     /** @var Host */
     protected $host;
@@ -27,9 +27,10 @@ abstract class aTask extends aBaseApp implements iTask
     public function setSocket($val) : self {$this->socket = $val; return $this;}
     public function getSocket() : Socket {return $this->socket;}
 
-    abstract public function run() : bool;
+    abstract protected function customRun() : bool;
+    abstract protected function customFinish();
 
-    public static function create(Queue $queue): self
+    public static function create(Queue $queue) : self
     {
         return new static($queue);
     }
@@ -41,8 +42,16 @@ abstract class aTask extends aBaseApp implements iTask
         return $this;
     }
 
+    public function run() : bool
+    {
+        $this->dbg(static::$dbgLvl,$this->name . ' started');
+        return $this->customRun();
+    }
+
     public function finish()
     {
+        $this->getSocket()->unsetTask();
+        $this->customFinish();
         $this->dbg(static::$dbgLvl,$this->name . ' finished');
     }
 

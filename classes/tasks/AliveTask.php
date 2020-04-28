@@ -9,10 +9,8 @@ class AliveTask extends aTask
     /** @var int */
     protected $priority = 0; /* overrided */
 
-    public function run() : bool
+    protected function customRun() : bool
     {
-        $this->dbg(static::$dbgLvl,$this->name . ' started');
-
         if (!$this->useSocket()) {
             $this->dbg(static::$dbgLvl,$this->name . ' cannot get socket');
             return false;
@@ -21,5 +19,10 @@ class AliveTask extends aTask
         $this->socket->addOutData(AliveReqMessage::createMessage());
 
         return true;
+    }
+
+    protected function customFinish()
+    {
+
     }
 }

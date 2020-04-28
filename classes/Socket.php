@@ -66,7 +66,8 @@ class Socket extends aBaseApp
     /** @var aTask  */
     private $task;
     public function setTask(aTask $val) : self {$this->task = $val; return $this;}
-    public function getTask() : aTask {return $this->task;}
+    public function unsetTask() : self {$this->task = null; return $this;}
+    public function getTask() : ?aTask {return $this->task;}
 
     /**
      * @param Server $server
@@ -168,19 +169,12 @@ class Socket extends aBaseApp
         $this->freeTime = time();
         $this->freeAfterSend = false;
 
-        $this->task = null;
-
         if ($this->connected) {
             $this->getServer()->freeConnected($this, $this->getHost(), $this->getKey());
         } else {
             $this->getServer()->freeAccepted($this, $this->getHost(), $this->getKey());
         }
 
-        return $this;
-    }
-
-    public function taskFinish()
-    {
         if ($this->task) {
             $this->task->finish();
         }
