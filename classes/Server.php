@@ -292,7 +292,6 @@ class Server extends aBaseApp
             return null;
         }
 
-
         $socket = $this->newWriteSocket($fd, $host);
         $socket->setConnected();
 
