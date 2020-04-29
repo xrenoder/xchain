@@ -271,6 +271,8 @@ class Server extends aBaseApp
         $errNo = -1;
         $errStr = '';
 
+        $this->dbg(static::$dbgLvl,'Connect to ' . $host->getTarget());
+
         try {
             $fd = @stream_socket_client(
                 $host->getTarget(),
@@ -285,7 +287,11 @@ class Server extends aBaseApp
             $this->err("DETAILS: stream_socket_client ($errNo) $errStr");
         }
 
-        if (!$fd) return null;
+        if (!$fd) {
+            $this->err("ERROR: stream_socket_client ($errNo) $errStr");
+            return null;
+        }
+
 
         $socket = $this->newWriteSocket($fd, $host);
         $socket->setConnected();
@@ -293,8 +299,6 @@ class Server extends aBaseApp
         if ($dataSend) {
             $socket->addOutData($dataSend);
         }
-
-        $this->dbg(static::$dbgLvl,'Connect to ' . $host->getTarget());
 
         return $socket;
     }
