@@ -112,12 +112,14 @@ class TaskPool extends aBaseApp
         $result = true;
 
         foreach ($this->tasks as $task) {
-            if (!$task->run()) {
+            if ($task->run() === false) {
                 $result = false;
             } else {
                 $this->runnedTasks++;
             }
         }
+
+        $this->dbg(static::$dbgLvl,$this->name . ' Pool: ' . $this->runnedTasks . ' tasks was started');
 
         return $result;
     }
@@ -125,7 +127,7 @@ class TaskPool extends aBaseApp
     public function finishTask() {
         $this->finishedTasks++;
 
-        if ($this->finishedTasks == $this->runnedTasks) {
+        if ($this->finishedTasks && $this->finishedTasks == $this->runnedTasks) {
             $this->finish();
         }
     }
