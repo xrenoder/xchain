@@ -63,6 +63,8 @@ class TaskPool extends aBaseApp
         $this->isAdded = true;
         $this->getQueue()->addPool($this);
 
+        $this->dbg(static::$dbgLvl,$this->name . ' Pool added to Queue');
+
         return $this;
     }
 

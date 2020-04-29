@@ -99,8 +99,8 @@ abstract class aTask extends aBaseApp implements iTask
         $this->getSocket()->unsetTask();
         $this->customFinish();
         $this->isFinished = true;
-        $this->getPool()->finishTask();
         $this->dbg(static::$dbgLvl,static::$name . ' Task finished');
+        $this->getPool()->finishTask();
     }
 
     protected function useSocket(): ?Socket
