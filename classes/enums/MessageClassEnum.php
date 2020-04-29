@@ -12,7 +12,7 @@ class MessageClassEnum extends aClassEnum
     public const UNLIMIT_LEN  = 0;
     public const SIMPLE_LEN  = icMessage::FLD_LENGTH_LEN + icMessage::FLD_TYPE_LEN;
 
-    public const ALIVE_REQ  = 0;
+    public const ALIVE_REQ  = 255;
     public const ALIVE_RES  = 1;
     public const BUSY_RES   = 2;
     public const NODES_REQ  = 3;
