@@ -73,8 +73,9 @@ class TaskPool extends aBaseApp
             return false;
         }
 
-        if (!$this->isAdded) {
+        if (!$this->isAdded) {      // can change pool priority only if pool not added to queue
             $priority = $task->getPriority();
+
             if ($this->priority === null || $priority > $this->priority) {
                 $this->priority = $priority;
             }
@@ -89,9 +90,9 @@ class TaskPool extends aBaseApp
             }
 
             $this->runnedTasks++;
-        }
 
-        $this->dbg(static::$dbgLvl,$this->name . ' Pool: ' . $this->runnedTasks . ' tasks was started');
+//            $this->dbg(static::$dbgLvl,$this->name . ' Pool: ' . $this->runnedTasks . ' tasks was started');
+        }
 
         return true;
     }
@@ -121,7 +122,7 @@ class TaskPool extends aBaseApp
             }
         }
 
-        $this->dbg(static::$dbgLvl,$this->name . ' Pool: ' . $this->runnedTasks . ' tasks was started');
+//        $this->dbg(static::$dbgLvl,$this->name . ' Pool: ' . $this->runnedTasks . ' tasks was started');
 
         return $result;
     }
@@ -142,6 +143,6 @@ class TaskPool extends aBaseApp
         }
 
         $this->isFinished = true;
-        $this->dbg(static::$dbgLvl,$this->name . ' Pool finished');
+        $this->dbg(static::$dbgLvl,$this->name . ' Pool finished (' . $this->finishedTasks . ' tasks)');
     }
 }

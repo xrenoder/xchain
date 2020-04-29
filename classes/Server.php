@@ -418,7 +418,8 @@ class Server extends aBaseApp
                 function (array $data) {
                     echo "\nPool finish handler";
                 }
-            );
+            )
+            ->toQueue();
 
         if ($this->getQueue()->runOnePool()) {
             $beg = time();
