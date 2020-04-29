@@ -53,13 +53,12 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
 
             $messageStr = $socket->getMessageStr();
 
-            if (static::preHandler($socket, $messageStr) === false) {
+            if (($messageType = static::preHandler($socket, $messageStr)) === 0) {
                 return false;
             }
 
-            if (!($message = self::spawn($socket, static::getType($messageStr)))) {
+            if (!($message = self::spawn($socket, $messageType))) {
 // if cannot create class of request by declared type - incoming data is bad
-                $messageType = static::getType($messageStr);
                 $socket->dbg(static::$dbgLvl, "BAD DATA cannot create class of request by declared type: '$messageType'");
 //                $socket->dbg(static::$dbgLvl, 'RequestEnum list: ' . var_export(MessageClassEnum::getItemsList(), true));
                 return $socket->badData();
@@ -95,13 +94,13 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $tmp[1];
     }
 
-    private static function preHandler(Socket $socket, string $str): bool
+    private static function preHandler(Socket $socket, string $str): int
     {
         $len = strlen($str);
 
 // if data length less than need for get declared length - return and wait more packets
         if ($len < self::getLengthLen()) {
-            return false;
+            return 0;
         }
 
         $declaredLen = aMessage::getLength($str);
@@ -109,14 +108,24 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
 // if real request length more than declared length - incoming data is bad
         if ($len > $declaredLen) {
             $socket->dbg(static::$dbgLvl,"BAD DATA real request length $len more than declared length $declaredLen: " . $str);
-            return $socket->badData();
+            $socket->badData();
+            return 0;
         }
 
         if ($len < static::getSpawnLen()) {
-            return false;
+            return 0;
         }
 
-        return true;
+        $messageType = static::getType($str);
+        $messageMaxLen = MessageClassEnum::getMaxMessageLen($messageType);
+
+        if ($messageMaxLen && $declaredLen > $messageMaxLen) {
+            $socket->dbg(static::$dbgLvl,"BAD DATA declared length $declaredLen more than maximum $messageMaxLen for declared type: $messageType");
+            $socket->badData();
+            return 0;
+        }
+
+        return $messageType;
     }
 
     private function addPacket(string $packet): bool

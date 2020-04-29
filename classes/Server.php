@@ -508,20 +508,6 @@ class Server extends aBaseApp
         return $this;
     }
 
-    private function removeUnusedAccepted() : bool {
-        if (!count($this->freeAcceptedTime)) {
-            return false;
-        }
-
-        $this->freeAcceptedTime = asort($this->freeAcceptedTime);
-
-        $key = array_key_first($this->freeAcceptedTime[0]);
-
-        $this->getSocket($key)->close();
-
-        return true;
-    }
-
     private function removeUnusedConnected() : bool {
         if (!count($this->freeConnectedTime)) {
             return false;
@@ -535,4 +521,20 @@ class Server extends aBaseApp
 
         return true;
     }
+
+/*
+    private function removeUnusedAccepted() : bool {
+        if (!count($this->freeAcceptedTime)) {
+            return false;
+        }
+
+        $this->freeAcceptedTime = asort($this->freeAcceptedTime);
+
+        $key = array_key_first($this->freeAcceptedTime[0]);
+
+        $this->getSocket($key)->close();
+
+        return true;
+    }
+*/
 }

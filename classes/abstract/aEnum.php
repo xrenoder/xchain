@@ -17,6 +17,15 @@ abstract class aEnum implements iEnum
         return static::$items[$id];
     }
 
+    public static function getData($id) : array
+    {
+        if (!isset(static::$data[$id])) {
+            throw new Exception(static::class . ' knows nothing about data of ' . $id);
+        }
+
+        return static::$data[$id];
+    }
+
     public static function isSetItem($id): bool
     {
         if (isset(static::$items[$id])) {
@@ -26,17 +35,17 @@ abstract class aEnum implements iEnum
         return false;
     }
 
+    public static function isSetData($id): bool
+    {
+        if (isset(static::$data[$id])) {
+            return true;
+        }
+
+        return false;
+    }
+
     public static function getItemsList(): array
     {
         return static::$items;
-    }
-
-    public static function getData($id) : array
-    {
-        if (!isset(static::$data[$id])) {
-            throw new Exception(static::class . ' knows nothing about data of ' . $id);
-        }
-
-        return static::$data[$id];
     }
 }
