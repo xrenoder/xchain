@@ -12,7 +12,7 @@ class TaskPool extends aBaseApp
     private $tasks = array();
 
     /** @var array  */
-    private $data = array("key" => "value");
+    private $data = array();
     public function setData($val, $key) : self {$this->data[$key] = $val; return $this;}
     public function getData($key) {return $this->data[$key] ?? null;}
 

@@ -2,12 +2,12 @@
 /**
  * Response "Daemon is alive"
  */
-class AliveResMessage extends aMessage
+class BusyResMessage extends aMessage
 {
     /** @var int  */
-    protected static $enumId = MessageClassEnum::ALIVE_RES;  /* overrided */
+    protected static $enumId = MessageClassEnum::BUSY_RES;  /* overrided */
     /** @var string */
-    protected static $name = 'AliveResponse Message';    /* overrided */
+    protected static $name = 'BusyResponse Message';    /* overrided */
 
     protected static $needAliveCheck = false;
 
@@ -25,9 +25,7 @@ class AliveResMessage extends aMessage
         $this->dbg(static::$dbgLvl,static::$name .  ' detected');
 //        $this->getSocket()->setFree();
 
-        $this->getSocket()->setAliveChecked();
-        $this->getSocket()->cleanMessage();
-        $this->getSocket()->addDelayedOutData();
+        $this->getSocket()->close();
 
         return true;
     }

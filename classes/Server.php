@@ -44,15 +44,15 @@ class Server extends aBaseApp
 
     /* unused connected socket (not include accepted)) */
     private $freeConnected = array(); /* 'host' => array('key' => socket) */
-    public function freeConnected(Socket $val, Host $host, $key) : self {$ip = $host->getKey(); $this->freeConnected[$ip][$key] = $val; return $this;}
-    public function busyConnected(Host $host, $key) : self {$ip = $host->getKey(); unset($this->freeConnected[$ip][$key]); return $this;}
     public function getFreeConnected(Host $host) : ?Socket {$ip = $host->getKey(); return (isset($this->freeConnected[$ip]) && !empty($this->freeConnected[$ip])) ? $this->freeConnected[$ip][0] : null;}
+
+    private $freeConnectedTime = array(); /* 'key' => 'freeTime' */
 
     /* unused accepted socket (not include connected)) */
     private $freeAccepted = array(); /* 'host' => array('key' => socket) */
-    public function freeAccepted(Socket $val, Host $host, $key) : self {$ip = $host->getKey(); $this->freeAccepted[$ip][$key] = $val; return $this;}
-    public function busyAccepted(Host $host, $key) : self {$ip = $host->getKey(); unset($this->freeAccepted[$ip][$key]); return $this;}
     public function getFreeAccepted(Host $host) : ?Socket {$ip = $host->getKey(); return (isset($this->freeAccepted[$ip]) && !empty($this->freeAccepted[$ip])) ? $this->freeAccepted[$ip][0] : null;}
+
+    private $freeAcceptedTime = array(); /* 'key' => 'freeTime' */
 
     private $sends = array();
     public function setSends($val, $key) : self {$this->sends[$key] = $val; return $this;}
@@ -103,6 +103,8 @@ class Server extends aBaseApp
             pcntl_signal_dispatch();
             $this->garbageCollect();
 
+            $this->getQueue()->runTopPools();
+
             $this->select();
 
 // проверка истечения таймаутов и отключение просроченых сокетов
@@ -120,7 +122,7 @@ class Server extends aBaseApp
             if ($this->end) { 	// if mode 'soft finish' setted
                 $this->dbg(static::$dbgLvl,'Sockets cnt: ' . count($this->sockets));
 
-                if (!count($this->sockets)) {   // and no have active sockets - go out
+                if (!count($this->recvs) && !count($this->sends)) {   // and no have active sockets - go out
                     break;
                 }
             }
@@ -189,16 +191,20 @@ class Server extends aBaseApp
 
 // проверяем новые подключения
         $listenFd = null;
+        $isServerBusy = false;
 
         if ($listenSocket = $this->getSocket(self::LISTEN_KEY)) {
             $listenFd = $listenSocket->getFd();
 
             if (in_array($listenFd, $rd, true)) {
-// TODO добавить обработку ситуации "не хватает сокетов, чтобы принять соединение"
-// - либо быстро ответить, что перегружен и отключиться
-// - либо сперва попытаться закрыть давно не используемые сокеты
-                if (count($this->sockets) >= (self::MAX_SOCK - self::RESERVE_SOCK)) {
+                if (count($this->sockets) >= (self::MAX_SOCK)) {
                     throw new Exception('Cannot accept: reach maximal sockets count');
+                }
+
+                if (count($this->sockets) >= (self::MAX_SOCK - self::RESERVE_SOCK)) {
+                    if (!$this->removeUnusedConnected()) {      // try to remove unused connected socket to accept connection
+                        $isServerBusy = true;                         // if cannot remove unused socket - accept, read "@"alive req", answer "Busy!" and close socket
+                    }
                 }
 
                 if (($fd = @stream_socket_accept($listenFd, -1)) === false) {
@@ -213,6 +219,10 @@ class Server extends aBaseApp
                             stream_socket_get_name($fd,true)
                         )
                     );
+
+                    if ($isServerBusy) {
+                        $acceptedSocket->setServerBusy();
+                    }
 
                     $this->dbg(static::$dbgLvl, 'Accept connection from ' . $acceptedSocket->getHost()->getTarget());
                 }
@@ -247,10 +257,13 @@ class Server extends aBaseApp
      */
     public function connect(Host $host, string $dataSend = null): ?Socket
     {
-// TODO добавить обработку ситуации "не хватает сокетов, чтобы установить коннект"
-// - либо сперва попытаться закрыть давно не используемые сокеты
         if (count($this->sockets) >= self::MAX_SOCK) {
-            return null;
+            if (!$this->removeUnusedConnected()) {      // try to remove unused connected socket to accept connection
+// TODO добавить обработку ситуации "не хватает сокетов, чтобы установить коннект"
+// - отправить в блокчейн транзакцию о перегружености
+                return null;                            // if cannot remove unused socket - not connect
+            }
+
         }
 
 // TODO проверить, как влияет на скорость опция TCP_DELAY и другие (so_reuseport, backlog)
@@ -417,7 +430,7 @@ class Server extends aBaseApp
     public function isDaemonAlive(): bool
     {
         AliveTask::create($this, null,  $this->getListenHost())
-            ->getPool()->setHandler("AliveTask::poolFinishHandler")
+            ->getPool() //->setHandler("AliveTask::poolFinishHandler")
             ->toQueue();
 
         if ($this->getQueue()->runOnePool()) {
@@ -457,5 +470,69 @@ class Server extends aBaseApp
     {
         $this->end = true;
         $this->closeSocket(self::LISTEN_KEY);
+    }
+
+    public function freeConnected(Socket $val, Host $host, $key) : self {
+        $hostKey = $host->getKey();
+
+        $this->freeConnected[$hostKey][$key] = $val;
+        $this->freeConnectedTime[$key] = $val->getFreeTime();
+
+        return $this;
+    }
+
+    public function busyConnected(Host $host, $key) : self {
+        $hostKey = $host->getKey();
+
+        unset($this->freeConnected[$hostKey][$key]);
+        unset($this->freeConnectedTime[$key]);
+
+        return $this;
+    }
+
+    public function freeAccepted(Socket $val, Host $host, $key) : self {
+        $hostKey = $host->getKey();
+
+        $this->freeAccepted[$hostKey][$key] = $val;
+        $this->freeAcceptedTime[$key] = $val->getFreeTime();
+
+        return $this;
+    }
+
+    public function busyAccepted(Host $host, $key) : self {
+        $hostKey = $host->getKey();
+
+        unset($this->freeAccepted[$hostKey][$key]);
+        unset($this->freeAcceptedTime[$key]);
+
+        return $this;
+    }
+
+    private function removeUnusedAccepted() : bool {
+        if (!count($this->freeAcceptedTime)) {
+            return false;
+        }
+
+        $this->freeAcceptedTime = asort($this->freeAcceptedTime);
+
+        $key = array_key_first($this->freeAcceptedTime[0]);
+
+        $this->getSocket($key)->close();
+
+        return true;
+    }
+
+    private function removeUnusedConnected() : bool {
+        if (!count($this->freeConnectedTime)) {
+            return false;
+        }
+
+        $this->freeConnectedTime = asort($this->freeConnectedTime);
+
+        $key = array_key_first($this->freeConnectedTime[0]);
+
+        $this->getSocket($key)->close();
+
+        return true;
     }
 }

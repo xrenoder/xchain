@@ -16,23 +16,30 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
 
     private $str;
 //    public function setStr($val) {$this->str = $val; return $this;}
-    public function getStr() {return $this->str;}
+//    public function getStr() {return $this->str;}
 
     private $len;
 //    public function setLen($val) {$this->len = $val; return $this;}
-    public function getLen() {return $this->len;}
+//    public function getLen() {return $this->len;}
+
+    protected static $needAliveCheck = true;
 
     abstract protected function incomingMessageHandler() : Bool;
     abstract public static function createMessage() : string;
 
-    public static function create(Socket $socket): iMessage
+    public static function create(Socket $socket): ?iMessage
     {
+        if (static::$needAliveCheck && !$socket->isAliveChecked()) {
+            $socket->dbg(static::$dbgLvl,static::$name .  ' cannot explored before Alive checking');
+            return null;
+        }
+
         return new static($socket);
     }
 
     public static function spawn(Socket $socket, int $enumId): ?iMessage
     {
-        if ($className = MessageEnum::getClassName($enumId)) {
+        if ($className = MessageClassEnum::getClassName($enumId)) {
             return $className::create($socket);
         }
 
@@ -54,7 +61,7 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
 // if cannot create class of request by declared type - incoming data is bad
                 $messageType = static::getType($messageStr);
                 $socket->dbg(static::$dbgLvl, "BAD DATA cannot create class of request by declared type: '$messageType'");
-                $socket->dbg(static::$dbgLvl, 'RequestEnum list: ' . var_export(MessageEnum::getItemsList(), true));
+//                $socket->dbg(static::$dbgLvl, 'RequestEnum list: ' . var_export(MessageClassEnum::getItemsList(), true));
                 return $socket->badData();
             }
 

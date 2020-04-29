@@ -34,13 +34,15 @@ class Socket extends aBaseApp
 
     /** @var aMessage  */
     private $message;
-    public function setMessage(aMessage $val) : self {$this->message = $val; return $this;}
-    public function getMessage() : ?aMessage {return $this->message;}
+    public function setMessage(iMessage $val) : self {$this->message = $val; return $this;}
+    public function getMessage() : ?iMessage {return $this->message;}
 
     /** @var string  */
     private $outData = '';
     public function setOutData(string $val) :  self {$this->outData = $val; return $this;}
     public function getOutData() : string {return $this->outData;}
+
+    private $delayedOutData = '';
 
     /** @var Host  */
     private $host;
@@ -51,6 +53,11 @@ class Socket extends aBaseApp
     private $freeAfterSend = false;
     public function setFreeAfterSend() : self {$this->freeAfterSend = true; return $this;}
     public function needFreeAfterSend() : bool {return $this->freeAfterSend;}
+
+    /** @var bool  */
+    private $closeAfterSend = false;
+    public function setCloseAfterSend() : self {$this->closeAfterSend = true; return $this;}
+    public function needCloseAfterSend() : bool {return $this->closeAfterSend;}
 
     /** @var int  */ /* when busy - 0, when free - time of freedom moment */
     private $freeTime = 0;
@@ -68,6 +75,19 @@ class Socket extends aBaseApp
     public function setTask(aTask $val) : self {$this->task = $val; return $this;}
     public function unsetTask() : self {$this->task = null; return $this;}
     public function getTask() : ?iTask {return $this->task;}
+
+    /** @var bool  */
+    private $needAliveCheck = true;
+
+    /** @var bool  */
+    private $isAliveChecked = false;
+    public function setAliveChecked() : self {$this->isAliveChecked = true; return $this;}
+    public function isAliveChecked() : bool {return $this->isAliveChecked;}
+
+    /** @var bool  */
+    private $isServerBusy = false;
+    public function setServerBusy() : self {$this->isServerBusy = true; return $this;}
+    public function isServerBusy() : bool {return $this->isServerBusy;}
 
     /**
      * @param Server $server
@@ -116,7 +136,7 @@ class Socket extends aBaseApp
      */
     public function setRecvs(): Socket
     {
-        $this->getServer()->setRecvs($this->fd,$this->getKey());
+        $this->getServer()->setRecvs($this->fd,$this->key);
         return $this;
     }
 
@@ -126,7 +146,7 @@ class Socket extends aBaseApp
      */
     public function unsetRecvs(): Socket
     {
-        $this->getServer()->unsetRecvs($this->getKey());
+        $this->getServer()->unsetRecvs($this->key);
         return $this;
     }
 
@@ -136,7 +156,7 @@ class Socket extends aBaseApp
      */
     public function setSends(): Socket
     {
-        $this->getServer()->setSends($this->fd,$this->getKey());
+        $this->getServer()->setSends($this->fd,$this->key);
         return $this;
     }
 
@@ -146,16 +166,16 @@ class Socket extends aBaseApp
      */
     public function unsetSends(): Socket
     {
-        $this->getServer()->unsetSends($this->getKey());
+        $this->getServer()->unsetSends($this->key);
         return $this;
     }
 
     public function setBusy()
     {
         if ($this->connected) {
-            $this->getServer()->busyConnected($this->getHost(), $this->getKey());
+            $this->getServer()->busyConnected($this->host, $this->key);
         } else {
-            $this->getServer()->busyAccepted($this->getHost(), $this->getKey());
+            $this->getServer()->busyAccepted($this->host, $this->key);
         }
 
         $this->freeTime = 0;
@@ -170,16 +190,54 @@ class Socket extends aBaseApp
         $this->freeAfterSend = false;
 
         if ($this->connected) {
-            $this->getServer()->freeConnected($this, $this->getHost(), $this->getKey());
+            $this->getServer()->freeConnected($this, $this->host, $this->key);
         } else {
-            $this->getServer()->freeAccepted($this, $this->getHost(), $this->getKey());
+            $this->getServer()->freeAccepted($this, $this->host, $this->key);
         }
 
         if ($this->task) {
             $this->task->finish();
         }
 
+        $this->cleanMessage();
+
+        $this->time = 0;
+
         return $this;
+    }
+
+    public function cleanMessage()
+    {
+        $this->message = null;
+        $this->messageStr = '';
+    }
+
+    /**
+     * Add packet to socket for sending
+     * @param $data
+     * @return Socket
+     */
+    public function addOutData($data): Socket
+    {
+        if ($this->needAliveCheck && $this->isConnected()) {
+            $this->needAliveCheck = false;
+            $this->delayedOutData = $data;
+
+            return $this->addOutData(AliveReqMessage::createMessage());
+        }
+
+        $this->outData .= $data;
+        $this->setSends();
+
+        return $this;
+    }
+
+    public function addDelayedOutData(): Socket
+    {
+        $data = $this->delayedOutData;
+        $this->delayedOutData = '';
+
+        return $this->addOutData($data);
     }
 
     /**
@@ -191,23 +249,31 @@ class Socket extends aBaseApp
         $this->setTime();
         $buff = $this->getOutData();
 
-        if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
-            $this->err('ERROR: write to socket error');
-        }
+        if ($buff) {
+            if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
+                $this->err('ERROR: write to socket error');
+            }
 
-        if ($realLength) {
-            $this->setOutData(substr($this->getOutData(), $realLength));
-        }
+            if ($realLength) {
+                $this->setOutData(substr($this->getOutData(), $realLength));
+            }
 
-        $this->dbg(static::$dbgLvl, 'SEND ' . $this->getKey() . ": $realLength bytes");
+            $this->dbg(static::$dbgLvl, 'SEND ' . $this->key . ": $realLength bytes");
+        } else {
+            $this->dbg(static::$dbgLvl, 'SEND ' . $this->key . ": ZERO bytes, switch to received mode");
+        }
 
         if (!$this->getOutData()) {
-            $this
-                ->unsetSends()
-                ->setRecvs();
+            if ($this->needCloseAfterSend()) {
+                $this->close();
+            } else {
+                $this
+                    ->unsetSends()
+                    ->setRecvs();
 
-            if ($this->needFreeAfterSend()) {
-                $this->setFree();
+                if ($this->needFreeAfterSend()) {
+                    $this->setFree();
+                }
             }
         }
 
@@ -235,19 +301,6 @@ class Socket extends aBaseApp
         $this->dbg(static::$dbgLvl, 'RECV ' . $this->getKey() . ': '. $data);
 
         return aMessage::parser($this, $data);
-    }
-
-    /**
-     * Add packet to socket for sending
-     * @param $data
-     * @return Socket
-     */
-    public function addOutData($data): Socket
-    {
-        $this->outData .= $data;
-        $this->setSends();
-
-        return $this;
     }
 
     /**

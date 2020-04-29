@@ -22,12 +22,17 @@ try {
 
     Server::create($app,$listenTCPHost, $bindTCPHost);
 
-
     Daemon::create($app, RUN_PATH,  'pid');
 
     if (!$app->getDaemon()->run($command)) {
         throw new Exception('Cannot daemon start');
     }
+
+    $startPool = TaskPool::create($app->getServer()->getQueue(), "Start Operations");
+
+    GetFnodesTask::create($app->getServer(), $startPool, $firstRemoteHost);
+
+    $startPool->toQueue();
 
     $app->getServer()->run();
 } catch (Exception $e) {

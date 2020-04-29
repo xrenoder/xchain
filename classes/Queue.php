@@ -1,6 +1,6 @@
 <?php
 /**
- * Stack of tasks for server
+ * Stack pools of tasks for server
  */
 class Queue extends aBaseApp
 {

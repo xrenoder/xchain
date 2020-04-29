@@ -5,9 +5,11 @@
 class AliveReqMessage extends aMessage
 {
     /** @var int  */
-    protected static $enumId = MessageEnum::ALIVE_REQ;  /* overrided */
+    protected static $enumId = MessageClassEnum::ALIVE_REQ;  /* overrided */
     /** @var string */
     protected static $name = 'AliveRequest Message';    /* overrided */
+
+    protected static $needAliveCheck = false;
 
     public static function createMessage(): string
     {
@@ -21,8 +23,17 @@ class AliveReqMessage extends aMessage
     protected function incomingMessageHandler(): bool
     {
         $this->dbg(static::$dbgLvl,static::$name .  ' detected');
-        $this->getSocket()->addOutData(AliveResMessage::createMessage());
-        $this->getSocket()->setFreeAfterSend();
+
+        if ($this->getSocket()->isServerBusy()) {
+            $this->getSocket()->addOutData(BusyResMessage::createMessage());
+            $this->getSocket()->setCloseAfterSend();
+        } else {
+            $this->getSocket()->addOutData(AliveResMessage::createMessage());
+            $this->getSocket()->setAliveChecked();
+            $this->getSocket()->cleanMessage();
+        }
+
+//        $this->getSocket()->setFreeAfterSend();
         return false;
     }
 }

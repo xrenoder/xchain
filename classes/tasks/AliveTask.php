@@ -1,6 +1,7 @@
 <?php
-
-
+/**
+ * Task "Is daemon alive?"
+ */
 class AliveTask extends aTask
 {
     /** @var string  */
@@ -16,7 +17,8 @@ class AliveTask extends aTask
             return false;
         }
 
-        $this->socket->addOutData(AliveReqMessage::createMessage());
+//        $this->socket->addOutData(AliveReqMessage::createMessage());
+        $this->socket->addOutData('');      // empty message will be not sended, but Socket before first message always send AliveRequest
 
         return true;
     }
@@ -26,8 +28,10 @@ class AliveTask extends aTask
 
     }
 
+/*
     public static function poolFinishHandler(array $data) : void
     {
         echo var_export($data, true);
     }
+*/
 }
