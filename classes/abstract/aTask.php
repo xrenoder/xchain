@@ -13,7 +13,7 @@ abstract class aTask extends aBaseApp implements iTask
 
     /** @var string */
     protected static $name = 'NotDeclaredTaskName'; /* override me */
-    public static function getName() : string {return static::$name;}
+    public function getName() : string {return static::$name;}
 
     /** @var int */
     protected $priority = null; /* override me */

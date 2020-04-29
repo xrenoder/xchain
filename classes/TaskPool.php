@@ -69,7 +69,7 @@ class TaskPool extends aBaseApp
     public function addTask(iTask $task) : bool
     {
         if ($this->isFinished) {
-            $this->dbg(static::$dbgLvl,$this->name . ' Pool already finished, cannot add ' . $task::getName() . ' Task');
+            $this->dbg(static::$dbgLvl,$this->name . ' Pool already finished, cannot add ' . $task->getName() . ' Task');
             return false;
         }
 
@@ -81,15 +81,17 @@ class TaskPool extends aBaseApp
         }
 
         $this->tasks[] = $task;
-        $this->dbg(static::$dbgLvl,$this->name . ' Pool started');
+        $this->dbg(static::$dbgLvl,$task->getName() . ' Task added to ' . $this->name. ' Pool');
 
         if ($this->isRunned) {
-            if (!$task->run()) {
+            if ($task->run() === false) {
                 return false;
             }
 
             $this->runnedTasks++;
         }
+
+        $this->dbg(static::$dbgLvl,$this->name . ' Pool: ' . $this->runnedTasks . ' tasks was started');
 
         return true;
     }
