@@ -419,7 +419,7 @@ class Server extends aBaseApp
         AliveTask::create($this, null,  $this->getListenHost())
             ->getPool()->setHandler(
                 function (array $data) {
-                    echo "\nPool finish handler";
+                    echo $this->name . "\n";
                 }
             )
             ->toQueue();
