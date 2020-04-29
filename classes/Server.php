@@ -417,11 +417,7 @@ class Server extends aBaseApp
     public function isDaemonAlive(): bool
     {
         AliveTask::create($this, null,  $this->getListenHost())
-            ->getPool()->setHandler(
-                function (array $data) {
-                    echo $this->name . "\n";
-                }
-            )
+            ->getPool()->setHandler("AliveTask::poolFinishHandler")
             ->toQueue();
 
         if ($this->getQueue()->runOnePool()) {

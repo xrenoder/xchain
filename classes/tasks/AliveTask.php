@@ -25,4 +25,9 @@ class AliveTask extends aTask
     {
 
     }
+
+    public static function poolFinishHandler(array $data) : void
+    {
+        echo var_export($data, true);
+    }
 }
