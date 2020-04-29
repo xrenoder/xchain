@@ -47,7 +47,7 @@ abstract class aTask extends aBaseApp implements iTask
      * @param Host $host
      * @return iTask
      */
-    public static function create(Server $server, TaskPool $pool, Host $host) : iTask
+    public static function create(Server $server, ?TaskPool $pool, Host $host) : iTask
     {
         if (!$pool) {
             $queue = $server->getQueue();
