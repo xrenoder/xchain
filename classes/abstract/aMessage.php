@@ -22,15 +22,15 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
 //    public function setLen($val) {$this->len = $val; return $this;}
     public function getLen() {return $this->len;}
 
-    abstract protected function handler() : Bool;
+    abstract protected function incomingMessageHandler() : Bool;
     abstract public static function createMessage() : string;
 
-    public static function create(Socket $socket): aMessage
+    public static function create(Socket $socket): iMessage
     {
         return new static($socket);
     }
 
-    public static function spawn(Socket $socket, int $enumId): ?aMessage
+    public static function spawn(Socket $socket, int $enumId): ?iMessage
     {
         if ($className = MessageEnum::getClassName($enumId)) {
             return $className::create($socket);
@@ -116,6 +116,6 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
     {
         $this->str .= $packet;
         $this->len = strlen($this->str);
-        return $this->handler();
+        return $this->incomingMessageHandler();
     }
 }

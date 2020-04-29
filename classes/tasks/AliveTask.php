@@ -4,7 +4,7 @@
 class AliveTask extends aTask
 {
     /** @var string  */
-    protected $name = 'Alive Task'; /* overrided */
+    protected static $name = 'Alive'; /* overrided */
 
     /** @var int */
     protected $priority = 0; /* overrided */
@@ -12,7 +12,7 @@ class AliveTask extends aTask
     protected function customRun() : bool
     {
         if (!$this->useSocket()) {
-            $this->dbg(static::$dbgLvl,$this->name . ' cannot get socket');
+            $this->dbg(static::$dbgLvl,static::$name . ' Task cannot get socket');
             return false;
         }
 

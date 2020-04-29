@@ -63,11 +63,11 @@ class Socket extends aBaseApp
     public function setConnected() : self {$this->connected = true; return $this;}
     public function isConnected() : bool {return $this->connected;}
 
-    /** @var aTask  */
+    /** @var iTask  */
     private $task;
     public function setTask(aTask $val) : self {$this->task = $val; return $this;}
     public function unsetTask() : self {$this->task = null; return $this;}
-    public function getTask() : ?aTask {return $this->task;}
+    public function getTask() : ?iTask {return $this->task;}
 
     /**
      * @param Server $server
@@ -260,10 +260,19 @@ class Socket extends aBaseApp
 
         $this
             ->unsetRecvs()
-            ->unsetSends()
-            ->getServer()->unsetSocket($this->getKey());
+            ->unsetSends();
 
-        $this->dbg(static::$dbgLvl, 'Socket ' . $this->getKey() . ' closed');
+        $host = $this->getHost();
+        $key = $this->getKey();
+
+        $this
+            ->getServer()->unsetSocket($key)
+            ->busyAccepted($host, $key)
+            ->busyConnected($host, $key);
+
+        unset($this->task);
+
+        $this->dbg(static::$dbgLvl, 'Socket ' . $key . ' closed');
     }
 
     public function badData(): bool

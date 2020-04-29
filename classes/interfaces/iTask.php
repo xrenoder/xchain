@@ -4,8 +4,9 @@
  */
 interface iTask
 {
-    public static function create(Queue $queue): aTask;
-    public function queue() : aTask;
+    public static function create(Server $server, TaskPool $pool, Host $host): iTask;
+    public function toPool() : iTask;
     public function run() : bool;
     public function finish();
+    public function getPriority() : ?int;
 }

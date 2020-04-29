@@ -44,15 +44,15 @@ class Server extends aBaseApp
 
     /* unused connected socket (not include accepted)) */
     private $freeConnected = array(); /* 'host' => array('key' => socket) */
-    public function freeConnected(Socket $val, Host $host, $key) : self {$ip = $host->getHost(); $this->freeConnected[$ip][$key] = $val; return $this;}
-    public function busyConnected(Host $host, $key) : self {$ip = $host->getHost(); unset($this->freeConnected[$ip][$key]); return $this;}
-    public function getFreeConnected(Host $host) : ?Socket {$ip = $host->getHost(); return (isset($this->freeConnected[$ip]) && !empty($this->freeConnected[$ip])) ? $this->freeConnected[$ip][0] : null;}
+    public function freeConnected(Socket $val, Host $host, $key) : self {$ip = $host->getKey(); $this->freeConnected[$ip][$key] = $val; return $this;}
+    public function busyConnected(Host $host, $key) : self {$ip = $host->getKey(); unset($this->freeConnected[$ip][$key]); return $this;}
+    public function getFreeConnected(Host $host) : ?Socket {$ip = $host->getKey(); return (isset($this->freeConnected[$ip]) && !empty($this->freeConnected[$ip])) ? $this->freeConnected[$ip][0] : null;}
 
     /* unused accepted socket (not include connected)) */
     private $freeAccepted = array(); /* 'host' => array('key' => socket) */
-    public function freeAccepted(Socket $val, Host $host, $key) : self {$ip = $host->getHost(); $this->freeAccepted[$ip][$key] = $val; return $this;}
-    public function busyAccepted(Host $host, $key) : self {$ip = $host->getHost(); unset($this->freeAccepted[$ip][$key]); return $this;}
-    public function getFreeAccepted(Host $host) : ?Socket {$ip = $host->getHost(); return (isset($this->freeAccepted[$ip]) && !empty($this->freeAccepted[$ip])) ? $this->freeAccepted[$ip][0] : null;}
+    public function freeAccepted(Socket $val, Host $host, $key) : self {$ip = $host->getKey(); $this->freeAccepted[$ip][$key] = $val; return $this;}
+    public function busyAccepted(Host $host, $key) : self {$ip = $host->getKey(); unset($this->freeAccepted[$ip][$key]); return $this;}
+    public function getFreeAccepted(Host $host) : ?Socket {$ip = $host->getKey(); return (isset($this->freeAccepted[$ip]) && !empty($this->freeAccepted[$ip])) ? $this->freeAccepted[$ip][0] : null;}
 
     private $sends = array();
     public function setSends($val, $key) : self {$this->sends[$key] = $val; return $this;}
@@ -413,11 +413,14 @@ class Server extends aBaseApp
      */
     public function isDaemonAlive(): bool
     {
-        AliveTask::create($this->getQueue())
-            ->setHost($this->getListenHost())
-            ->queue();
+        AliveTask::create($this, null,  $this->getListenHost())
+            ->getPool()->setHandler(
+                function (array $data) {
+                    echo "\nPool finish handler";
+                }
+            );
 
-        if ($this->getQueue()->runOneTask()) {
+        if ($this->getQueue()->runOnePool()) {
             $beg = time();
 
             while ((time() - $beg) < self::ALIVE_TIMEOUT) {

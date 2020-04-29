@@ -18,7 +18,7 @@ class AliveReqMessage extends aMessage
         return $mess;
     }
 
-    protected function handler(): bool
+    protected function incomingMessageHandler(): bool
     {
         $this->dbg(static::$dbgLvl,static::$name .  ' detected');
         $this->getSocket()->addOutData(AliveResMessage::createMessage());
