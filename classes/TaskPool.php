@@ -55,7 +55,10 @@ class TaskPool extends aBaseApp
 
     public function toQueue() : self
     {
-        if ($this->isAdded) return $this;
+        if ($this->isAdded) {
+            $this->dbg(static::$dbgLvl,$this->name . ' Pool already added to Queue');
+            return $this;
+        }
 
         $this->isAdded = true;
         $this->getQueue()->addPool($this);
@@ -65,7 +68,10 @@ class TaskPool extends aBaseApp
 
     public function addTask(iTask $task) : bool
     {
-        if ($this->isFinished) return false;
+        if ($this->isFinished) {
+            $this->dbg(static::$dbgLvl,$this->name . ' Pool already finished, cannot add ' . $task::getName() . ' Task');
+            return false;
+        }
 
         if (!$this->isAdded) {
             $priority = $task->getPriority();
@@ -90,8 +96,15 @@ class TaskPool extends aBaseApp
 
     public function run() : bool
     {
-        if ($this->isRunned) return false;
-        if ($this->isFinished) return false;
+        if ($this->isFinished) {
+            $this->dbg(static::$dbgLvl,$this->name . ' Pool already finished, cannot start');
+            return false;
+        }
+
+        if ($this->isRunned) {
+            $this->dbg(static::$dbgLvl,$this->name . ' Pool already started, cannot start');
+            return false;
+        }
 
         $this->isRunned = true;
         $this->dbg(static::$dbgLvl,$this->name . ' Pool started');

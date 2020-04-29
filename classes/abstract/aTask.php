@@ -13,6 +13,7 @@ abstract class aTask extends aBaseApp implements iTask
 
     /** @var string */
     protected static $name = 'NotDeclaredTaskName'; /* override me */
+    public static function getName() : string {return static::$name;}
 
     /** @var int */
     protected $priority = null; /* override me */
@@ -65,7 +66,10 @@ abstract class aTask extends aBaseApp implements iTask
 
     public function toPool() : iTask
     {
-        if ($this->isAdded) return $this;
+        if ($this->isAdded) {
+            $this->dbg(static::$dbgLvl,static::$name . ' Task already added to Pool');
+            return $this;
+        }
 
         $this->isAdded = true;
         $this->getPool()->addTask($this);
@@ -75,7 +79,15 @@ abstract class aTask extends aBaseApp implements iTask
 
     public function run() : bool
     {
-        if ($this->isRunned) return false;
+        if ($this->isFinished) {
+            $this->dbg(static::$dbgLvl,static::$name . ' Task already finished, cannot start');
+            return false;
+        }
+
+        if ($this->isRunned) {
+            $this->dbg(static::$dbgLvl,static::$name . ' Task already started, cannot start');
+            return false;
+        }
 
         $this->dbg(static::$dbgLvl,static::$name . ' Task started');
         $this->isRunned = true;
@@ -94,7 +106,11 @@ abstract class aTask extends aBaseApp implements iTask
     protected function useSocket(): ?Socket
     {
         if ($this->socket) return $this->socket;
-        if (!$this->host) return null;
+
+        if (!$this->host) {
+            $this->dbg(static::$dbgLvl,static::$name . ' Task cannot start without Host');
+            return null;
+        }
 
         if ($this->socket = $this->getServer()->getFreeConnected($this->host)) {
             $this->socket->setBusy();

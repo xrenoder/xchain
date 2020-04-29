@@ -9,4 +9,5 @@ interface iTask
     public function run() : bool;
     public function finish();
     public function getPriority() : ?int;
+    public static function getName() : string;
 }
