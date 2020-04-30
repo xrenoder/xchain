@@ -191,7 +191,7 @@ class Server extends aBaseApp
 
 // проверяем новые подключения
         $listenFd = null;
-        $isServerBusy = true;
+        $isServerBusy = false;
 
         if ($listenSocket = $this->getSocket(self::LISTEN_KEY)) {
             $listenFd = $listenSocket->getFd();
