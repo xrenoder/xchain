@@ -289,7 +289,13 @@ class Socket extends aBaseApp
     {
         $this->setTime();
 
-        if (($data = stream_get_contents($this->fd)) === false) {
+        $needRead = -1;
+
+        if ($this->message) {
+            $needRead = $this->message->getBufferSize();
+        }
+
+        if (($data = stream_get_contents($this->fd, $needRead)) === false) {
             $this->err('ERROR: read from stream error');
         }
 
@@ -318,10 +324,10 @@ class Socket extends aBaseApp
         $host = $this->getHost();
         $key = $this->getKey();
 
-        $this
-            ->getServer()->unsetSocket($key)
-            ->busyAccepted($host, $key)
-            ->busyConnected($host, $key);
+        $this->getServer()
+             ->unsetSocket($key)
+             ->busyAccepted($host, $key)
+             ->busyConnected($host, $key);
 
         unset($this->task);
 

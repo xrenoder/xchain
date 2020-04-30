@@ -18,9 +18,18 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
 //    public function setStr($val) {$this->str = $val; return $this;}
 //    public function getStr() {return $this->str;}
 
-    private $len;
+    /** @var int  */
+    private $len = null;
 //    public function setLen($val) {$this->len = $val; return $this;}
-//    public function getLen() {return $this->len;}
+    public function getLen() {return $this->len;}
+
+    /** @var int  */
+    private $maxLen = null;
+    public function setMaxLen() {$this->maxLen = MessageClassEnum::getMaxMessageLen(static::$enumId); return $this;}
+    public function getMaxLen() {return $this->maxLen;}
+
+    /** @var int  */
+    private $declaredLen = null;
 
     protected static $needAliveCheck = true;
 
@@ -34,7 +43,11 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
             return null;
         }
 
-        return new static($socket);
+        $me = new static($socket);
+
+        $me->setMaxLen();
+
+        return $me;
     }
 
     public static function spawn(Socket $socket, int $enumId): ?iMessage
@@ -70,24 +83,19 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $socket->getMessage()->addPacket($packet);
     }
 
-    protected static function getLengthLen() : int
+    public function getBufferSize() : int
     {
-        return static::FLD_LENGTH_LEN;
+        return $this->declaredLen - $this->len + 1;
     }
 
-    protected static function getSpawnLen() : int
-    {
-        return static::FLD_LENGTH_LEN + static::FLD_TYPE_LEN;
-    }
-
-    protected static function getLength(string $data) : int
+    protected static function prepareLength(string $data) : int
     {
         $offset = 0;
         $tmp = unpack(static::FLD_LENGTH_FMT, substr($data, $offset, static::FLD_LENGTH_LEN));
         return $tmp[1];
     }
 
-    protected static function getType(string $data) : int
+    protected static function prepareType(string $data) : int
     {
         $offset = static::FLD_LENGTH_LEN;
         $tmp = unpack(static::FLD_TYPE_FMT, substr($data, $offset, static::FLD_TYPE_LEN));
@@ -99,11 +107,11 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         $len = strlen($str);
 
 // if data length less than need for get declared length - return and wait more packets
-        if ($len < self::getLengthLen()) {
+        if ($len < static::getFldLengthSize()) {
             return 0;
         }
 
-        $declaredLen = aMessage::getLength($str);
+        $declaredLen = static::prepareLength($str);
 
 // if real request length more than declared length - incoming data is bad
         if ($len > $declaredLen) {
@@ -112,11 +120,11 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
             return 0;
         }
 
-        if ($len < static::getSpawnLen()) {
+        if ($len < static::getSpawnOffset()) {
             return 0;
         }
 
-        $messageType = static::getType($str);
+        $messageType = static::prepareType($str);
         $messageMaxLen = MessageClassEnum::getMaxMessageLen($messageType);
 
         if ($messageMaxLen && $declaredLen > $messageMaxLen) {
@@ -132,6 +140,31 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
     {
         $this->str .= $packet;
         $this->len = strlen($this->str);
+
+        if ($this->declaredLen === null) {
+            $this->declaredLen = static::prepareLength($this->str);
+        }
+
+        if ($this->maxLen && $this->len > $this->maxLen) {
+            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than maximum $this->maxLen for message type: " . static::$enumId);
+            return $this->getSocket()->badData();
+        }
+
+        if ($this->len > $this->declaredLen) {
+            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for message type: " . static::$enumId);
+            return $this->getSocket()->badData();
+        }
+
         return $this->incomingMessageHandler();
+    }
+
+    protected static function getFldLengthSize() : int
+    {
+        return static::FLD_LENGTH_LEN;
+    }
+
+    protected static function getSpawnOffset() : int
+    {
+        return static::FLD_LENGTH_LEN + static::FLD_TYPE_LEN;
     }
 }
