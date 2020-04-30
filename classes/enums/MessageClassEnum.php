@@ -35,6 +35,5 @@ class MessageClassEnum extends aClassEnum
         if (!static::isSetData($id)) return static::UNLIMIT_LEN;
         $data = static::getData($id);
         return $data[self::DATA_MAX_LEN] ?? static::UNLIMIT_LEN;
-
     }
 }

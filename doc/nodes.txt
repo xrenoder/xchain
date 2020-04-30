@@ -9,6 +9,8 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 manage S-nodes for other sidechains storing
                 communicate with other blockchains for exchange X-coins to other coins
 
+                30% of transaction reward
+
                 need for tests 2 M-nodes
                 need for start 2 M-nodes
                 optimal 8 M-nodes
@@ -32,19 +34,29 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 store utility sidechains
                 optional store mainchain & all base sidechains
 
-                need for tests 2 slave nodes for network (1 slave per 1 M-node)
-                need for start 4 slave nodes for network (2 slave per 1 M-node)
+                30% of transaction reward
+
+                need for tests 2 S-nodes for network (1 S-node per 1 M-node)
+                need for start 4 S-nodes for network (2 S-nodes per 1 M-node)
                 optimal 64 S-nodes (8 per 1 M-node)
                 middle level of network
                 connected with own F-nodes and with one own M-node, if own M-node not worked - connect with other M-node
 
-    4   slave-aspirant node (SA-node)
+    4   side-aspirant node (SA-node)
+                must work as P-node
+
+3   Proxy node (P-node)
+
+                30% of transaction reward
+
+    2   proxy-aspirant node (PA-node)
                 must work as F-node
 
-    2   super-proxy node
-
-1   front node
+1   front node (F-node)
                 3rd level
+
+                10% of transaction reward
+
                 need for tests 2 F-nodes for network (1 F-node per 1 S-node)
                 need for start 8 F-nodes for network (2 F-nodes per 1 S-node)
                 optimal 512 F-nodes (8 per 1 S-node)
