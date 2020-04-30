@@ -221,6 +221,7 @@ class Server extends aBaseApp
                     );
 
                     if ($isServerBusy) {
+                        $this->dbg(static::$dbgLvl, 'Server is busy!');
                         $acceptedSocket->setServerBusy();
                     }
 
