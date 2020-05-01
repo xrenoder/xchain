@@ -357,12 +357,12 @@ class Server extends aBase
      * Create new socket, add it to reading select array ($toRead = true) or to writing select array ($toRead = false)
      * @param $fd
      * @param Host $host
-     * @param string $key
+     * @param string|null $key
      * @param bool $toRead
      * @return Socket
      * @throws Exception
      */
-    private function newSocket($fd, Host $host, string $key, bool $toRead ) : Socket
+    private function newSocket($fd, Host $host, ?string $key, bool $toRead ) : Socket
     {
         if ($key === null) {
             $key = $this->getSocketKey();
