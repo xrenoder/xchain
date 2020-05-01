@@ -21,7 +21,7 @@ abstract class aBase implements iBase
         $this->parent = $parent;
         $app = $parent;
 
-        while (!is_a($app, __CLASS__)) {
+        while (!is_a($app, 'App')) {
             $app = $app->getParent();
         }
 
