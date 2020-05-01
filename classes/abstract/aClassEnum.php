@@ -31,12 +31,12 @@ class aClassEnum extends aEnum implements iClassEnum
      */
     public static function getClassName($id) : ?string
     {
-        if (!MessageClassEnum::isSetItem($id)) {
+        if (!static::isSetItem($id)) {
             return null;
         }
 
-        $className = MessageClassEnum::getItem($id);
-        $baseClassName = MessageClassEnum::getBaseClassName();
+        $className = static::getItem($id);
+        $baseClassName = static::getBaseClassName();
 
         if (!is_a($className, $baseClassName, true)) {
             throw new Exception( "$className is not instance of $baseClassName class");
