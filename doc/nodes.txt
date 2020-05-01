@@ -1,6 +1,7 @@
 https://dou.ua/lenta/articles/12-konsensus-protocols/
 
 7    main node (M-node)
+0111
                 1st level
                 heart of network, create and keep critical network data
 
@@ -20,6 +21,7 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 must have hi-perf CPU & good channel
 
     6   master-aspirant node (MA-node) "I wanna be M-node!"
+    0110
                 must work as S-node
                 must be connected to BTC-network
                 must have own X capital + delegated Y capital
@@ -27,6 +29,7 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 sometimes work and tested as master node (if S-nodes reached optimal count)
 
 5    side node (S-node)
+0101
                 2nd level
                 wheelhorse of network: create & keep utility network data
 
@@ -43,16 +46,20 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 connected with own F-nodes and with one own M-node, if own M-node not worked - connect with other M-node
 
     4   side-aspirant node (SA-node)
+    0100
                 must work as P-node
 
 3   Proxy node (P-node)
+0011
 
                 30% of transaction reward
 
     2   proxy-aspirant node (PA-node)
+    0010
                 must work as F-node
 
 1   front node (F-node)
+0001
                 3rd level
 
                 10% of transaction reward
@@ -63,3 +70,4 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 outside border of network
 
 0   client
+0000

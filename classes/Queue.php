@@ -2,7 +2,7 @@
 /**
  * Stack pools of tasks for server
  */
-class Queue extends aBaseApp
+class Queue extends aBase
 {
     public function getServer() : Server {return $this->getParent();}
 
@@ -11,11 +11,19 @@ class Queue extends aBaseApp
     /** @var int  */
     private $maxProp = 0;
 
+    /**
+     * @param Server $server
+     * @return self
+     */
     public static function create(Server $server) : self
     {
         return new self($server);
     }
 
+    /**
+     * @param TaskPool $pool
+     * @return self
+     */
     public function addPool(TaskPool $pool) : self
     {
         $priority = $pool->getPriority();
@@ -33,6 +41,9 @@ class Queue extends aBaseApp
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function runOnePool() : bool
     {
         for ($i = 0; $i <= $this->maxProp; $i++) {

@@ -7,26 +7,35 @@ class aClassEnum extends aEnum implements iClassEnum
 {
     protected static $baseClassName = '';
 
+    /**
+     * @return string
+     * @throws Exception
+     */
     public static function getBaseClassName() : string
     {
         if (!static::$baseClassName) {
             throw new Exception(static::class . ' knows nothing about his base class name');
         }
 
-        if (!is_a(static::$baseClassName, 'aBaseApp', true)) {
+        if (!is_a(static::$baseClassName, 'aBase', true)) {
             throw new Exception( static::$baseClassName . ' is not instance of AppBase class');
         }
 
         return static::$baseClassName;
     }
 
-    public static function getClassName($enumId) : ?string
+    /**
+     * @param $id
+     * @return string|null
+     * @throws Exception
+     */
+    public static function getClassName($id) : ?string
     {
-        if (!MessageClassEnum::isSetItem($enumId)) {
+        if (!MessageClassEnum::isSetItem($id)) {
             return null;
         }
 
-        $className = MessageClassEnum::getItem($enumId);
+        $className = MessageClassEnum::getItem($id);
         $baseClassName = MessageClassEnum::getBaseClassName();
 
         if (!is_a($className, $baseClassName, true)) {

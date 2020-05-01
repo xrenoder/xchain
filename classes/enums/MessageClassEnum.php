@@ -1,6 +1,10 @@
 <?php
 /**
- * Enumeration of messages: "message type ID => message class"
+ * Enumeration of messages
+ * items:   "message type ID" => "message class"
+ * data:    "message type ID" => array(
+ *              "maxLength" => maximal length of message
+ *          )
  */
 
 class MessageClassEnum extends aClassEnum
@@ -10,7 +14,7 @@ class MessageClassEnum extends aClassEnum
     public const DATA_MAX_LEN  = 'maxLength';
 
     public const UNLIMIT_LEN  = 0;
-    public const SIMPLE_LEN  = icMessage::FLD_LENGTH_LEN + icMessage::FLD_TYPE_LEN;
+    public const SIMPLE_LEN  = icMessage::FLD_LENGTH_LEN + icMessage::FLD_TYPE_LEN + icMessage::FLD_NODE_LEN;
 
     public const ALIVE_REQ  = 1;
     public const ALIVE_RES  = 2;
@@ -31,7 +35,13 @@ class MessageClassEnum extends aClassEnum
         self::BUSY_RES =>  array(self::DATA_MAX_LEN => self::SIMPLE_LEN),
     );
 
-    public static function getMaxMessageLen(int $id) : int {
+    /**
+     * @param int $id
+     * @return int
+     * @throws Exception
+     */
+    public static function getMaxMessageLen(int $id) : int
+    {
         if (!static::isSetData($id)) return static::UNLIMIT_LEN;
         $data = static::getData($id);
         return $data[self::DATA_MAX_LEN] ?? static::UNLIMIT_LEN;

@@ -2,13 +2,14 @@
 /**
  * Universal logging tool
  */
-class Logger extends aBaseApp
+class Logger extends aBase
 {
     public const DBG_SERV = 1;
     public const DBG_SOCK = 2;
     public const DBG_MESS = 4;
     public const DBG_POOL = 8;
     public const DBG_TASK = 16;
+    public const DBG_NODE = 32;
 
     private static $flags = array(
         self::DBG_SERV => 'Server ',
@@ -16,24 +17,25 @@ class Logger extends aBaseApp
         self::DBG_MESS => 'Message',
         self::DBG_POOL => 'Pool   ',
         self::DBG_TASK => 'Task   ',
+        self::DBG_NODE => 'Node   ',
     );
 
     /** @var string */
     private $logFile;
-    public function setLogFile($val) {$this->logFile = $val; return $this;}
+    public function setLogFile($val) : self {$this->logFile = $val; return $this;}
 
     /** @var string */
     private $errFile;
-    public function setErrFile($val) {$this->errFile = $val; return $this;}
+    public function setErrFile($val) :  self {$this->errFile = $val; return $this;}
 
     /** @var string */
     private $phpErrFile;
-    public function setPhpErrFile($val) {$this->phpErrFile = $val; return $this;}
-    public function getPhpErrFile() {return $this->phpErrFile;}
+    public function setPhpErrFile($val) : self {$this->phpErrFile = $val; return $this;}
+    public function getPhpErrFile() : string {return $this->phpErrFile;}
 
     /** @var bool */
     private $dbgMode = 0;
-    public function setDbgMode($val) {$this->dbgMode = $val; return $this;}
+    public function setDbgMode($val) : self {$this->dbgMode = $val; return $this;}
 
     /**
      * Creating Logger object
@@ -44,9 +46,9 @@ class Logger extends aBaseApp
      * @param string $logName
      * @param string $errName
      * @param string $phpErrName
-     * @return Logger
+     * @return self
      */
-    public static function create(App $app, string $logPath, int $dbgLevels, string $logName, string $errName, string $phpErrName): Logger
+    public static function create(App $app, string $logPath, int $dbgLevels, string $logName, string $errName, string $phpErrName) : self
     {
         $me = new self($app);
 
@@ -64,9 +66,10 @@ class Logger extends aBaseApp
      * Create log record
      * @param $message
      * @param bool $isErr
+     * @param int $debug
      * @return string
      */
-    private function createRecord($message, $isErr  = false, $debug = 0): string
+    private function createRecord($message, $isErr  = false, $debug = 0) : string
     {
         $record = $this->getDate() . "\t" . $this->getApp()->getDaemon()->getPid() . "\t\t";
 
@@ -87,7 +90,7 @@ class Logger extends aBaseApp
      * Usual log
      * @param string $message
      */
-    public function simpleLog(string $message): void
+    public function simpleLog(string $message) : void
     {
         $this->write($this->logFile, $this->createRecord($message));
     }
@@ -96,7 +99,7 @@ class Logger extends aBaseApp
      * Debug logging
      * @param string $message
      */
-    public function debugLog(int $dbgLevel, string $message): void
+    public function debugLog(int $dbgLevel, string $message) : void
     {
         if (!($this->dbgMode & $dbgLevel)) return;
 
@@ -107,7 +110,7 @@ class Logger extends aBaseApp
      * Error logging
      * @param string $message
      */
-    public function errorLog(string $message): void
+    public function errorLog(string $message) : void
     {
         $this->write($this->logFile, $this->createRecord($message, true));
         $this->write($this->errFile, $this->createRecord($message, true));
@@ -116,7 +119,7 @@ class Logger extends aBaseApp
     /**
      * @return string
      */
-    private function getDate(): string
+    private function getDate() : string
     {
         return date('[Y-M-d H:i:s O]');
     }
@@ -125,7 +128,7 @@ class Logger extends aBaseApp
      * @param string $file
      * @param string $message
      */
-    private function write(string $file, string $message): void
+    private function write(string $file, string $message) : void
     {
         $fd = fopen($file, 'ab');
         flock($fd, LOCK_EX);

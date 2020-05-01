@@ -1,28 +1,27 @@
 <?php
 /**
- * Base class for other application classes, uses App class
+ * Base class for other application classes, uses App class (with Logger, Daemon, Server, Node etc)
  */
-
-abstract class aBaseApp
+abstract class aBase implements iBase
 {
     /** @var App */
     private $app;
-    protected function getApp() {return $this->app;}
+    protected function getApp() : App {return $this->app;}
 
-    /** @var aBaseApp */
+    /** @var aBase */
     private $parent;
-    protected function getParent() {return $this->parent;}
+    protected function getParent() : aBase {return $this->parent;}
 
     /**
      * AppBase constructor.
-     * @param aBaseApp $parent
+     * @param aBase $parent
      */
-    protected function __construct(aBaseApp $parent)
+    protected function __construct(aBase $parent)
     {
         $this->parent = $parent;
         $app = $parent;
 
-        while (!is_a($app, 'App')) {
+        while (!is_a($app, __CLASS__)) {
             $app = $app->getParent();
         }
 
@@ -33,7 +32,7 @@ abstract class aBaseApp
      * Short work logging
      * @param string $message
      */
-    public function log(string $message): void
+    public function log(string $message) : void
     {
         $this->getApp()->getLogger()->simpleLog($message);
     }
@@ -42,7 +41,7 @@ abstract class aBaseApp
      * Short error logging
      * @param string $message
      */
-    public function err(string $message): void
+    public function err(string $message) : void
     {
         $this->getApp()->getLogger()->errorLog($message);
     }
@@ -52,7 +51,7 @@ abstract class aBaseApp
      * @param int $lvl
      * @param string $message
      */
-    public function dbg(int $lvl, $message): void
+    public function dbg(int $lvl, string $message) : void
     {
         $this->getApp()->getLogger()->debugLog($lvl, $message);
     }

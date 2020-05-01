@@ -1,8 +1,8 @@
 4 bytes         length of message body (include this field) (2 Gb)
-1 bytes         type of message (last field for "AliveReq", "AliveRes" and "BusyRes") (255)
+1 bytes         type of message
+1 byte          sender (first 4 bits) and receiver (last 4 bits) node type (255) (last field for "AliveReq", "AliveRes" and "BusyRes") (255)
 
-1 byte          sender node type (255)
-1 byte          receiver node type (255)
+
 1 byte          step on way of message between nodes (255)
                                         1 - User to F-peer "transaction",
                                         2 - momental response from F-peer to User "F-peer receive transaction"

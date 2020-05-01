@@ -10,6 +10,9 @@ class AliveTask extends aTask
     /** @var int */
     protected $priority = 0; /* overrided */
 
+    /**
+     * @return bool
+     */
     protected function customRun() : bool
     {
         if (!$this->useSocket()) {

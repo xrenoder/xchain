@@ -7,11 +7,14 @@ class AliveResMessage extends aMessage
     /** @var int  */
     protected static $enumId = MessageClassEnum::ALIVE_RES;  /* overrided */
     /** @var string */
-    protected static $name = 'AliveResponse Message';    /* overrided */
+    protected static $name = 'AliveResponse';    /* overrided */
 
     protected static $needAliveCheck = false;
 
-    public static function createMessage(): string
+    /**
+     * @return string
+     */
+    public static function createMessage() : string
     {
         $type = pack(static::FLD_TYPE_FMT, static::$enumId);
         $len = strlen($type) + static::FLD_LENGTH_LEN;
@@ -20,9 +23,11 @@ class AliveResMessage extends aMessage
         return $mess;
     }
 
-    protected function incomingMessageHandler(): bool
+    /**
+     * @return bool
+     */
+    protected function incomingMessageHandler() : bool
     {
-        $this->dbg(static::$dbgLvl,static::$name .  ' detected');
 //        $this->getSocket()->setFree();
 
         $this->getSocket()->setAliveChecked();

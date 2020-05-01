@@ -6,5 +6,5 @@
 interface iClassEnum extends iEnum
 {
     public static function getBaseClassName() : string;
-    public static function getClassName($enumId) : ?string;
+    public static function getClassName($id) : ?string;
 }

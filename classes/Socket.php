@@ -2,19 +2,20 @@
 /**
  * Socket
  */
-class Socket extends aBaseApp
+class Socket extends aBase
 {
     protected static $dbgLvl = Logger::DBG_SOCK;
 
     public function getServer() : Server {return $this->getParent();}
 
+    /** @var resource */
     private $fd;
     public function setFd($val) : self {$this->fd = $val; return $this;}
     public function getFd() {return $this->fd;}
 
     /** @var string */
     private $key;
-    public function setKey($val) : self {$this->key = $val; return $this;}
+    public function setKey(string $val) : self {$this->key = $val; return $this;}
     public function getKey() : string {return $this->key;}
 
     /** @var bool  */
@@ -25,14 +26,14 @@ class Socket extends aBaseApp
 
     /** @var int  */
     private $time = null;
-    public function setTime() {$this->time = time(); return $this;}
+    public function setTime() : self {$this->time = time(); return $this;}
 
     /** @var string  */
     private $messageStr = '';
     public function addMessageStr(string $val) : self {$this->messageStr .= $val; return $this;}
     public function getMessageStr() : string {return $this->messageStr;}
 
-    /** @var aMessage  */
+    /** @var iMessage  */
     private $message;
     public function setMessage(iMessage $val) : self {$this->message = $val; return $this;}
     public function getMessage() : ?iMessage {return $this->message;}
@@ -72,7 +73,7 @@ class Socket extends aBaseApp
 
     /** @var iTask  */
     private $task;
-    public function setTask(aTask $val) : self {$this->task = $val; return $this;}
+    public function setTask(iTask $val) : self {$this->task = $val; return $this;}
     public function unsetTask() : self {$this->task = null; return $this;}
     public function getTask() : ?iTask {return $this->task;}
 
@@ -94,9 +95,9 @@ class Socket extends aBaseApp
      * @param $fd
      * @param string $key
      * @param Host $host
-     * @return Socket
+     * @return self
      */
-    public static function create(Server $server, Host $host, $fd, string $key): Socket
+    public static function create(Server $server, Host $host, $fd, string $key) : self
     {
         $me = new self($server);
 
@@ -113,9 +114,9 @@ class Socket extends aBaseApp
     /**
      * Set socket to nonblocking mode
      * @param bool $mode
-     * @return Socket
+     * @return self
      */
-    public function setBlockMode(bool $mode): Socket
+    public function setBlockMode(bool $mode) : self
     {
         if ($this->blockMode === $mode) {
             return $this;
@@ -132,9 +133,9 @@ class Socket extends aBaseApp
 
     /**
      * Set socket descriptor to server recvs array (for select)
-     * @return $this
+     * @return self
      */
-    public function setRecvs(): Socket
+    public function setRecvs() : self
     {
         $this->getServer()->setRecvs($this->fd,$this->key);
         return $this;
@@ -142,9 +143,9 @@ class Socket extends aBaseApp
 
     /**
      * Unset socket descriptor in server recvs array
-     * @return $this
+     * @return self
      */
-    public function unsetRecvs(): Socket
+    public function unsetRecvs() : self
     {
         $this->getServer()->unsetRecvs($this->key);
         return $this;
@@ -152,9 +153,9 @@ class Socket extends aBaseApp
 
     /**
      * Set socket descriptor to server sends array (for select)
-     * @return $this
+     * @return self
      */
-    public function setSends(): Socket
+    public function setSends() : self
     {
         $this->getServer()->setSends($this->fd,$this->key);
         return $this;
@@ -162,15 +163,19 @@ class Socket extends aBaseApp
 
     /**
      * Unset socket descriptor in server sends array
-     * @return $this
+     * @return self
      */
-    public function unsetSends(): Socket
+    public function unsetSends() : self
     {
         $this->getServer()->unsetSends($this->key);
         return $this;
     }
 
-    public function setBusy()
+
+    /**
+     * @return self
+     */
+    public function setBusy() : self
     {
         if ($this->connected) {
             $this->getServer()->busyConnected($this->host, $this->key);
@@ -184,7 +189,10 @@ class Socket extends aBaseApp
         return $this;
     }
 
-    public function setFree()
+    /**
+     * @return self
+     */
+    public function setFree() : self
     {
         $this->freeTime = time();
         $this->freeAfterSend = false;
@@ -206,18 +214,23 @@ class Socket extends aBaseApp
         return $this;
     }
 
-    public function cleanMessage()
+    /**
+     * @return self
+     */
+    public function cleanMessage() : self
     {
         $this->message = null;
         $this->messageStr = '';
+
+        return $this;
     }
 
     /**
      * Add packet to socket for sending
      * @param $data
-     * @return Socket
+     * @return self
      */
-    public function addOutData($data): Socket
+    public function addOutData($data) : self
     {
         if ($this->needAliveCheck && $this->isConnected()) {
             $this->needAliveCheck = false;
@@ -232,7 +245,10 @@ class Socket extends aBaseApp
         return $this;
     }
 
-    public function addDelayedOutData(): Socket
+    /**
+     * @return self
+     */
+    public function addDelayedOutData() : self
     {
         $data = $this->delayedOutData;
         $this->delayedOutData = '';
@@ -242,9 +258,9 @@ class Socket extends aBaseApp
 
     /**
      * Write data to socket
-     * @return Socket
+     * @return self
      */
-    public function send(): Socket
+    public function send() : self
     {
         $this->setTime();
         $buff = $this->getOutData();
@@ -282,10 +298,9 @@ class Socket extends aBaseApp
 
     /**
      * Read data from socket
-     * @param $key
      * @return bool
      */
-    public function receive(): bool
+    public function receive() : bool
     {
         $this->setTime();
 
@@ -311,8 +326,9 @@ class Socket extends aBaseApp
 
     /**
      * Close socket
+     * @return self
      */
-    public function close(): void
+    public function close() : self
     {
         stream_socket_shutdown($this->fd, STREAM_SHUT_RDWR);
         fclose($this->fd);
@@ -332,12 +348,17 @@ class Socket extends aBaseApp
         unset($this->task);
 
         $this->dbg(static::$dbgLvl, 'Socket ' . $key . ' closed');
+
+        return $this;
     }
 
-    public function badData(): bool
+    /**
+     * @return bool
+     */
+    public function badData() : bool
     {
 // TODO продумать действия при закрытии сокета, на который поступили плохие данные
-// например, закрыть все сокеты, соединенные с этим хостом
+// например, закрыть все свободные сокеты, соединенные с этим хостом
         $this->close();
         return false;
     }

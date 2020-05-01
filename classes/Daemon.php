@@ -2,20 +2,20 @@
 /**
  * Daemonization
  */
-class Daemon extends aBaseApp
+class Daemon extends aBase
 {
     /** @var string */
     private $pidFile;
-    public function setPidFile($val) {$this->pidFile = $val; return $this;}
+    public function setPidFile($val) : self {$this->pidFile = $val; return $this;}
 
     /** @var string */
     private $runPath;
-    public function setRunPath($val) {$this->runPath = $val; return $this;}
+    public function setRunPath($val) : self {$this->runPath = $val; return $this;}
 
     /** @var int */
     private $pid;
-    public function setPid($val) {$this->pid = $val; return $this;}
-    public function getPid() {return $this->pid;}
+    public function setPid($val) : self {$this->pid = $val; return $this;}
+    public function getPid() : int {return $this->pid;}
 
     private const READ_BUFFER = 8192;
     private const CMD_RESTART = 'restart';				// command to force daemon restart
@@ -41,9 +41,9 @@ class Daemon extends aBaseApp
      * @param App $app
      * @param string $runPath
      * @param string $pidName
-     * @return Daemon
+     * @return self
      */
-    public static function create(App $app, string $runPath, string $pidName): Daemon
+    public static function create(App $app, string $runPath, string $pidName) : self
     {
         $me = new self($app);
 
@@ -61,7 +61,7 @@ class Daemon extends aBaseApp
      * @param string $command
      * @return bool
      */
-    public function run(string $command = null): bool
+    public function run(string $command = null) : bool
     {
         set_time_limit(0);
 
@@ -123,7 +123,6 @@ class Daemon extends aBaseApp
             exit(0);
         }
 
-
 // unmount console and standard IO channels, set new PHP error log
         posix_setsid();
         chdir('/');
@@ -148,9 +147,9 @@ class Daemon extends aBaseApp
 
     /**
      * Kill daemon with signals: SIGHUP, SIGTERM, SIGKILL
-     * @param $pid
+     * @param int $pid
      */
-    private function kill($pid): void
+    private function kill(int $pid) : void
     {
         foreach(static::$kills as $sig) {
             $nokill = 1;
@@ -175,11 +174,11 @@ class Daemon extends aBaseApp
 
     /**
      * Execute command in *nix command line
-     * @param $command
-     * @param $normalExitStatus
+     * @param string $command
+     * @param int $normalExitStatus
      * @return string
      */
-    private function commandExec($command, $normalExitStatus): string
+    private function commandExec(string $command, int $normalExitStatus) : string
     {
         $output = array();
         $answer = '';
@@ -197,9 +196,9 @@ class Daemon extends aBaseApp
 
     /**
      * Signal SIGTERM handler
-     * @param $signo
+     * @param int $signo
      */
-    public function signalHardExit($signo): void
+    public function signalHardExit($signo) : void
     {
         pcntl_signal($signo, SIG_IGN);
         $this->log("Hard finish by signal $signo");
@@ -208,9 +207,9 @@ class Daemon extends aBaseApp
 
     /**
      * Signal SIGHUP handler
-     * @param $signo
+     * @param int $signo
      */
-    public function signalSoftExit($signo): void
+    public function signalSoftExit(int $signo) : void
     {
         pcntl_signal($signo, SIG_IGN);
         $this->log('Soft finish by signal');

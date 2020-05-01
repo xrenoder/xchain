@@ -3,7 +3,7 @@
  * Base class for task classes
  */
 
-abstract class aTask extends aBaseApp implements iTask
+abstract class aTask extends aBase implements iTask
 {
     protected static $dbgLvl = Logger::DBG_TASK;
 
@@ -46,9 +46,9 @@ abstract class aTask extends aBaseApp implements iTask
      * @param Server $server
      * @param TaskPool|null $pool when null - create pool with one task and same name as task
      * @param Host $host
-     * @return iTask
+     * @return aTask
      */
-    public static function create(Server $server, ?TaskPool $pool, Host $host) : iTask
+    public static function create(Server $server, ?TaskPool $pool, Host $host) : self
     {
         if (!$pool) {
             $queue = $server->getQueue();
@@ -64,7 +64,10 @@ abstract class aTask extends aBaseApp implements iTask
         return $me;
     }
 
-    public function toPool() : iTask
+    /**
+     * @return self
+     */
+    public function toPool() : self
     {
         if ($this->isAdded) {
             $this->dbg(static::$dbgLvl,static::$name . ' Task already added to Pool');
@@ -77,6 +80,9 @@ abstract class aTask extends aBaseApp implements iTask
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function run() : bool
     {
         if ($this->isFinished) {
@@ -94,7 +100,7 @@ abstract class aTask extends aBaseApp implements iTask
         return $this->customRun();
     }
 
-    public function finish()    /* Method called when task socket marked as "free" (called '->getSocket()->setFree()') */
+    public function finish() : void  /* Method called when task socket marked as "free" (called '->getSocket()->setFree()') */
     {
         $this->getSocket()->unsetTask();
         $this->customFinish();
@@ -103,7 +109,10 @@ abstract class aTask extends aBaseApp implements iTask
         $this->getPool()->finishTask();
     }
 
-    protected function useSocket(): ?Socket
+    /**
+     * @return Socket|null
+     */
+    protected function useSocket() : ?Socket
     {
         if ($this->socket) return $this->socket;
 

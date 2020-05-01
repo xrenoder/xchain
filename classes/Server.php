@@ -2,7 +2,7 @@
 /**
  * Work with sockets: listen, select, accept, read, write
  */
-class Server extends aBaseApp
+class Server extends aBase
 {
     protected static $dbgLvl = Logger::DBG_SERV;
 
@@ -11,12 +11,12 @@ class Server extends aBaseApp
 
     /** @var Host */
     private $listenHost;
-    public function setListenHost($val) : self {$this->listenHost = $val; return $this;}
+    public function setListenHost(Host $val) : self {$this->listenHost = $val; return $this;}
     public function getListenHost() : Host {return $this->listenHost;}
 
     /** @var Host */
     private $bindHost;
-    public function setBindHost($val) : self {$this->bindHost = $val; return $this;}
+    public function setBindHost(Host $val) : self {$this->bindHost = $val; return $this;}
     public function getBindHost() : Host {return $this->bindHost;}
 
     /** @var Queue */
@@ -38,29 +38,33 @@ class Server extends aBaseApp
 
     /** @var Socket[] */
     private $sockets = array();
-    public function setSocket(Socket $val, $key) : self {$this->sockets[$key] = $val; return $this;}
-    public function unsetSocket($key) : self {unset($this->sockets[$key]); return $this;}
-    public function getSocket($key) : ?Socket {return ($this->sockets[$key] ?? null);}
+    public function setSocket(Socket $val, string $key) : self {$this->sockets[$key] = $val; return $this;}
+    public function unsetSocket(string $key) : self {unset($this->sockets[$key]); return $this;}
+    public function getSocket(string $key) : ?Socket {return ($this->sockets[$key] ?? null);}
 
     /* unused connected socket (not include accepted)) */
     private $freeConnected = array(); /* 'host' => array('key' => socket) */
     public function getFreeConnected(Host $host) : ?Socket {$ip = $host->getKey(); return (isset($this->freeConnected[$ip]) && !empty($this->freeConnected[$ip])) ? $this->freeConnected[$ip][0] : null;}
 
+    /** @var int[] */
     private $freeConnectedTime = array(); /* 'key' => 'freeTime' */
 
     /* unused accepted socket (not include connected)) */
     private $freeAccepted = array(); /* 'host' => array('key' => socket) */
     public function getFreeAccepted(Host $host) : ?Socket {$ip = $host->getKey(); return (isset($this->freeAccepted[$ip]) && !empty($this->freeAccepted[$ip])) ? $this->freeAccepted[$ip][0] : null;}
 
+    /** @var int[] */
     private $freeAcceptedTime = array(); /* 'key' => 'freeTime' */
 
+    /** @var Socket[] */
     private $sends = array();
-    public function setSends($val, $key) : self {$this->sends[$key] = $val; return $this;}
-    public function unsetSends($key) : self {unset($this->sends[$key]); return $this;}
+    public function setSends($val, string $key) : self {$this->sends[$key] = $val; return $this;}
+    public function unsetSends(string $key) : self {unset($this->sends[$key]); return $this;}
 
+    /** @var Socket[] */
     private $recvs = array();
-    public function setRecvs($val, $key) : self {$this->recvs[$key] = $val; return $this;}
-    public function unsetRecvs($key) : self {unset($this->recvs[$key]); return $this;}
+    public function setRecvs($val, string $key) : self {$this->recvs[$key] = $val; return $this;}
+    public function unsetRecvs(string $key) : self {unset($this->recvs[$key]); return $this;}
 
     private $keyCounter = 0;
 
@@ -72,9 +76,9 @@ class Server extends aBaseApp
      * @param App $app
      * @param Host $listenHost
      * @param Host $bindHost
-     * @return Server
+     * @return self
      */
-    public static function create(App $app, Host $listenHost, Host $bindHost = null): Server
+    public static function create(App $app, Host $listenHost, Host $bindHost = null) : self
     {
         $me
             = new self($app);
@@ -92,7 +96,7 @@ class Server extends aBaseApp
     /**
      * Running server
      */
-    public function run(): void
+    public function run() : void
     {
         $this->nowTime = time();
         $this->garbTime = time();
@@ -136,9 +140,10 @@ class Server extends aBaseApp
 
     /**
      * Select sockets
+     * return true only if received AliveRes or BusyRes message
      * @return bool
      */
-    private function select(): bool
+    private function select() : bool
     {
         if ($rdCnt = count($this->recvs)) $rd = $this->recvs;
         else $rd = array();
@@ -256,7 +261,7 @@ class Server extends aBaseApp
      * @param string $dataSend
      * @return Socket
      */
-    public function connect(Host $host, string $dataSend = null): ?Socket
+    public function connect(Host $host, string $dataSend = null) : ?Socket
     {
         if (count($this->sockets) >= self::MAX_SOCK) {
             if (!$this->removeUnusedConnected()) {      // try to remove unused connected socket to accept connection
@@ -319,7 +324,7 @@ class Server extends aBaseApp
     /**
      * Listen socket
      */
-    private function listen(): void
+    private function listen() : void
     {
         if ($this->getSocket(self::LISTEN_KEY)) return;
 
@@ -338,12 +343,12 @@ class Server extends aBaseApp
         $this->dbg(static::$dbgLvl, 'Server listening at ' . $this->getListenHost()->getTarget());
     }
 
-    private function newReadSocket($fd, Host $host, string $key = null): Socket
+    private function newReadSocket($fd, Host $host, string $key = null) : Socket
     {
         return $this->newSocket($fd, $host, $key, true);
     }
 
-    private function newWriteSocket($fd, Host $host, string $key = null): Socket
+    private function newWriteSocket($fd, Host $host, string $key = null) : Socket
     {
         return $this->newSocket($fd, $host, $key, false);
     }
@@ -352,12 +357,12 @@ class Server extends aBaseApp
      * Create new socket, add it to reading select array ($toRead = true) or to writing select array ($toRead = false)
      * @param $fd
      * @param Host $host
-     * @param $key
+     * @param string $key
      * @param bool $toRead
      * @return Socket
      * @throws Exception
      */
-    private function newSocket($fd, Host $host, $key, bool $toRead ): Socket
+    private function newSocket($fd, Host $host, string $key, bool $toRead ) : Socket
     {
         if ($key === null) {
             $key = $this->getSocketKey();
@@ -378,9 +383,9 @@ class Server extends aBaseApp
 
     /**
      * Close socket if exists
-     * @param $key
+     * @param string $key
      */
-    private function closeSocket($key): void
+    private function closeSocket(string $key) : void
     {
         if (!$socket = $this->getSocket($key)) return;
 
@@ -391,8 +396,9 @@ class Server extends aBaseApp
     /**
      * Create new key for socket
      * @return string
+     * @throws Exception
      */
-    private function getSocketKey(): string
+    private function getSocketKey() : string
     {
 // need checking before socket creating
         if (count($this->sockets) >= self::MAX_SOCK) {
@@ -413,7 +419,7 @@ class Server extends aBaseApp
     /**
      * Collect garbage for optimal memory usage
      */
-    private function garbageCollect(): void
+    private function garbageCollect() : void
     {
         if (($this->nowTime - $this->garbTime) < self::GARBAGE_TIMEOUT) return;
 
@@ -427,8 +433,9 @@ class Server extends aBaseApp
     /**
      * Check, is Daemon alive or not
      * @return bool
+     * @throws Exception
      */
-    public function isDaemonAlive(): bool
+    public function isDaemonAlive() : bool
     {
         AliveTask::create($this, null,  $this->getListenHost())
             ->getPool() //->setHandler("AliveTask::poolFinishHandler")
@@ -450,7 +457,7 @@ class Server extends aBaseApp
     /**
      * Finish server without waiting end of current operations
      */
-    public function hardFinish(): void
+    public function hardFinish() : void
     {
         $this->closeSocket(self::LISTEN_KEY);       // close first for not accepting new clients
 
@@ -467,13 +474,14 @@ class Server extends aBaseApp
     /**
      * Finish server with waiting end of current operations
      */
-    public function softFinish(): void
+    public function softFinish() : void
     {
         $this->end = true;
         $this->closeSocket(self::LISTEN_KEY);
     }
 
-    public function freeConnected(Socket $val, Host $host, $key) : self {
+    public function freeConnected(Socket $val, Host $host, string $key) : self
+    {
         $hostKey = $host->getKey();
 
         $this->freeConnected[$hostKey][$key] = $val;
@@ -482,7 +490,8 @@ class Server extends aBaseApp
         return $this;
     }
 
-    public function busyConnected(Host $host, $key) : self {
+    public function busyConnected(Host $host, string $key) : self
+    {
         $hostKey = $host->getKey();
 
         unset($this->freeConnected[$hostKey][$key]);
@@ -491,7 +500,8 @@ class Server extends aBaseApp
         return $this;
     }
 
-    public function freeAccepted(Socket $val, Host $host, $key) : self {
+    public function freeAccepted(Socket $val, Host $host, string $key) : self
+    {
         $hostKey = $host->getKey();
 
         $this->freeAccepted[$hostKey][$key] = $val;
@@ -500,7 +510,8 @@ class Server extends aBaseApp
         return $this;
     }
 
-    public function busyAccepted(Host $host, $key) : self {
+    public function busyAccepted(Host $host, string $key) : self
+    {
         $hostKey = $host->getKey();
 
         unset($this->freeAccepted[$hostKey][$key]);
@@ -509,14 +520,15 @@ class Server extends aBaseApp
         return $this;
     }
 
-    private function removeUnusedConnected() : bool {
+    private function removeUnusedConnected() : bool
+    {
         if (!count($this->freeConnectedTime)) {
             return false;
         }
 
         $this->freeConnectedTime = asort($this->freeConnectedTime);
 
-        $key = array_key_first($this->freeConnectedTime[0]);
+        $key = array_key_first($this->freeConnectedTime);
 
         $this->getSocket($key)->close();
 
@@ -524,7 +536,8 @@ class Server extends aBaseApp
     }
 
 /*
-    private function removeUnusedAccepted() : bool {
+    private function removeUnusedAccepted() : bool
+    {
         if (!count($this->freeAcceptedTime)) {
             return false;
         }

@@ -8,6 +8,11 @@ abstract class aEnum implements iEnum
     protected static $items = array(/* override me */);
     protected static $data = array(/* override me */);
 
+    /**
+     * @param $id
+     * @return string
+     * @throws Exception
+     */
     public static function getItem($id) : string
     {
         if (!isset(static::$items[$id])) {
@@ -17,6 +22,11 @@ abstract class aEnum implements iEnum
         return static::$items[$id];
     }
 
+    /**
+     * @param $id
+     * @return array
+     * @throws Exception
+     */
     public static function getData($id) : array
     {
         if (!isset(static::$data[$id])) {
@@ -26,7 +36,11 @@ abstract class aEnum implements iEnum
         return static::$data[$id];
     }
 
-    public static function isSetItem($id): bool
+    /**
+     * @param $id
+     * @return bool
+     */
+    public static function isSetItem($id) : bool
     {
         if (isset(static::$items[$id])) {
             return true;
@@ -35,7 +49,11 @@ abstract class aEnum implements iEnum
         return false;
     }
 
-    public static function isSetData($id): bool
+    /**
+     * @param $id
+     * @return bool
+     */
+    public static function isSetData($id) : bool
     {
         if (isset(static::$data[$id])) {
             return true;
@@ -44,7 +62,10 @@ abstract class aEnum implements iEnum
         return false;
     }
 
-    public static function getItemsList(): array
+    /**
+     * @return array
+     */
+    public static function getItemsList() : array
     {
         return static::$items;
     }

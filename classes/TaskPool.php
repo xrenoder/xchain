@@ -1,7 +1,7 @@
 <?php
 
 
-class TaskPool extends aBaseApp
+class TaskPool extends aBase
 {
     protected static $dbgLvl = Logger::DBG_POOL;
 
@@ -44,6 +44,11 @@ class TaskPool extends aBaseApp
     /** @var int  */
     private $finishedTasks = 0;
 
+    /**
+     * @param Queue $queue
+     * @param string $name
+     * @return self
+     */
     public static function create(Queue $queue, string $name) : self
     {
         $me = new static($queue);
@@ -53,6 +58,9 @@ class TaskPool extends aBaseApp
         return $me;
     }
 
+    /**
+     * @return self
+     */
     public function toQueue() : self
     {
         if ($this->isAdded) {
@@ -68,6 +76,10 @@ class TaskPool extends aBaseApp
         return $this;
     }
 
+    /**
+     * @param iTask $task
+     * @return bool
+     */
     public function addTask(iTask $task) : bool
     {
         if ($this->isFinished) {
@@ -99,6 +111,9 @@ class TaskPool extends aBaseApp
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function run() : bool
     {
         if ($this->isFinished) {
@@ -129,15 +144,24 @@ class TaskPool extends aBaseApp
         return $result;
     }
 
-    public function finishTask() {
+    /**
+     * @return self
+     */
+    public function finishTask() : self
+    {
         $this->finishedTasks++;
 
         if ($this->finishedTasks && $this->finishedTasks == $this->runnedTasks) {
             $this->finish();
         }
+
+        return $this;
     }
 
-    public function finish()
+    /**
+     * @return self
+     */
+    public function finish() : self
     {
         if ($this->handler) {
             $handler = $this->handler;
@@ -146,5 +170,7 @@ class TaskPool extends aBaseApp
 
         $this->isFinished = true;
         $this->dbg(static::$dbgLvl,$this->name . ' Pool finished (' . $this->finishedTasks . ' tasks)');
+
+        return $this;
     }
 }

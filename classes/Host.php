@@ -2,8 +2,7 @@
 /**
  * Host
  */
-
-class Host extends aBaseApp
+class Host extends aBase
 {
 // https://www.php.net/manual/ru/transports.php
     public const TRANSPORT_TCP = 'tcp';
@@ -51,17 +50,17 @@ class Host extends aBaseApp
      * @var string
      */
     private $target;
-    public function setTarget($val) {$this->target = $val; return $this;}
-    public function getTarget() {return $this->target;}
+    public function setTarget($val) : self {$this->target = $val; return $this;}
+    public function getTarget() : string {return $this->target;}
 
     /**
      * @param App $app
      * @param string $transport
      * @param string $pair
-     * @return Host
+     * @return self
      * @throws Exception
      */
-    public static function create(App $app, string $transport, string $pair): Host
+    public static function create(App $app, string $transport, string $pair) : self
     {
         if (!in_array($transport, self::$transports)) {
             throw new Exception("Host class: Bad transport $transport");

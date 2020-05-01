@@ -2,7 +2,7 @@
 /**
  * Base class for classes of messages between nodes
  */
-abstract class aMessage extends aBaseApp implements iMessage, icMessage
+abstract class aMessage extends aBase implements iMessage, icMessage
 {
     protected static $dbgLvl = Logger::DBG_MESS;
 
@@ -15,18 +15,14 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
     public function getSocket() : Socket {return $this->getParent();}
 
     private $str;
-//    public function setStr($val) {$this->str = $val; return $this;}
-//    public function getStr() {return $this->str;}
 
     /** @var int  */
     private $len = null;
-//    public function setLen($val) {$this->len = $val; return $this;}
-    public function getLen() {return $this->len;}
+    public function getLen() : int {return $this->len;}
 
     /** @var int  */
     private $maxLen = null;
-    public function setMaxLen() {$this->maxLen = MessageClassEnum::getMaxMessageLen(static::$enumId); return $this;}
-    public function getMaxLen() {return $this->maxLen;}
+    public function setMaxLen() : self {$this->maxLen = MessageClassEnum::getMaxMessageLen(static::$enumId); return $this;}
 
     /** @var int  */
     private $declaredLen = null;
@@ -36,12 +32,18 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
     abstract protected function incomingMessageHandler() : Bool;
     abstract public static function createMessage() : string;
 
-    public static function create(Socket $socket): ?iMessage
+    /**
+     * @param Socket $socket
+     * @return iMessage|null
+     */
+    public static function create(Socket $socket) : ?aMessage
     {
         if (static::$needAliveCheck && !$socket->isAliveChecked()) {
-            $socket->dbg(static::$dbgLvl,static::$name .  ' cannot explored before Alive checking');
+            $socket->dbg(static::$dbgLvl,static::$name .  ' Message cannot explored before Alive checking');
             return null;
         }
+
+        $socket->dbg(static::$dbgLvl,static::$name .  ' Message detected');
 
         $me = new static($socket);
 
@@ -50,8 +52,16 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $me;
     }
 
-    public static function spawn(Socket $socket, int $enumId): ?iMessage
+    /**
+     * @param Socket $socket
+     * @param int $enumId
+     * @return iMessage|null
+     * @throws Exception
+     */
+    public static function spawn(aBase $socket, int $enumId) : ?aBase
     {
+        /** @var aMessage $className */
+
         if ($className = MessageClassEnum::getClassName($enumId)) {
             return $className::create($socket);
         }
@@ -59,6 +69,12 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return null;
     }
 
+    /**
+     * @param Socket $socket
+     * @param string $packet
+     * @return bool
+     * @throws Exception
+     */
     public static function parser(Socket $socket, string $packet) : bool
     {
         if (!$socket->getMessage()) {
@@ -83,11 +99,18 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $socket->getMessage()->addPacket($packet);
     }
 
+    /**
+     * @return int
+     */
     public function getBufferSize() : int
     {
         return $this->declaredLen - $this->len + 1;
     }
 
+    /**
+     * @param string $data
+     * @return int
+     */
     protected static function prepareLength(string $data) : int
     {
         $offset = 0;
@@ -95,6 +118,10 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $tmp[1];
     }
 
+    /**
+     * @param string $data
+     * @return int
+     */
     protected static function prepareType(string $data) : int
     {
         $offset = static::FLD_LENGTH_LEN;
@@ -102,7 +129,13 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $tmp[1];
     }
 
-    private static function preHandler(Socket $socket, string $str): int
+    /**
+     * @param Socket $socket
+     * @param string $str
+     * @return int
+     * @throws Exception
+     */
+    private static function preHandler(Socket $socket, string $str) : int
     {
         $len = strlen($str);
 
@@ -136,7 +169,11 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $messageType;
     }
 
-    private function addPacket(string $packet): bool
+    /**
+     * @param string $packet
+     * @return bool
+     */
+    private function addPacket(string $packet) : bool
     {
         $this->str .= $packet;
         $this->len = strlen($this->str);
@@ -158,11 +195,17 @@ abstract class aMessage extends aBaseApp implements iMessage, icMessage
         return $this->incomingMessageHandler();
     }
 
+    /**
+     * @return int
+     */
     protected static function getFldLengthSize() : int
     {
         return static::FLD_LENGTH_LEN;
     }
 
+    /**
+     * @return int
+     */
     protected static function getSpawnOffset() : int
     {
         return static::FLD_LENGTH_LEN + static::FLD_TYPE_LEN;
