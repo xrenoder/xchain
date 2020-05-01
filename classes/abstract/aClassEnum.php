@@ -18,7 +18,7 @@ class aClassEnum extends aEnum implements iClassEnum
         }
 
         if (!is_a(static::$baseClassName, 'aBase', true)) {
-            throw new Exception( static::$baseClassName . ' is not instance of AppBase class');
+            throw new Exception( static::$baseClassName . ' is not instance of aBase class');
         }
 
         return static::$baseClassName;
