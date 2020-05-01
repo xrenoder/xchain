@@ -16,6 +16,9 @@ $app = new App(SCRIPT_NAME);
 Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
 
 try {
+    // set current node as Client
+    $app->setNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
+
     $listenTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_ADDR);
     $bindTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_ADDR);
     $firstRemoteHost = Host::create($app, Host::TRANSPORT_TCP, FIRST_NODE_ADDR);

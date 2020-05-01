@@ -37,8 +37,6 @@ class App extends aBase
     {
         parent::__construct($this);
 
-        $this
-            ->setName($name)
-            ->setNode(aNode::spawn($this, NodeClassEnum::CLIENT_ID));
+        $this->setName($name);
     }
 }
