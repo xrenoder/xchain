@@ -7,7 +7,6 @@ class aNode extends aBase implements iNode
 
     /** @var int  */
     protected static $enumId;   /* override me */
-
     /** @var string */
     protected static $name = 'NotDeclaredNodeName'; /* override me */
 
