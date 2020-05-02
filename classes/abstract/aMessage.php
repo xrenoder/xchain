@@ -2,67 +2,87 @@
 /**
  * Base class for classes of messages between nodes
  */
-abstract class aMessage extends aBase implements iMessage, icMessage
+abstract class aMessage extends aBase implements icMessageFields
 {
     protected static $dbgLvl = Logger::DBG_MESS;
 
     /** @var int  */
-    protected static $enumId;   /* override me */
+    protected static $id;  /* override me */
 
-    /** @var string */
-    protected static $name = 'NotDeclaredMessageName'; /* override me */
+    /**
+     * If false - this message can be first sended or received after socket creation
+     * @var bool
+     */
+    protected static $needAliveCheck = true; /** can be overrided or not */
 
     public function getSocket() : Socket {return $this->getParent();}
 
+    /** @var string */
+    protected $name;
+    public function setName() : self {$this->name = MessageClassEnum::getItem(static::$id); return $this;}
+
+    /** @var int  */
+    protected $maxLen = null;
+    public function setMaxLen() : self {$this->maxLen = MessageClassEnum::getMaxLen(static::$id); return $this;}
+
+    /** @var string */
     private $str;
 
     /** @var int  */
-    private $len = null;
+    protected $len = null;
     public function getLen() : int {return $this->len;}
 
     /** @var int  */
-    private $maxLen = null;
-    public function setMaxLen() : self {$this->maxLen = MessageClassEnum::getMaxMessageLen(static::$enumId); return $this;}
+    private $fieldCounter = 1;
+
+    private static $fields = array(
+        self::MESS_TYPE =>      array('',               'checkEmpty'),
+        self::MESS_LENGTH =>    array('declaredLen',    'checkLength'),
+        self::MESS_NODE =>      array('remoteNodeId',   'checkNode'),
+    );
 
     /** @var int  */
-    private $declaredLen = null;
+    protected $declaredLen = null;
+    public function getDeclaredLen() : int {return $this->declaredLen;}
 
-    protected static $needAliveCheck = true;
+    /** @var int  */
+    private $remoteNodeId = null;
 
-    abstract protected function incomingMessageHandler() : Bool;
-    abstract public static function createMessage() : string;
+    abstract public static function createMessage(array $data) : string;
+    abstract protected function incomingMessageHandler() : bool;
 
     /**
      * @param Socket $socket
-     * @return iMessage|null
+     * @return aMessage|null
      */
-    public static function create(Socket $socket) : ?aMessage
+    protected static function create(Socket $socket) : ?aMessage
     {
         if (static::$needAliveCheck && !$socket->isAliveChecked()) {
-            $socket->dbg(static::$dbgLvl,static::$name .  ' Message cannot explored before Alive checking');
+            $socket->dbg(static::$dbgLvl,MessageClassEnum::getItem(static::$id) . ' cannot explored before Alive checking');
             return null;
         }
 
-        $socket->dbg(static::$dbgLvl,static::$name .  ' Message detected');
+        $socket->dbg(static::$dbgLvl,MessageClassEnum::getItem(static::$id) .  ' created');
 
         $me = new static($socket);
 
         $me->setMaxLen();
+        $me->setName();
 
         return $me;
     }
 
     /**
      * @param Socket $socket
-     * @param int $enumId
+     * @param int $id
      * @return iMessage|null
      * @throws Exception
      */
-    public static function spawn(aBase $socket, int $enumId) : ?aBase
+    public static function spawn(Socket $socket, int $id) : ?aMessage
     {
         /** @var aMessage $className */
 
-        if ($className = MessageClassEnum::getClassName($enumId)) {
+        if ($className = MessageClassEnum::getClassName($id)) {
             return $className::create($socket);
         }
 
@@ -78,13 +98,8 @@ abstract class aMessage extends aBase implements iMessage, icMessage
     public static function parser(Socket $socket, string $packet) : bool
     {
         if (!$socket->getMessage()) {
-            $socket->addMessageStr($packet);
 
-            $messageStr = $socket->getMessageStr();
-
-            if (($messageType = static::preHandler($socket, $messageStr)) === 0) {
-                return false;
-            }
+            $messageType = MessFldEnum::prepareField(0, $packet);
 
             if (!($message = self::spawn($socket, $messageType))) {
 // if cannot create class of request by declared type - incoming data is bad
@@ -108,68 +123,6 @@ abstract class aMessage extends aBase implements iMessage, icMessage
     }
 
     /**
-     * @param string $data
-     * @return int
-     */
-    protected static function prepareLength(string $data) : int
-    {
-        $offset = 0;
-        $tmp = unpack(static::FLD_LENGTH_FMT, substr($data, $offset, static::FLD_LENGTH_LEN));
-        return $tmp[1];
-    }
-
-    /**
-     * @param string $data
-     * @return int
-     */
-    protected static function prepareType(string $data) : int
-    {
-        $offset = static::FLD_LENGTH_LEN;
-        $tmp = unpack(static::FLD_TYPE_FMT, substr($data, $offset, static::FLD_TYPE_LEN));
-        return $tmp[1];
-    }
-
-    /**
-     * @param Socket $socket
-     * @param string $str
-     * @return int
-     * @throws Exception
-     */
-    private static function preHandler(Socket $socket, string $str) : int
-    {
-        $len = strlen($str);
-
-// if data length less than need for get declared length - return and wait more packets
-        if ($len < static::getFldLengthSize()) {
-            return 0;
-        }
-
-        $declaredLen = static::prepareLength($str);
-
-// if real request length more than declared length - incoming data is bad
-        if ($len > $declaredLen) {
-            $socket->dbg(static::$dbgLvl,"BAD DATA real request length $len more than declared length $declaredLen: " . $str);
-            $socket->badData();
-            return 0;
-        }
-
-        if ($len < static::getSpawnOffset()) {
-            return 0;
-        }
-
-        $messageType = static::prepareType($str);
-        $messageMaxLen = MessageClassEnum::getMaxMessageLen($messageType);
-
-        if ($messageMaxLen && $declaredLen > $messageMaxLen) {
-            $socket->dbg(static::$dbgLvl,"BAD DATA declared length $declaredLen more than maximum $messageMaxLen for declared type: $messageType");
-            $socket->badData();
-            return 0;
-        }
-
-        return $messageType;
-    }
-
-    /**
      * @param string $packet
      * @return bool
      */
@@ -178,36 +131,79 @@ abstract class aMessage extends aBase implements iMessage, icMessage
         $this->str .= $packet;
         $this->len = strlen($this->str);
 
-        if ($this->declaredLen === null) {
-            $this->declaredLen = static::prepareLength($this->str);
-        }
-
+// check message len for maximum len
         if ($this->maxLen && $this->len > $this->maxLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than maximum $this->maxLen for message type: " . static::$enumId);
+            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than maximum $this->maxLen for $this->name");
             return $this->getSocket()->badData();
         }
 
-        if ($this->len > $this->declaredLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for message type: " . static::$enumId);
+// check message len for declared len
+        if ($this->declaredLen && $this->len > $this->declaredLen) {
+            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for $this->name");
             return $this->getSocket()->badData();
+        }
+
+// prepare fields
+        foreach (static::$fields as $fieldId => $props) {
+            if ($this->fieldCounter < $fieldId) {
+                continue;
+            }
+
+            [$property, $checker] = $props;
+
+            if (!$this->prepareField($property, $checker)) {
+// if field cannot be prepared - break  (not 'return false'), may be all fields was readed
+                break;
+            }
+        }
+
+//
+        if ($this->len < $this->declaredLen) {
+            return false;
         }
 
         return $this->incomingMessageHandler();
     }
 
-    /**
-     * @return int
-     */
-    protected static function getFldLengthSize() : int
+    protected function prepareField(string $property, string $checker) : bool
     {
-        return static::FLD_LENGTH_LEN;
+        if ($this->$property !== null) return true;
+
+        if ($this->len >= MessFldEnum::getPoint($this->fieldCounter)) {
+            $this->$property = MessFldEnum::prepareField($this->fieldCounter, $this->str);
+            $this->fieldCounter++;
+            return $this->$checker();
+        }
+
+        return false;
     }
 
-    /**
-     * @return int
-     */
-    protected static function getSpawnOffset() : int
+    // check declared len for maximum len
+    private function checkLength() : bool
     {
-        return static::FLD_LENGTH_LEN + static::FLD_TYPE_LEN;
+        if ($this->maxLen && $this->declaredLen > $this->maxLen) {
+            $this->dbg(static::$dbgLvl,"BAD DATA declared length $this->declaredLen more than maximum $this->maxLen for $this->name");
+            return $this->getSocket()->badData();
+        }
+
+        if ($this->len > $this->declaredLen) {
+            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for $this->name");
+            return $this->getSocket()->badData();
+        }
+
+        return true;
+    }
+
+    private function checkNode() : bool
+    {
+        $this->getSocket()->setRemoteNode(aNode::spawn($this->getApp(), $this->remoteNodeId));
+        $this->getSocket()->checkNodesCompatiblity();
+// TODO добавить проверку в блокчейне, может ли отправитель сообщения исполнять роль той ноды, которой представляется
+        return true;
+    }
+
+    private function checkEmpty() : bool
+    {
+        return true;
     }
 }

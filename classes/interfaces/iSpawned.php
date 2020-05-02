@@ -4,5 +4,5 @@
  */
 interface iSpawned extends iBase
 {
-    public static function spawn(aBase $parent, int $enumId) : ?aBase;
+    public static function spawn(aBase $parent, int $id) : ?aBase;
 }

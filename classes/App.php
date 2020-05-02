@@ -25,9 +25,9 @@ class App extends aBase
     public function getServer() : Server {return $this->server;}
 
     /** @var aNode */
-    private $node;
-    public function setNode(aNode $val) : self {$this->node = $val; return $this;}
-    public function getNode() : aNode {return $this->node;}
+    private $myNode;
+    public function setMyNode(aNode $val) : self {$this->myNode = $val; return $this;}
+    public function getMyNode() : aNode {return $this->myNode;}
 
     /**
      * App constructor.

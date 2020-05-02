@@ -8,7 +8,7 @@ class TaskPool extends aBase
     public function getQueue() : Queue {return $this->getParent();}
     public function getServer() : Server {return $this->getQueue()->getServer();}
 
-    /** @var iTask[]  */
+    /** @var aTask[]  */
     private $tasks = array();
 
     /** @var array  */
@@ -28,6 +28,14 @@ class TaskPool extends aBase
     private $priority = null;
     public function setPriority($val) : self {$this->priority = $val; return $this;}
     public function getPriority() : ?int {return $this->priority;}
+
+    /**
+     * Use separate value of node ID (not Node-object from app) because my node can be changed, but current pool of tasks must be continued with old role
+     * @var int
+     */
+    private $myNodeId = null;
+    public function setMyNodeId(int $val) : self {$this->myNodeId = $val; return $this;}
+    public function getMyNodeId() : ?int {return $this->myNodeId;}
 
     /** @var bool  */
     private $isAdded = false;
@@ -53,7 +61,9 @@ class TaskPool extends aBase
     {
         $me = new static($queue);
 
-        $me->setName($name);
+        $me
+            ->setName($name)
+            ->setMyNodeId($me->getApp()->getMyNode()->getId());
 
         return $me;
     }
@@ -77,10 +87,10 @@ class TaskPool extends aBase
     }
 
     /**
-     * @param iTask $task
+     * @param aTask $task
      * @return bool
      */
-    public function addTask(iTask $task) : bool
+    public function addTask(aTask $task) : bool
     {
         if ($this->isFinished) {
             $this->dbg(static::$dbgLvl,$this->name . ' Pool already finished, cannot add ' . $task->getName() . ' Task');

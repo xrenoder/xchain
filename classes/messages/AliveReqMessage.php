@@ -2,37 +2,25 @@
 /**
  * Request "Is daemon alive?"
  */
-class AliveReqMessage extends aMessage
+class AliveReqMessage extends aSimpleMessage
 {
     /** @var int  */
-    protected static $enumId = MessageClassEnum::ALIVE_REQ;  /* overrided */
-    /** @var string */
-    protected static $name = 'AliveRequest';    /* overrided */
-
-    protected static $needAliveCheck = false;
-
-    /**
-     * @return string
-     */
-    public static function createMessage() : string
-    {
-        $type = pack(static::FLD_TYPE_FMT, static::$enumId);
-        $len = strlen($type) + static::FLD_LENGTH_LEN;
-        $mess = pack(static::FLD_LENGTH_FMT, $len) . $type;
-
-        return $mess;
-    }
+    protected static $id = MessageClassEnum::ALIVE_REQ; /* overrided */
+    protected static $needAliveCheck = false;           /* overrided */
 
     /**
      * @return bool
      */
     protected function incomingMessageHandler() : bool
     {
-        if ($this->getSocket()->isServerBusy()) {
-            $this->getSocket()->addOutData(BusyResMessage::createMessage());
+        if (!$this->getSocket()->areNodesCompatible()) {
+            $this->getSocket()->addOutData(BadNodeResMessage::createMessage(array(static::DATA_MY_NODE_ID => $this->getApp()->getMyNode()->getId())));
+            $this->getSocket()->setCloseAfterSend();
+        } else if ($this->getSocket()->isServerBusy()) {
+            $this->getSocket()->addOutData(BusyResMessage::createMessage(array(static::DATA_MY_NODE_ID => $this->getApp()->getMyNode()->getId())));
             $this->getSocket()->setCloseAfterSend();
         } else {
-            $this->getSocket()->addOutData(AliveResMessage::createMessage());
+            $this->getSocket()->addOutData(AliveResMessage::createMessage(array(static::DATA_MY_NODE_ID => $this->getApp()->getMyNode()->getId())));
             $this->getSocket()->setAliveChecked();
             $this->getSocket()->cleanMessage();
         }

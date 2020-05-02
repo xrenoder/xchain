@@ -2,7 +2,7 @@
 /**
  * Base class for other application classes, uses App class (with Logger, Daemon, Server, Node etc)
  */
-abstract class aBase implements iBase
+abstract class aBase implements iBase, icMessagesData
 {
     /** @var App */
     private $app;

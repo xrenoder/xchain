@@ -3,7 +3,8 @@
  * Enumeration of nodes
  * items:   "node type" => "node class name"
  * data:    "node type" => array(
- *              'canConnect'    => flags of nodes, to whom this node can connect
+ *              'canConnect' => flags of nodes, to whom this node can connect
+ *              'canAccept' =>  flags of nodes, from whom this node can accept connection
  *          )
  */
 
@@ -12,19 +13,15 @@ class NodeClassEnum extends aClassEnum
     protected static $baseClassName = 'aNode';
 
     public const DATA_CAN_CONNECT  = 'canConnect';
+    public const DATA_CAN_ACCEPT  = 'canAccept';
 
-    public const FRONT_FLAG  = 1;
-    public const PROXY_FLAG  = 2;
-    public const SIDE_FLAG  = 4;
-    public const MASTER_FLAG  = 8;
-
-    /* maximal ID is 15 (4 bits) */
-    public const CLIENT_ID  = 0;
-    public const FRONT_ID  = self::FRONT_FLAG;                                                              // 1
-    public const PROXY_ID  = self::PROXY_FLAG;                                                              // 2
-    public const SIDE_ID  = self::SIDE_FLAG;                                                                // 4
-    public const MASTER_ID  = self::MASTER_FLAG;                                                            // 8
-    public const TORRENT_ID  = self::MASTER_FLAG | self::SIDE_FLAG | self::PROXY_FLAG | self::FRONT_FLAG;   // 15
+    /* maximal ID is 255 (8 bits) */
+    public const CLIENT_ID =    1;
+    public const FRONT_ID =     2;
+    public const PROXY_ID =     4;
+    public const SIDE_ID =      8;
+    public const MASTER_ID =    16;
+    public const TORRENT_ID =   32;
 
     protected static $items = array(
         self::CLIENT_ID => 'ClientNode',
@@ -36,11 +33,44 @@ class NodeClassEnum extends aClassEnum
     );
 
     protected static $data = array(
-        self::CLIENT_ID => array(self::DATA_CAN_CONNECT => self::FRONT_FLAG),
-        self::FRONT_ID => array(self::DATA_CAN_CONNECT => self::PROXY_FLAG),
-        self::PROXY_ID => array(self::DATA_CAN_CONNECT => self::SIDE_FLAG),
-        self::SIDE_ID => array(self::DATA_CAN_CONNECT => self::SIDE_FLAG | self::MASTER_FLAG),
-        self::MASTER_ID => array(self::DATA_CAN_CONNECT => self::SIDE_FLAG | self::MASTER_FLAG),
-        self::TORRENT_ID => array(self::DATA_CAN_CONNECT => self::SIDE_FLAG),
+        self::CLIENT_ID => array(
+            self::DATA_CAN_ACCEPT => 0,
+            self::DATA_CAN_CONNECT => self::FRONT_ID
+        ),
+        self::FRONT_ID => array(
+            self::DATA_CAN_ACCEPT => self::CLIENT_ID,
+            self::DATA_CAN_CONNECT => self::PROXY_ID
+        ),
+        self::PROXY_ID => array(
+            self::DATA_CAN_ACCEPT => self::FRONT_ID,
+            self::DATA_CAN_CONNECT => self::SIDE_ID
+        ),
+        self::SIDE_ID => array(
+            self::DATA_CAN_ACCEPT => self::PROXY_ID | self::SIDE_ID,
+            self::DATA_CAN_CONNECT => self::SIDE_ID | self::MASTER_ID
+        ),
+        self::MASTER_ID => array(
+            self::DATA_CAN_ACCEPT => self::SIDE_ID | self::MASTER_ID,
+            self::DATA_CAN_CONNECT => self::SIDE_ID | self::MASTER_ID
+        ),
+        self::TORRENT_ID => array(
+            self::DATA_CAN_ACCEPT => self::PROXY_ID | self::SIDE_ID | self::MASTER_ID,
+            self::DATA_CAN_CONNECT => self::SIDE_ID
+        ),
     );
+
+    public static function getCanConnect(int $id) : int
+    {
+        return self::$data[$id][self::DATA_CAN_CONNECT];
+    }
+
+    public static function getCanAccept(int $id) : int
+    {
+        return self::$data[$id][self::DATA_CAN_ACCEPT];
+    }
+
+    public static function getName(int $id) : int
+    {
+        return self::$items[$id];
+    }
 }

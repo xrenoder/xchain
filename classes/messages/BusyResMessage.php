@@ -1,27 +1,12 @@
 <?php
 /**
- * Response "Daemon is alive"
+ * Response "Daemon is alive, but busy, cannot accept connections, socket will be closed"
  */
-class BusyResMessage extends aMessage
+class BusyResMessage extends aSimpleMessage
 {
     /** @var int  */
-    protected static $enumId = MessageClassEnum::BUSY_RES;  /* overrided */
-    /** @var string */
-    protected static $name = 'BusyResponse';    /* overrided */
-
-    protected static $needAliveCheck = false;
-
-    /**
-     * @return string
-     */
-    public static function createMessage() : string
-    {
-        $type = pack(static::FLD_TYPE_FMT, static::$enumId);
-        $len = strlen($type) + static::FLD_LENGTH_LEN;
-        $mess = pack(static::FLD_LENGTH_FMT, $len) . $type;
-
-        return $mess;
-    }
+    protected static $id = MessageClassEnum::BUSY_RES;  /* overrided */
+    protected static $needAliveCheck = false;           /* overrided */
 
     /**
      * @return bool

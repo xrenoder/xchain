@@ -28,15 +28,10 @@ class Socket extends aBase
     private $time = null;
     public function setTime() : self {$this->time = time(); return $this;}
 
-    /** @var string  */
-    private $messageStr = '';
-    public function addMessageStr(string $val) : self {$this->messageStr .= $val; return $this;}
-    public function getMessageStr() : string {return $this->messageStr;}
-
-    /** @var iMessage  */
+    /** @var aMessage  */
     private $message;
-    public function setMessage(iMessage $val) : self {$this->message = $val; return $this;}
-    public function getMessage() : ?iMessage {return $this->message;}
+    public function setMessage(aMessage $val) : self {$this->message = $val; return $this;}
+    public function getMessage() : ?aMessage {return $this->message;}
 
     /** @var string  */
     private $outData = '';
@@ -71,11 +66,11 @@ class Socket extends aBase
     public function setConnected() : self {$this->connected = true; return $this;}
     public function isConnected() : bool {return $this->connected;}
 
-    /** @var iTask  */
+    /** @var aTask  */
     private $task;
-    public function setTask(iTask $val) : self {$this->task = $val; return $this;}
+    public function setTask(aTask $val) : self {$this->task = $val; return $this;}
     public function unsetTask() : self {$this->task = null; return $this;}
-    public function getTask() : ?iTask {return $this->task;}
+    public function getTask() : ?aTask {return $this->task;}
 
     /** @var bool  */
     private $needAliveCheck = true;
@@ -89,6 +84,15 @@ class Socket extends aBase
     private $isServerBusy = false;
     public function setServerBusy() : self {$this->isServerBusy = true; return $this;}
     public function isServerBusy() : bool {return $this->isServerBusy;}
+
+    /** @var aNode  */
+    private $remoteNode = null;
+    public function setRemoteNode(aNode $val) : self {$this->remoteNode = $val; return $this;}
+    public function getRemoteNode() : ?aNode {return $this->remoteNode;}
+
+    /** @var bool  */
+    private $areNodesCompatible = false;
+    public function areNodesCompatible() : bool {return $this->areNodesCompatible;}
 
     /**
      * @param Server $server
@@ -209,6 +213,8 @@ class Socket extends aBase
 
         $this->cleanMessage();
 
+        $this->remoteNode = null;
+
         $this->time = 0;
 
         return $this;
@@ -220,7 +226,6 @@ class Socket extends aBase
     public function cleanMessage() : self
     {
         $this->message = null;
-        $this->messageStr = '';
 
         return $this;
     }
@@ -236,7 +241,7 @@ class Socket extends aBase
             $this->needAliveCheck = false;
             $this->delayedOutData = $data;
 
-            return $this->addOutData(AliveReqMessage::createMessage());
+            return $this->addOutData(AliveReqMessage::createMessage(array(static::DATA_MY_NODE_ID => $this->getApp()->getMyNode()->getId())));
         }
 
         $this->outData .= $data;
@@ -254,6 +259,30 @@ class Socket extends aBase
         $this->delayedOutData = '';
 
         return $this->addOutData($data);
+    }
+
+    public function checkNodesCompatiblity() : void
+    {
+        if($this->task) {
+            $myNodeId = $this->task->getPool()->getMyNodeId();
+        } else {
+            $myNodeId = $this->getApp()->getMyNode()->getId();
+        }
+        if($this->isConnected()) {
+            $myCriteria = NodeClassEnum::getCanConnect($myNodeId);
+            $logTxt = "cannot connect to";
+        } else {
+            $myCriteria = NodeClassEnum::getCanAccept($myNodeId);
+            $logTxt = "cannot accept connection from";
+        }
+
+        $result = $myCriteria & $this->remoteNode->getId();
+
+        $this->areNodesCompatible = ($result !== 0);
+
+        if (!$this->areNodesCompatible) {
+            $this->dbg(static::$dbgLvl, 'Nodes incompatible: ' . NodeClassEnum::getName($myNodeId) . " $logTxt " . $this->remoteNode->getName());
+        }
     }
 
     /**
@@ -306,7 +335,7 @@ class Socket extends aBase
 
         $needRead = -1;
 
-        if ($this->message) {
+        if ($this->message && $this->message->getDeclaredLen()) {
             $needRead = $this->message->getBufferSize();
         }
 

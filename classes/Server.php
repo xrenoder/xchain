@@ -33,14 +33,21 @@ class Server extends aBase
     private const LISTEN_KEY = 'lst';
     private const KEY_PREFIX = 'sock_';
 
-    /** @var bool */
-    private $end = false;
-
     /** @var Socket[] */
     private $sockets = array();
     public function setSocket(Socket $val, string $key) : self {$this->sockets[$key] = $val; return $this;}
     public function unsetSocket(string $key) : self {unset($this->sockets[$key]); return $this;}
     public function getSocket(string $key) : ?Socket {return ($this->sockets[$key] ?? null);}
+
+    /** @var Socket[] */
+    private $sends = array();
+    public function setSends($val, string $key) : self {$this->sends[$key] = $val; return $this;}
+    public function unsetSends(string $key) : self {unset($this->sends[$key]); return $this;}
+
+    /** @var Socket[] */
+    private $recvs = array();
+    public function setRecvs($val, string $key) : self {$this->recvs[$key] = $val; return $this;}
+    public function unsetRecvs(string $key) : self {unset($this->recvs[$key]); return $this;}
 
     /* unused connected socket (not include accepted)) */
     private $freeConnected = array(); /* 'host' => array('key' => socket) */
@@ -56,20 +63,13 @@ class Server extends aBase
     /** @var int[] */
     private $freeAcceptedTime = array(); /* 'key' => 'freeTime' */
 
-    /** @var Socket[] */
-    private $sends = array();
-    public function setSends($val, string $key) : self {$this->sends[$key] = $val; return $this;}
-    public function unsetSends(string $key) : self {unset($this->sends[$key]); return $this;}
-
-    /** @var Socket[] */
-    private $recvs = array();
-    public function setRecvs($val, string $key) : self {$this->recvs[$key] = $val; return $this;}
-    public function unsetRecvs(string $key) : self {unset($this->recvs[$key]); return $this;}
-
     private $keyCounter = 0;
 
     private $nowTime;
     private $garbTime;
+
+    /** @var bool */
+    private $finishFlag = false;
 
     /**
      * Creating Server object
@@ -111,7 +111,7 @@ class Server extends aBase
 
             $this->select();
 
-// проверка истечения таймаутов и отключение просроченых сокетов
+// TODO проверка истечения таймаутов чтения-записи и отключение просроченых сокетов
             /*
                         foreach(static::$sockets as $key => $socket) {
                             if ($socket[static::KEEP_KEY]) continue;
@@ -123,7 +123,7 @@ class Server extends aBase
                         }
             */
 
-            if ($this->end) { 	// if mode 'soft finish' setted
+            if ($this->finishFlag) { 	// if mode 'soft finish' setted
                 $this->dbg(static::$dbgLvl,'Sockets cnt: ' . count($this->sockets));
 
                 if (!count($this->recvs) && !count($this->sends)) {   // and no have active sockets - go out
@@ -142,6 +142,7 @@ class Server extends aBase
      * Select sockets
      * return true only if received AliveRes or BusyRes message
      * @return bool
+     * @throws Exception
      */
     private function select() : bool
     {
@@ -476,16 +477,16 @@ class Server extends aBase
      */
     public function softFinish() : void
     {
-        $this->end = true;
+        $this->finishFlag = true;
         $this->closeSocket(self::LISTEN_KEY);
     }
 
-    public function freeConnected(Socket $val, Host $host, string $key) : self
+    public function freeConnected(Socket $socket, Host $host, string $key) : self
     {
         $hostKey = $host->getKey();
 
-        $this->freeConnected[$hostKey][$key] = $val;
-        $this->freeConnectedTime[$key] = $val->getFreeTime();
+        $this->freeConnected[$hostKey][$key] = $socket;
+        $this->freeConnectedTime[$key] = $socket->getFreeTime();
 
         return $this;
     }
@@ -500,12 +501,12 @@ class Server extends aBase
         return $this;
     }
 
-    public function freeAccepted(Socket $val, Host $host, string $key) : self
+    public function freeAccepted(Socket $socket, Host $host, string $key) : self
     {
         $hostKey = $host->getKey();
 
-        $this->freeAccepted[$hostKey][$key] = $val;
-        $this->freeAcceptedTime[$key] = $val->getFreeTime();
+        $this->freeAccepted[$hostKey][$key] = $socket;
+        $this->freeAcceptedTime[$key] = $socket->getFreeTime();
 
         return $this;
     }
