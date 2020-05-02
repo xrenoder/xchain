@@ -35,7 +35,7 @@ abstract class aMessage extends aBase implements icMessageFields
     /** @var int  */
     private $fieldCounter = 1;
 
-    private static $fields = array(
+    protected static $fields = array(
         self::MESS_TYPE =>      array('',               'checkEmpty'),
         self::MESS_LENGTH =>    array('declaredLen',    'checkLength'),
         self::MESS_NODE =>      array('remoteNodeId',   'checkNode'),
