@@ -32,7 +32,7 @@ class MessFldEnum extends aEnum implements icMessageFields
         ),
     );
 
-    public static function prepareField(int $fieldId, string $str) : int
+    public static function prepareField(int $fieldId, string $str) : string
     {
         $format = static::$data[$fieldId][static::DATA_FORMAT];
         $offset = static::getOffset($fieldId);
@@ -41,7 +41,7 @@ class MessFldEnum extends aEnum implements icMessageFields
         return $tmp[1];
     }
 
-    public static function getFormat(int $fieldId) : int
+    public static function getFormat(int $fieldId) : string
     {
         return static::$data[$fieldId][static::DATA_FORMAT];
     }
@@ -75,6 +75,4 @@ class MessFldEnum extends aEnum implements icMessageFields
 
         return static::$data[$fieldId][static::DATA_OFFSET];
     }
-
-
 }
