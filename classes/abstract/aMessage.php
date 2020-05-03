@@ -62,7 +62,7 @@ abstract class aMessage extends aBase implements icMessageFields
             return null;
         }
 
-        $socket->dbg(static::$dbgLvl,MessageClassEnum::getItem(static::$id) .  ' created');
+        $socket->dbg(static::$dbgLvl,MessageClassEnum::getItem(static::$id) .  ' detected');
 
         $me = new static($socket);
 
