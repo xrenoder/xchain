@@ -13,8 +13,9 @@ abstract class aSimpleMessage extends aMessage
         $type = static::packField(static::MESS_TYPE, static::$id);
         $node = static::packField(static::MESS_NODE, $myNodeId);
 
-        $lenLength = static::getLenLength() . strlen($type . $node);
-        $len = static::packField(static::MESS_LENGTH, $lenLength);
+        $lenLength = static::getLenLength();
+        $messLength = $lenLength + strlen($type . $node);
+        $len = static::packField(static::MESS_LENGTH, $messLength);
 
         $mess = $type . $len . $node;
 
