@@ -16,7 +16,7 @@ $app = new App(SCRIPT_NAME);
 Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
 
 try {
-    $myAddr = Address::createEmpty();
+    $myAddr = Address::createEmpty($app);
     $app->setMyAddr($myAddr);
 
     $myAddr->generate();
