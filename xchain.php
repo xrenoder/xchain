@@ -26,9 +26,9 @@ try {
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 
     // get server-object
-    $listenTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_ADDR);
-    $bindTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_ADDR);
-    $firstRemoteHost = Host::create($app, Host::TRANSPORT_TCP, FIRST_NODE_ADDR);
+    $listenTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_HOST);
+    $bindTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_HOST);
+    $firstRemoteHost = Host::create($app, Host::TRANSPORT_TCP, FIRST_NODE_HOST);
 
     Server::create($app,$listenTCPHost, $bindTCPHost);
 
