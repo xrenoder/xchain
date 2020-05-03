@@ -1,7 +1,8 @@
 <?php
 // before start script, fill address and IPs, than run command:
 // mv -f ~/xchain/local.smp ~/xchain/local.inc
-define('MY_ADDRESS', '');                             // XChain-address of my node (if You not have it - run /usr/local/bin/php ./create_addr.php)
+define('MY_ADDRESS', '');                               // XChain-address of my node. If You not have it - run
+                                                        //      /usr/local/bin/php ./create_addr.php
 
 define('MY_NODE_HOST', '103.195.6.214:9597');              // IP of this node
 define('FIRST_NODE_HOST', '');                             // remote node "IP:port" for first connect or '' if this is first node in network

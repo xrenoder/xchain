@@ -22,6 +22,7 @@ class Address extends aBase
     private $privateKeyBase16 = null;  // base16
     private $publicKeyBase16 = null;   // base16
     private $addressBase16 = null;     // base16
+    public function getAddressBase16() : string {return $this->addressBase16;}
 
     public static function createEmpty(App $app) : self
     {
