@@ -69,7 +69,7 @@ class NodeClassEnum extends aClassEnum
         return self::$data[$id][self::DATA_CAN_ACCEPT];
     }
 
-    public static function getName(int $id) : int
+    public static function getName(int $id) : string
     {
         return self::$items[$id];
     }
