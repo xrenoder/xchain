@@ -12,11 +12,6 @@ class Daemon extends aBase
     private $runPath;
     public function setRunPath($val) : self {$this->runPath = $val; return $this;}
 
-    /** @var int */
-    private $pid;
-    public function setPid($val) : self {$this->pid = $val; return $this;}
-    public function getPid() : int {return $this->pid;}
-
     private const READ_BUFFER = 8192;
     private const CMD_RESTART = 'restart';				// command to force daemon restart
     private const CMD_STOP = 'stop';					// command to force daemon stop
@@ -49,7 +44,6 @@ class Daemon extends aBase
 
         $me->setRunPath($runPath);
         $me->setPidFile($runPath . $pidName);
-        $me->setPid(posix_getpid());
 
         $me->getApp()->setDaemon($me);
 
@@ -114,12 +108,12 @@ class Daemon extends aBase
         flock($fd, LOCK_UN);
         fclose($fd);
 
-        $this->setPid(posix_getpid());
+        $this->getApp()->setPid(posix_getpid());
 
-        if ($this->getPid() == $pid) {
-            $this->log('Daemon started (pid ' . $this->getPid() . ')');
+        if ($this->getApp()->getPid() == $pid) {
+            $this->log("Daemon started (pid $pid)");
         } else {
-            $this->err('Daemon cannot started: (pid ' . $this->getPid() . " is not equal pid $pid from pid-file)");
+            $this->err('Daemon cannot started: (pid ' . $this->getApp()->getPid() . " is not equal pid $pid from pid-file)");
             exit(0);
         }
 

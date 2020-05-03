@@ -73,7 +73,7 @@ class Logger extends aBase
      */
     private function createRecord($message, $isErr  = false, $debug = 0) : string
     {
-        $record = $this->getDate() . "\t" . $this->getApp()->getDaemon()->getPid() . "\t\t";
+        $record = $this->getDate() . "\t" . $this->getApp()->getPid() . "\t\t";
 
         if ($isErr) {
             $record .= '[error]' . "\t\t";
