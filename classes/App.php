@@ -29,6 +29,11 @@ class App extends aBase
     public function setMyNode(aNode $val) : self {$this->myNode = $val; return $this;}
     public function getMyNode() : aNode {return $this->myNode;}
 
+    /** @var Address */
+    private $myAddr;
+    public function setMyAddr(Address $val) : self {$this->myAddr = $val; return $this;}
+    public function getMyAddr() : Address {return $this->myAddr;}
+
     /**
      * App constructor.
      * @param string $name

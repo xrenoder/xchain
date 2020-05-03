@@ -2,7 +2,7 @@
 <?php
 require_once 'local.inc';
 
-$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS | Logger::DBG_POOL | Logger::DBG_TASK;
+$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS | Logger::DBG_POOL | Logger::DBG_TASK | Logger::DBG_NODE | Logger::DBG_ADDR;
 //$debugMode = 0;
 
 $command = '';
@@ -16,6 +16,13 @@ $app = new App(SCRIPT_NAME);
 Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
 
 try {
+    $myAddr = Address::createEmpty();
+    $app->setMyAddr($myAddr);
+
+    $myAddr->generate();
+
+    die(var_export($myAddr, true));
+
     // set current node as Client (always, before full sincronyzation)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 

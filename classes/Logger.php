@@ -10,6 +10,7 @@ class Logger extends aBase
     public const DBG_POOL = 8;
     public const DBG_TASK = 16;
     public const DBG_NODE = 32;
+    public const DBG_ADDR = 64;
 
     private static $flags = array(
         self::DBG_SERV => 'Server ',
@@ -18,6 +19,7 @@ class Logger extends aBase
         self::DBG_POOL => 'Pool   ',
         self::DBG_TASK => 'Task   ',
         self::DBG_NODE => 'Node   ',
+        self::DBG_ADDR => 'Address',
     );
 
     /** @var string */
