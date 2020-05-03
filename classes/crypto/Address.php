@@ -53,6 +53,10 @@ class Address extends aBase
         $this->privateKey = hex2bin($this->privateKeyHex);
         $this->publicKey = hex2bin($this->publicKeyHex);
         $this->address = hex2bin($this->addressHex);
+
+        $this->dbg(static::$dbgLvl, 'private len = ' . strlen($this->privateKey));
+        $this->dbg(static::$dbgLvl, 'public len = ' . strlen($this->publicKey));
+        $this->dbg(static::$dbgLvl, 'address len = ' . strlen($this->address));
 	}
 /*
 	public function privateToPublic($privateKeyBase16)

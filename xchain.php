@@ -21,7 +21,7 @@ try {
 
     $myAddr->generate();
 
-    die(var_export($myAddr, true));
+    exit(0);
 
     // set current node as Client (always, before full sincronyzation)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
