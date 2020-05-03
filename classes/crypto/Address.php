@@ -1,16 +1,23 @@
 <?php
+// TODO переписать расширение для PHP:
+// - работа с бинарными данными, без промежуточного HEX
+// - шифрование
+// - изменить имя расширения
 
+/**
+ * Work with crypto keys: sign & verification, create address & public key from private key
+ */
 class Address extends aBase
 {
     protected static $dbgLvl = Logger::DBG_ADDR;
 
-    private $privateKey = null;     // bin
-    private $publicKey = null;      // bin
-    private $address = null;        // bin
+    private $privateKey = null;     // bin  279 bytes
+    private $publicKey = null;      // bin  248 bytes
+    private $address = null;        // bin  25 bytes
 
-    private $privateKeyHex = null;     // hex
-    private $publicKeyHex = null;      // hex
-    private $addressHex = null;        // hex
+    private $privateKeyHex = null;     // hex 558 bytes
+    private $publicKeyHex = null;      // hex 496 bytes
+    private $addressHex = null;        // hex 50 bytes
 
     private $privateKeyBase16 = null;  // base16
     private $publicKeyBase16 = null;   // base16
@@ -21,18 +28,21 @@ class Address extends aBase
         return static::create($app);
     }
 
-    public static function createNew(App $app) : self
+    public static function createNew(App $app, string $walletPath = null) : self
     {
         $me = static::createEmpty($app);
         $me->generate();
+
+        if ($walletPath) {
+            return $me->save($walletPath);
+        }
 
         return $me;
     }
 
-    public static function createFromPrivate(App $app, string $privateKey) : self
+    public static function createFromFile(App $app, string $privateKeyFile) : self
     {
         $me = static::createEmpty($app);
-        $me->generate();
     }
 
     protected static function create(App $app, string $privateKey = null, $publicKey = null, $address = null) : self
@@ -54,9 +64,11 @@ class Address extends aBase
         $this->publicKey = hex2bin($this->publicKeyHex);
         $this->address = hex2bin($this->addressHex);
 
+/*
         $this->dbg(static::$dbgLvl, 'private len = ' . strlen($this->privateKey));
         $this->dbg(static::$dbgLvl, 'public len = ' . strlen($this->publicKey));
         $this->dbg(static::$dbgLvl, 'address len = ' . strlen($this->address));
+*/
 	}
 /*
 	public function privateToPublic($privateKeyBase16)
@@ -118,4 +130,27 @@ class Address extends aBase
 	{
 		return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
 	}
+
+    public function save(string $walletPath) : ?self
+    {
+        if (!is_dir($walletPath)) {
+            if (!mkdir($concurrentDirectory = $walletPath) && !is_dir($concurrentDirectory)) {
+                throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            }
+        }
+
+        $file = $walletPath . $this->addressBase16;
+
+        if (is_file($file)) {
+            return $this;
+        }
+
+        $fd = fopen($file, 'w+b');
+        flock($fd, LOCK_EX);
+        fwrite($fd, $this->privateKeyHex);
+        flock($fd, LOCK_UN);
+        fclose($fd);
+
+        return $this;
+    }
 }

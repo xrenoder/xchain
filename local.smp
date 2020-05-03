@@ -5,6 +5,6 @@ define('FIRST_NODE_ADDR', '103.195.6.214:9597');   // remote node "IP:port" for 
 define('DS', DIRECTORY_SEPARATOR);
 define('XCHAIN_PATH', $_SERVER['HOME'] . DS . 'xchain' . DS); // default xchain work directory (You can change it)
 
-define('SCRIPT_NAME', 'xchain.php');            // name of this file to autorestart if down
+define('SCRIPT_NAME', 'xchain.php');            // name of this file to check in ps-command
 
 require_once 'global.inc';

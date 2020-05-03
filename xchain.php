@@ -15,16 +15,12 @@ $app = new App(SCRIPT_NAME);
 
 // get logger-object
 Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
-// get daemon-object (befo)
-Daemon::create($app, RUN_PATH,  'pid');
 
 try {
-    $myAddr = Address::createEmpty($app);
+    $myAddr = Address::createNew($app, WALLET_PATH);
     $app->setMyAddr($myAddr);
 
-    $myAddr->generate();
-
-    die(var_export($myAddr, true));
+    exit(0);
 
     // set current node as Client (always, before full sincronyzation)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
@@ -35,6 +31,9 @@ try {
     $firstRemoteHost = Host::create($app, Host::TRANSPORT_TCP, FIRST_NODE_ADDR);
 
     Server::create($app,$listenTCPHost, $bindTCPHost);
+
+    // get daemon-object
+    Daemon::create($app, RUN_PATH,  'pid');
 
     // run daemon
     if (!$app->getDaemon()->run($command)) {
