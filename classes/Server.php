@@ -125,6 +125,8 @@ class Server extends aBase
 
             if ($this->finishFlag) { 	// if mode 'soft finish' setted
                 $this->dbg(static::$dbgLvl,'Sockets cnt: ' . count($this->sockets));
+                $this->dbg(static::$dbgLvl,'Sends cnt: ' . count($this->sends));
+                $this->dbg(static::$dbgLvl,'Recvs cnt: ' . count($this->recvs));
 
                 if (!count($this->recvs) && !count($this->sends)) {   // and no have active sockets - go out
                     break;

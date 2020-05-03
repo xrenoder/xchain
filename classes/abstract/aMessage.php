@@ -144,7 +144,7 @@ abstract class aMessage extends aBase implements icMessageFields
 
 // prepare fields
         foreach (static::$fields as $fieldId => $props) {
-            if ($this->fieldCounter < $fieldId) {
+            if ($this->fieldCounter > $fieldId) {
                 continue;
             }
 
