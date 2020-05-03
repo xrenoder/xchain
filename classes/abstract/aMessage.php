@@ -98,7 +98,6 @@ abstract class aMessage extends aBase implements icMessageFields
     public static function parser(Socket $socket, string $packet) : bool
     {
         if (!$socket->getMessage()) {
-
             $messageType = MessFldEnum::prepareField(0, $packet);
 
             if (!($message = self::spawn($socket, $messageType))) {
@@ -139,7 +138,7 @@ abstract class aMessage extends aBase implements icMessageFields
 
 // check message len for declared len
         if ($this->declaredLen && $this->len > $this->declaredLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for $this->name");
+            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for $this->name (1)");
             return $this->getSocket()->badData();
         }
 
@@ -171,6 +170,7 @@ abstract class aMessage extends aBase implements icMessageFields
 
         if ($this->len >= MessFldEnum::getPoint($this->fieldCounter)) {
             $this->$property = MessFldEnum::prepareField($this->fieldCounter, $this->str);
+            $this->dbg(static::$dbgLvl,"Prepare field $this->fieldCounter : $property = " . $this->$property);
             $this->fieldCounter++;
             return $this->$checker();
         }
@@ -187,7 +187,7 @@ abstract class aMessage extends aBase implements icMessageFields
         }
 
         if ($this->len > $this->declaredLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for $this->name");
+            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for $this->name (2)");
             return $this->getSocket()->badData();
         }
 
