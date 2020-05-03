@@ -20,7 +20,8 @@ class MessageClassEnum extends aClassEnum
     public const NODES_REQ      = 5;
 
     protected static $items = array(
-        0 => '',                                        // cannot use ZERO-id
+// TODO проверить, вроде сейчас должно работать и с нулевым Id
+        0 => '',                                        // cannot use ZERO-Id
         self::ALIVE_REQ =>      'AliveReqMessage',      // request "Is daemon alive?"
         self::ALIVE_RES =>      'AliveResMessage',      // response "Daemon is alive"
         self::BUSY_RES =>       'BusyResMessage',       // response "Daemon is alive, but busy, cannot accept connections, socket will be closed"

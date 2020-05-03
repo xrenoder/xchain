@@ -3,7 +3,7 @@
  * Base class for task classes
  */
 
-abstract class aTask extends aBase implements iTask
+abstract class aTask extends aBase
 {
     protected static $dbgLvl = Logger::DBG_TASK;
 

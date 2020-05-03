@@ -3,7 +3,7 @@
  * Base class for all enumerations
  */
 
-abstract class aEnum implements iEnum
+abstract class aEnum
 {
     protected static $items = array(/* override me */);
     protected static $data = array(/* override me */);

@@ -9,6 +9,15 @@ class Server extends aBase
     private const MAX_SOCK = MAX_SOCKETS;
     private const RESERVE_SOCK = RESERVE_SOCKETS;
 
+    private const ALIVE_TIMEOUT = 10;
+    private const SELECT_TIMEOUT_SEC = 0;
+    private const SELECT_TIMEOUT_USEC = 50000;
+    private const CONNECT_TIMEOUT = 30;
+    private const GARBAGE_TIMEOUT = 300;
+
+    private const LISTEN_KEY = 'lst';
+    private const KEY_PREFIX = 'sock_';
+
     /** @var Host */
     private $listenHost;
     public function setListenHost(Host $val) : self {$this->listenHost = $val; return $this;}
@@ -23,15 +32,6 @@ class Server extends aBase
     private $queue = null;
     public function setQueue(): self {if (!$this->queue) $this->queue = Queue::create($this); return $this;}
     public function getQueue() : Queue {return $this->queue;}
-
-    private const ALIVE_TIMEOUT = 10;
-    private const SELECT_TIMEOUT_SEC = 0;
-    private const SELECT_TIMEOUT_USEC = 50000;
-    private const CONNECT_TIMEOUT = 30;
-    private const GARBAGE_TIMEOUT = 300;
-
-    private const LISTEN_KEY = 'lst';
-    private const KEY_PREFIX = 'sock_';
 
     /** @var Socket[] */
     private $sockets = array();
@@ -63,9 +63,12 @@ class Server extends aBase
     /** @var int[] */
     private $freeAcceptedTime = array(); /* 'key' => 'freeTime' */
 
+    /** @var int */
     private $keyCounter = 0;
 
+    /** @var int */
     private $nowTime;
+    /** @var int */
     private $garbTime;
 
     /** @var bool */

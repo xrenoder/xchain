@@ -1,6 +1,7 @@
 <?php
-
-
+/**
+ * Base class for node types
+ */
 class aNode extends aBase
 {
     protected static $dbgLvl = Logger::DBG_NODE;

@@ -30,11 +30,15 @@ abstract class aMessage extends aBase implements icMessageFields
 
     /** @var int  */
     protected $len = null;
-    public function getLen() : int {return $this->len;}
+//    public function getLen() : int {return $this->len;}
 
     /** @var int  */
     private $fieldCounter = 1;
 
+    /**
+     * array of message fields ['property', 'checker']
+     * @var string[][]
+     */
     protected static $fields = array(
         self::MESS_TYPE =>      array('',               'checkEmpty'),
         self::MESS_LENGTH =>    array('declaredLen',    'checkLength'),
@@ -75,7 +79,7 @@ abstract class aMessage extends aBase implements icMessageFields
     /**
      * @param Socket $socket
      * @param int $id
-     * @return iMessage|null
+     * @return aMessage|null
      * @throws Exception
      */
     public static function spawn(Socket $socket, int $id) : ?aMessage
@@ -176,6 +180,16 @@ abstract class aMessage extends aBase implements icMessageFields
         }
 
         return false;
+    }
+
+    protected static function packField(int $fieldId, $val)
+    {
+        return pack(MessFldEnum::getFormat($fieldId), $val);
+    }
+
+    protected static function getLenLength()
+    {
+        return MessFldEnum::getLength(static::MESS_LENGTH);
     }
 
     // check declared len for maximum len
