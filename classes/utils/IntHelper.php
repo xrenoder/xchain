@@ -74,8 +74,7 @@ class IntHelper
 
 	public static function VarUInt($i, $hex = false)
 	{
-		if(is_int($i))
-		{
+		if(is_int($i)) {
             if ($i < 250) {
                 return self::UInt8($i, $hex);
             }
@@ -122,11 +121,11 @@ class IntHelper
 
 	private static function Pack($mode, $i, $hex = false)
 	{
-		return $hex?bin2hex(pack($mode, $i)):pack($mode, $i);
+		return $hex ? bin2hex(pack($mode, $i)) : pack($mode, $i);
 	}
 
 	private static function UnPack($mode, $i, $hex = false)
 	{
-		return $hex?unpack($mode, hex2bin($i)):unpack($mode, $i);
+		return $hex ? unpack($mode, hex2bin($i)) : unpack($mode, $i);
 	}
 }

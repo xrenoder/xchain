@@ -19,6 +19,8 @@ if (MY_ADDRESS === '') {
 
 define('RESERVE_SOCKETS', 128);
 define('MAX_SOCKETS', 640);     // 512 + 128 reserve sockets
+define('DBA_HANDLER', 'lmdb');
+define('DBA_EXT', '.lmdb');
 
 define('CLASS_EXT', '.php');
 define('LOG_EXT', '.log');

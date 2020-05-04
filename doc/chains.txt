@@ -24,6 +24,7 @@
     - 2 T-nodes IP registrations
     - emission rules
     - tarification rules
+    - capitalisation rules
     - fixed sidechains zero transactions
 
 1   Chain of test sessions (created every X block after previous)
@@ -41,3 +42,6 @@
 7   Chain of nodes disk spases
 
 8   Chain of contracts codes
+
+9   Chain of votes about new rules
+
