@@ -212,6 +212,8 @@ class Address extends aBase
             throw new RuntimeException("File '$file' contains private key for address $this->addressBase16, not $addressHuman");
         }
 
+        $this->dbg(static::$dbgLvl, 'Private key for ' . $this->addressBase16 . " loaded");
+
         return $this;
     }
 
@@ -230,6 +232,8 @@ class Address extends aBase
         $this->publicKeyBase16 = $this->hexToBase16($this->publicKeyHex);
 
         $this->publicToAddress();
+
+        $this->dbg(static::$dbgLvl, 'Private key for ' . $this->addressBase16 . " loaded");
 
         return $this;
     }
