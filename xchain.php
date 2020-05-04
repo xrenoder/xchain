@@ -20,8 +20,6 @@ try {
     $myAddr = Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH);
     $app->setMyAddr($myAddr);
 
-    exit(0);
-
     // set current node as Client (always, before full syncronization)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 
