@@ -471,7 +471,7 @@ class Server extends aBase
             $this->closeSocket($key);
         }
 
-        $this->log('******** Daemon ' . $this->getApp()->getDaemon()->getPid() . ' close all sockets & finished ********');
+        $this->log('******** Daemon ' . $this->getApp()->getPid() . ' close all sockets & finished ********');
         $this->log('******** ');
 
         exit(0);
