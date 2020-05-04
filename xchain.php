@@ -17,12 +17,12 @@ $app = new App(SCRIPT_NAME);
 Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
 
 try {
-    $myAddr = Address::createNew($app, WALLET_PATH);
+    $myAddr = Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH);
     $app->setMyAddr($myAddr);
 
     exit(0);
 
-    // set current node as Client (always, before full sincronyzation)
+    // set current node as Client (always, before full syncronization)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 
     // get server-object

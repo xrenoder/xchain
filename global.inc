@@ -1,8 +1,20 @@
 <?php
-define('VERSION', '000001.2020.04.18.01');
+// TODO реализовать распознавание совместимости версий
+define('TOP_VERSION', 0);
+define('MIN_VERSION', 0);
+define('SUB_VERSION', 0);
+define('DATE_VERSION', '2020.04.18.01');
 
 if (!defined('XCHAIN_PATH')) {
-    throw new Exception('XCHAIN_PATH should be defined');
+    throw new Exception('XCHAIN_PATH should be defined in file local.inc');
+}
+
+if (!defined('MY_ADDRESS')) {
+    throw new Exception('MY_ADDRESS should be defined in file local.inc');
+}
+
+if (MY_ADDRESS === '') {
+    die("\nTo create XChain-address run\n/usr/local/bin/php ./create_addr.php\nand copy created address '0x...' to local.inc:\ndefine('MY_ADDRESS', '0x...');");
 }
 
 define('RESERVE_SOCKETS', 128);

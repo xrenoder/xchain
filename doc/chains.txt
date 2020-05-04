@@ -1,0 +1,43 @@
+0   Mainchain contain:
+    - simple transfer transactions
+    - delegation/undelegation transactions
+    - reward transactions
+    - sidechain zero transactions (id of chain, owner address, value frozen from owner address to sidechain, contract address in data-sidechain or handler description in code)
+    - sidechain transfer transactions
+
+    - node IP registrations
+    - node role requests
+    - node trust decrementions
+    - node offline messages
+    - node role changes
+    - emission rules
+    - tarification rules
+    - nodes capitalization rules
+
+    Mainchain zero block contain:
+    - mainchain zero transaction (id of mainchain (0), owner address, start emission to owner)
+    - transfer transactions to nodes
+    - 2 M-nodes IP registrations
+    - 2 S-nodes IP registrations
+    - 2 P-nodes IP registrations
+    - 2 F-nodes IP registrations
+    - 2 T-nodes IP registrations
+    - emission rules
+    - tarification rules
+    - fixed sidechains zero transactions
+
+1   Chain of test sessions (created every X block after previous)
+
+2   Chain of BTC/XNC exchange orders
+
+3   Chain of internal addr-to-addr messages
+
+4   Chain of pseudonims
+
+5   Chain of nodes map
+
+6   Chain of sidechains storages
+
+7   Chain of nodes disk spases
+
+8   Chain of contracts codes

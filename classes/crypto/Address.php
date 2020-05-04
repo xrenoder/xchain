@@ -4,12 +4,18 @@
 // - шифрование
 // - изменить имя расширения
 
+// TODO реализовать использование зашифрованого ключа
+
 /**
  * Work with crypto keys: sign & verification, create address & public key from private key
  */
 class Address extends aBase
 {
     protected static $dbgLvl = Logger::DBG_ADDR;
+
+    private const PRIVATE_HEX_LEN = 558;
+    public const PUBLIC_BIN_LEN = 248;
+    public const ADDRESS_HUM_LEN = 52;
 
     private $privateKey = null;     // bin  279 bytes
     private $publicKey = null;      // bin  248 bytes
@@ -22,7 +28,10 @@ class Address extends aBase
     private $privateKeyBase16 = null;  // base16
     private $publicKeyBase16 = null;   // base16
     private $addressBase16 = null;     // base16
-    public function getAddressBase16() : string {return $this->addressBase16;}
+
+    public function getPublicKeyBin() : string {return $this->publicKey;}
+    public function getAddressBin() : string {return $this->address;}
+    public function getAddressHuman() : string {return $this->addressBase16;}
 
     public static function createEmpty(App $app) : self
     {
@@ -31,7 +40,7 @@ class Address extends aBase
 
     public static function createNew(App $app, string $walletPath = null) : self
     {
-        $me = static::createEmpty($app);
+        $me = static::create($app);
         $me->generate();
 
         if ($walletPath) {
@@ -41,12 +50,21 @@ class Address extends aBase
         return $me;
     }
 
-    public static function createFromFile(App $app, string $privateKeyFile) : self
+    public static function createFromWallet(App $app, string $addressHuman, string $walletPath) : self
     {
-        $me = static::createEmpty($app);
+        $me = static::create($app);
+
+        return $me->loadPrivateKey($addressHuman, $walletPath);
     }
 
-    protected static function create(App $app, string $privateKey = null, $publicKey = null, $address = null) : self
+    public static function createFromPublic(App $app, string $publicKeyBin) : self
+    {
+        $me = static::create($app);
+
+        return $me->loadPublicKey($publicKeyBin);
+    }
+
+    protected static function create(App $app) : self
     {
         $me = new self($app);
 
@@ -71,68 +89,67 @@ class Address extends aBase
         $this->dbg(static::$dbgLvl, 'address len = ' . strlen($this->address));
 */
 	}
-/*
-	public function privateToPublic($privateKeyBase16)
+
+	private function privateToPublic() : void
 	{
-		$result = null;
-
-        $public_key = null;
-        mhcrypto_generate_public($this->parse_base16($private_key), $public_key);
-
-
-        $result = $this->to_base16($public_key);
-
-		return $public_key;
+        mhcrypto_generate_public($this->privateKeyHex, $this->publicKeyHex);
+        $this->publicKeyBase16 = $this->hexToBase16($this->publicKeyHex);
+        $this->publicKey = hex2bin($this->publicKeyHex);
 	}
-	
-	public function sign($data, $private_key, $rand = false, $algo = 'sha256')
-	{
-		$sign = null;
-		
-//		mhcrypto_sign_text($sign, $this->parse_base16($private_key), $data);
-        mhcrypto_sign_text($sign, $private_key, $data);
 
-//		return '0x'.bin2hex($sign);
+    private function publicToAddress() : void
+    {
+        mhcrypto_generate_address($this->publicKeyHex, $this->addressHex);
+        $this->addressBase16 = $this->hexToBase16($this->addressHex);
+        $this->address = hex2bin($this->addressHex);
+    }
+
+    /**
+     * Return binary signature
+     * @param $data
+     * @return |null
+     */
+    public function sign($data) : string
+    {
+        $sign = null;
+
+        mhcrypto_sign_text($sign, $this->privateKeyHex, $data);
+
         return $sign;
-	}
+    }
 
-	public function verify($sign, $data, $public_key, $algo = 'sha256')
+    /**
+     * Verify binary signature
+     * @param $signBin
+     * @param $data
+     * @return mixed
+     */
+    public function verify($signBin, $data) : bool
+    {
+        return mhcrypto_check_sign_text($signBin, $this->publicKeyHex, $data);
+    }
+
+    public static function checkAddress($addressHuman) : bool
+    {
+        if ($addressHuman) {
+            $addressHex = static::hexFromBase16($addressHuman);
+            return mhcrypto_check_address($addressHex);
+        }
+
+        return false;
+    }
+
+	public function hexToBase16($string) : string
 	{
-//      $result = mhcrypto_check_sign_text($this->hex2bin($sign), $this->parse_base16($public_key), $data);
-        $result = mhcrypto_check_sign_text($sign, $public_key, $data);
-		return $result;
+		return (strpos($string, '0x') === 0) ? $string : '0x' . $string;
 	}
 
-	public function getAddress($publicKey)
+	public static function hexFromBase16($string) : string
 	{
-        $address = null;
-        mhcrypto_generate_address($publicKey, $address);
-
-//		return $this->to_base16($address);
-        return $address;
+		return (strpos($string, '0x') === 0) ? substr($string, 2) : $string;
 	}
 
-	public function checkAdress($address)
-	{
-		if(!empty($address))
-		{
-//            return mhcrypto_check_address($this->parse_base16($address));
-            return mhcrypto_check_address($address);
-		}
-		return false;
-	}
-*/
-	public function hexToBase16($string)
-	{
-		return (substr($string, 0, 2) === '0x') ? $string : '0x' . $string;
-	}
-
-	public function hexFromBase16($string)
-	{
-		return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
-	}
-
-    public function save(string $walletPath) : ?self
+    public function save(string $walletPath) : self
     {
         if (!is_dir($walletPath)) {
             if (!mkdir($concurrentDirectory = $walletPath) && !is_dir($concurrentDirectory)) {
@@ -146,11 +163,73 @@ class Address extends aBase
             return $this;
         }
 
-        $fd = fopen($file, 'w+b');
+        $fd = fopen($file, 'wb');
         flock($fd, LOCK_EX);
         fwrite($fd, $this->privateKeyHex);
         flock($fd, LOCK_UN);
         fclose($fd);
+
+        return $this;
+    }
+
+    public function loadPrivateKey(string $addressHuman, string $walletPath) : self
+    {
+        if ($this->privateKey !== null || $this->publicKey !== null) {
+            throw new RuntimeException('Cannot load new private key - this address-object is already filled');
+        }
+
+        if (!is_dir($walletPath)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not found', $walletPath));
+        }
+
+        if (!static::checkAddress($addressHuman)) {
+            throw new RuntimeException("Address $addressHuman is not valid");
+        }
+
+        $file = $walletPath . $addressHuman;
+
+        if (!is_file($file)) {
+            throw new RuntimeException(sprintf('File "%s" was not found', $file));
+        }
+
+        if (($fileSize = filesize($file)) !== static::PRIVATE_HEX_LEN) {
+            throw new RuntimeException("File '$file' size $fileSize is incorrect, need " . static::PRIVATE_HEX_LEN);
+        }
+
+        $fd = fopen($file, 'rb');
+        flock($fd, LOCK_EX);
+        $this->privateKeyHex = fread($fd, $fileSize);
+        flock($fd, LOCK_UN);
+        fclose($fd);
+
+        $this->privateKeyBase16 = $this->hexToBase16($this->privateKeyHex);
+        $this->privateKey = hex2bin($this->privateKeyHex);
+
+        $this->privateToPublic();
+        $this->publicToAddress();
+
+        if ($this->addressBase16 !== $addressHuman) {
+            throw new RuntimeException("File '$file' contains private key for address $this->addressBase16, not $addressHuman");
+        }
+
+        return $this;
+    }
+
+    public function loadPublicKey($publicKeyBin) : self
+    {
+        if ($this->privateKey !== null || $this->publicKey !== null) {
+            throw new RuntimeException('Cannot load new public key - this address-object is already filled');
+        }
+
+        if (($keySize = strlen($publicKeyBin)) !== static::PUBLIC_BIN_LEN) {
+            throw new RuntimeException("Binary public key size $keySize is incorrect, need " . static::PUBLIC_BIN_LEN);
+        }
+
+        $this->publicKey = $publicKeyBin;
+        $this->publicKeyHex = bin2hex($this->publicKey);
+        $this->publicKeyBase16 = $this->hexToBase16($this->publicKeyHex);
+
+        $this->publicToAddress();
 
         return $this;
     }
