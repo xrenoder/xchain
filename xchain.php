@@ -17,9 +17,6 @@ $app = new App(SCRIPT_NAME);
 Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
 
 try {
-    $myAddr = Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH);
-    $app->setMyAddr($myAddr);
-
     // set current node as Client (always, before full syncronization)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 
@@ -37,6 +34,9 @@ try {
     if (!$app->getDaemon()->run($command)) {
         throw new Exception('Cannot daemon start');
     }
+
+    // load node private key
+    $app->setMyAddr(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
 
 //    $startPool = TaskPool::create($app->getServer()->getQueue(), "Start Operations");
 //    GetFnodesTask::create($app->getServer(), $startPool, $firstRemoteHost);

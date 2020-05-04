@@ -10,8 +10,9 @@ class aNode extends aBase
     protected static $id;   /* override me */
     public function getId() : int {return static::$id;}
     /** @var string */
-    protected static $name = 'NotDeclaredNodeName'; /* override me */
-    public function getName() : string {return static::$name;}
+    protected $name;
+    public function setName() : self {$this->name = NodeClassEnum::getItem(static::$id); return $this;}
+    public function getName() : string {return $this->name;}
 
     /** @var int  */
     protected $canAccept = null;
@@ -25,14 +26,16 @@ class aNode extends aBase
 
     public static function create(App $app) : self
     {
-        $app->dbg(static::$dbgLvl,static::$name .  ' Node defined');
-
         $me = new static($app);
 
         $data = NodeClassEnum::getData(static::$id);
+
         $me
+            ->setName()
             ->setCanAccept($data[NodeClassEnum::DATA_CAN_ACCEPT])
             ->setCanConnect($data[NodeClassEnum::DATA_CAN_CONNECT]);
+
+        $app->dbg(static::$dbgLvl,$me->getName() .  ' defined');
 
         return $me;
     }

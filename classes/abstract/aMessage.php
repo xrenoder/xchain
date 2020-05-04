@@ -70,8 +70,9 @@ abstract class aMessage extends aBase implements icMessageFields
 
         $me = new static($socket);
 
-        $me->setMaxLen();
-        $me->setName();
+        $me
+            ->setMaxLen()
+            ->setName();
 
         return $me;
     }
