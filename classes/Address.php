@@ -7,7 +7,7 @@
 // TODO реализовать использование зашифрованого ключа
 
 /**
- * Work with crypto keys: sign & verification, create address & public key from private key
+ * Work with utils keys: sign & verification, create address & public key from private key
  */
 class Address extends aBase
 {
