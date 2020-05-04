@@ -2,8 +2,11 @@
 <?php
 require_once 'local.inc';
 
-$dp = dba_open(DATA_PATH . "test" . DBA_EXT, "c", DBA_HANDLER);
-exit(0);
+$dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
+dba_insert("testKey", "testValue", $dbh);
+dba_close($dbh);
+
+die(var_export(dba_handlers(true), true));
 
 $debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS | Logger::DBG_POOL | Logger::DBG_TASK | Logger::DBG_NODE | Logger::DBG_ADDR;
 //$debugMode = 0;

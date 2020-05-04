@@ -7,7 +7,8 @@
 
     - node IP registrations
     - node role requests
-    - node trust decrementions
+    - node trust decrementations
+    - node offline messages
     - node offline messages
     - node role changes
     - emission rules
@@ -18,10 +19,11 @@
     - mainchain zero transaction (id of mainchain (0), owner address, start emission to owner)
     - transfer transactions to nodes
     - 2 M-nodes IP registrations
+    - 2 T-nodes IP registrations
     - 2 S-nodes IP registrations
     - 2 P-nodes IP registrations
     - 2 F-nodes IP registrations
-    - 2 T-nodes IP registrations
+
     - emission rules
     - tarification rules
     - capitalisation rules

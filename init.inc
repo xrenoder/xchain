@@ -23,12 +23,6 @@ if (!is_dir(RUN_PATH)) {
     }
 }
 
-if (!is_dir(BLOCKCHAIN_PATH)) {
-    if (!mkdir($concurrentDirectory = BLOCKCHAIN_PATH) && !is_dir($concurrentDirectory)) {
-        throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-    }
-}
-
 if (!is_dir(DATA_PATH)) {
     if (!mkdir($concurrentDirectory = DATA_PATH) && !is_dir($concurrentDirectory)) {
         throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));

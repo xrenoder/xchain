@@ -1,8 +1,8 @@
 <?php
 // TODO реализовать распознавание совместимости версий
-define('TOP_VERSION', 0);
+define('TOP_VERSION', 1);
 define('MIN_VERSION', 0);
-define('SUB_VERSION', 0);
+define('SUB_VERSION', 1);
 define('DATE_VERSION', '2020.04.18.01');
 
 if (!defined('XCHAIN_PATH')) {
@@ -28,9 +28,11 @@ define('LOG_EXT', '.log');
 define('CLASS_PATH', XCHAIN_PATH . 'classes' . DS);
 define('LOG_PATH', XCHAIN_PATH . 'logs' . DS);
 define('RUN_PATH', XCHAIN_PATH . 'run' . DS);
-define('DATA_PATH', XCHAIN_PATH . 'data' . DS);
-define('BLOCKCHAIN_PATH', XCHAIN_PATH . 'blockchain' . DS);
+define('DATA_PATH', XCHAIN_PATH . 'data' . DS);                 // blockchain organized data
 define('WALLET_PATH', XCHAIN_PATH . 'wallet' . DS);
+
+define('MAINCHAIN_FILE', DATA_PATH . 'main.chain' . DBA_EXT);              // "blockNumber" => "blockRawData" ; need for master & torrent nodes
+
 
 define('NODES_MAP_FILE', DATA_PATH . 'nodes_map');
 
