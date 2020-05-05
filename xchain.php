@@ -3,7 +3,7 @@
 require_once 'local.inc';
 
 $key = "testKey1";
-$dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
+$dbh = dba_open(MAINCHAIN_FILE, "w", DBA_HANDLER);
 dba_insert($key, 1234567890, $dbh);
 echo var_export( dba_fetch($key, $dbh) . "\n", true);
 $test = dba_fetch($key, $dbh) . "\n";
