@@ -4,7 +4,7 @@ require_once 'local.inc';
 
 $dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
 //dba_insert("testKey", 234567890123456789, $dbh);
-dba_replace("testKey", 234567890123456789, $dbh);
+echo dba_fetch("testKey", $dbh) . "\n";
 dba_sync($dbh);
 dba_optimize ($dbh);
 dba_close($dbh);
