@@ -2,17 +2,19 @@
 <?php
 require_once 'local.inc';
 
+$key = "testKey1";
 $dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
-dba_insert("testKey1", 1234567890, $dbh);
-$test = dba_fetch("testKey1", $dbh) . "\n";
+dba_insert($key, 1234567890, $dbh);
+echo var_export( dba_fetch($key, $dbh) . "\n", true);
+$test = dba_fetch($key, $dbh) . "\n";
 $test += 1234567890;
-dba_insert("testKey1", $test, $dbh);
-echo var_export( dba_fetch("testKey1", $dbh) . "\n", true);
+dba_insert($key, $test, $dbh);
+echo var_export( dba_fetch($key, $dbh) . "\n", true);
 $test += 1234567890;
-dba_replace("testKey1", $test, $dbh);
-echo var_export( dba_fetch("testKey1", $dbh) . "\n", true);
-//dba_sync($dbh);
-//dba_optimize ($dbh);
+dba_replace($key, $test, $dbh);
+echo var_export( dba_fetch($key, $dbh) . "\n", true);
+dba_optimize ($dbh);
+dba_sync($dbh);
 dba_close($dbh);
 
 die(var_export(dba_handlers(true), true));
