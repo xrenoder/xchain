@@ -281,7 +281,7 @@ class Socket extends aBase
         $this->areNodesCompatible = ($result !== 0);
 
         if (!$this->areNodesCompatible) {
-            $this->dbg(static::$dbgLvl, 'Nodes incompatible: ' . NodeClassEnum::getName($myNodeId) . " $logTxt " . $this->remoteNode->getName());
+            $this->dbg('Nodes uncompatible: ' . NodeClassEnum::getName($myNodeId) . " $logTxt " . $this->remoteNode->getName());
         }
     }
 
@@ -303,9 +303,9 @@ class Socket extends aBase
                 $this->setOutData(substr($this->getOutData(), $realLength));
             }
 
-            $this->dbg(static::$dbgLvl, 'SEND ' . $this->key . ": $realLength bytes");
+            $this->dbg('SEND ' . $this->key . ": $realLength bytes");
         } else {
-            $this->dbg(static::$dbgLvl, 'SEND ' . $this->key . ": ZERO bytes, switch to received mode");
+            $this->dbg('SEND ' . $this->key . ": ZERO bytes, switch to received mode");
         }
 
         if (!$this->getOutData()) {
@@ -348,7 +348,7 @@ class Socket extends aBase
             return false;
         }
 
-        $this->dbg(static::$dbgLvl, 'RECV ' . $this->getKey() . ': '. $data);
+        $this->dbg('RECV ' . $this->getKey() . ': '. $data);
 
         return aMessage::parser($this, $data);
     }
@@ -376,7 +376,7 @@ class Socket extends aBase
 
         unset($this->task);
 
-        $this->dbg(static::$dbgLvl, 'Socket ' . $key . ' closed');
+        $this->dbg('Socket ' . $key . ' closed');
 
         return $this;
     }

@@ -70,7 +70,7 @@ abstract class aTask extends aBase
     public function toPool() : self
     {
         if ($this->isAdded) {
-            $this->dbg(static::$dbgLvl,static::$name . ' Task already added to Pool');
+            $this->dbg(static::$name . ' Task already added to Pool');
             return $this;
         }
 
@@ -86,16 +86,16 @@ abstract class aTask extends aBase
     public function run() : bool
     {
         if ($this->isFinished) {
-            $this->dbg(static::$dbgLvl,static::$name . ' Task already finished, cannot start');
+            $this->dbg(static::$name . ' Task already finished, cannot start');
             return false;
         }
 
         if ($this->isRunned) {
-            $this->dbg(static::$dbgLvl,static::$name . ' Task already started, cannot start');
+            $this->dbg(static::$name . ' Task already started, cannot start');
             return false;
         }
 
-        $this->dbg(static::$dbgLvl,static::$name . ' Task started');
+        $this->dbg(static::$name . ' Task started');
         $this->isRunned = true;
         return $this->customRun();
     }
@@ -105,7 +105,7 @@ abstract class aTask extends aBase
         $this->getSocket()->unsetTask();
         $this->customFinish();
         $this->isFinished = true;
-        $this->dbg(static::$dbgLvl,static::$name . ' Task finished');
+        $this->dbg(static::$name . ' Task finished');
         $this->getPool()->finishTask();
     }
 
@@ -117,7 +117,7 @@ abstract class aTask extends aBase
         if ($this->socket) return $this->socket;
 
         if (!$this->host) {
-            $this->dbg(static::$dbgLvl,static::$name . ' Task cannot start without Host');
+            $this->dbg(static::$name . ' Task cannot start without Host');
             return null;
         }
 

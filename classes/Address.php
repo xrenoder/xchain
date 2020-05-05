@@ -84,9 +84,9 @@ class Address extends aBase
         $this->address = hex2bin($this->addressHex);
 
 /*
-        $this->dbg(static::$dbgLvl, 'private len = ' . strlen($this->privateKey));
-        $this->dbg(static::$dbgLvl, 'public len = ' . strlen($this->publicKey));
-        $this->dbg(static::$dbgLvl, 'address len = ' . strlen($this->address));
+        $this->dbg('private len = ' . strlen($this->privateKey));
+        $this->dbg('public len = ' . strlen($this->publicKey));
+        $this->dbg('address len = ' . strlen($this->address));
 */
 	}
 
@@ -212,7 +212,7 @@ class Address extends aBase
             throw new RuntimeException("File '$file' contains private key for address $this->addressBase16, not $addressHuman");
         }
 
-        $this->dbg(static::$dbgLvl, 'Private key for ' . $this->addressBase16 . " loaded");
+        $this->dbg('Private key for ' . $this->addressBase16 . " loaded");
 
         return $this;
     }
@@ -233,7 +233,7 @@ class Address extends aBase
 
         $this->publicToAddress();
 
-        $this->dbg(static::$dbgLvl, 'Private key for ' . $this->addressBase16 . " loaded");
+        $this->dbg('Private key for ' . $this->addressBase16 . " loaded");
 
         return $this;
     }

@@ -62,11 +62,11 @@ abstract class aMessage extends aBase implements icMessageFields
     protected static function create(Socket $socket) : ?aMessage
     {
         if (static::$needAliveCheck && !$socket->isAliveChecked()) {
-            $socket->dbg(static::$dbgLvl,MessageClassEnum::getItem(static::$id) . ' cannot explored before Alive checking');
+            $socket->dbg(MessageClassEnum::getItem(static::$id) . ' cannot explored before Alive checking');
             return null;
         }
 
-        $socket->dbg(static::$dbgLvl,MessageClassEnum::getItem(static::$id) .  ' detected');
+        $socket->dbg(MessageClassEnum::getItem(static::$id) .  ' detected');
 
         $me = new static($socket);
 
@@ -107,7 +107,7 @@ abstract class aMessage extends aBase implements icMessageFields
 
             if (!($message = self::spawn($socket, $messageType))) {
 // if cannot create class of request by declared type - incoming data is bad
-                $socket->dbg(static::$dbgLvl, "BAD DATA cannot create class of request by declared type: '$messageType'");
+                $socket->dbg("BAD DATA cannot create class of request by declared type: '$messageType'");
 //                $socket->dbg(static::$dbgLvl, 'RequestEnum list: ' . var_export(MessageClassEnum::getItemsList(), true));
                 return $socket->badData();
             }
@@ -137,13 +137,13 @@ abstract class aMessage extends aBase implements icMessageFields
 
 // check message len for maximum len
         if ($this->maxLen && $this->len > $this->maxLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than maximum $this->maxLen for $this->name");
+            $this->dbg("BAD DATA length $this->len more than maximum $this->maxLen for $this->name");
             return $this->getSocket()->badData();
         }
 
 // check message len for declared len
         if ($this->declaredLen && $this->len > $this->declaredLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for $this->name (1)");
+            $this->dbg("BAD DATA length $this->len more than declared length $this->declaredLen for $this->name (1)");
             return $this->getSocket()->badData();
         }
 
@@ -175,7 +175,7 @@ abstract class aMessage extends aBase implements icMessageFields
 
         if ($this->len >= MessFldEnum::getPoint($this->fieldCounter)) {
             $this->$property = MessFldEnum::prepareField($this->fieldCounter, $this->str);
-            $this->dbg(static::$dbgLvl,"Prepare field $this->fieldCounter : $property = " . $this->$property);
+            $this->dbg("Prepare field $this->fieldCounter : $property = " . $this->$property);
             $this->fieldCounter++;
             return $this->$checker();
         }
@@ -197,12 +197,12 @@ abstract class aMessage extends aBase implements icMessageFields
     private function checkLength() : bool
     {
         if ($this->maxLen && $this->declaredLen > $this->maxLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA declared length $this->declaredLen more than maximum $this->maxLen for $this->name");
+            $this->dbg("BAD DATA declared length $this->declaredLen more than maximum $this->maxLen for $this->name");
             return $this->getSocket()->badData();
         }
 
         if ($this->len > $this->declaredLen) {
-            $this->dbg(static::$dbgLvl,"BAD DATA length $this->len more than declared length $this->declaredLen for $this->name (2)");
+            $this->dbg("BAD DATA length $this->len more than declared length $this->declaredLen for $this->name (2)");
             return $this->getSocket()->badData();
         }
 

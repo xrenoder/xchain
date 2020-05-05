@@ -4,6 +4,8 @@
  */
 abstract class aBase implements icMessagesData
 {
+    protected static $dbgLvl = 0;   /* override me */
+
     /** @var App */
     private $app;
     protected function getApp() : App {return $this->app;}
@@ -51,8 +53,8 @@ abstract class aBase implements icMessagesData
      * @param int $lvl
      * @param string $message
      */
-    public function dbg(int $lvl, string $message) : void
+    public function dbg(string $message) : void
     {
-        $this->getApp()->getLogger()->debugLog($lvl, $message);
+        $this->getApp()->getLogger()->debugLog(static::$dbgLvl, $message);
     }
 }

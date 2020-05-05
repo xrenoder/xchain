@@ -1,15 +1,16 @@
 0   Mainchain contain:
-    - simple transfer transactions
+    - simple XNC transfer transactions
     - delegation/undelegation transactions
-    - reward transactions
+    - nodes reward transactions
+    - delegation reward transactions
     - sidechain zero transactions (id of chain, owner address, value frozen from owner address to sidechain, contract address in data-sidechain or handler description in code)
-    - sidechain transfer transactions
+    - sidechain XNC transfer transactions
 
     - node IP registrations
     - node role requests
     - node trust decrementations
     - node offline messages
-    - node offline messages
+    - node online messages
     - node role changes
     - emission rules
     - tarification rules

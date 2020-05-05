@@ -81,7 +81,7 @@ class Server extends aBase
      * @param Host $bindHost
      * @return self
      */
-    public static function create(App $app, Host $listenHost, Host $bindHost = null) : self
+    public static function create(App $app, Host $listenHost, ?Host $bindHost = null) : self
     {
         $me
             = new self($app);
@@ -127,9 +127,9 @@ class Server extends aBase
             */
 
             if ($this->finishFlag) { 	// if mode 'soft finish' setted
-                $this->dbg(static::$dbgLvl,'Sockets cnt: ' . count($this->sockets));
-                $this->dbg(static::$dbgLvl,'Sends cnt: ' . count($this->sends));
-                $this->dbg(static::$dbgLvl,'Recvs cnt: ' . count($this->recvs));
+                $this->dbg('Sockets cnt: ' . count($this->sockets));
+                $this->dbg('Sends cnt: ' . count($this->sends));
+                $this->dbg('Recvs cnt: ' . count($this->recvs));
 
                 if (!count($this->recvs) && !count($this->sends)) {   // and no have active sockets - go out
                     break;
@@ -232,11 +232,11 @@ class Server extends aBase
                     );
 
                     if ($isServerBusy) {
-                        $this->dbg(static::$dbgLvl, 'Server is busy!');
+                        $this->dbg('Server is busy!');
                         $acceptedSocket->setServerBusy();
                     }
 
-                    $this->dbg(static::$dbgLvl, 'Accept connection from ' . $acceptedSocket->getHost()->getTarget());
+                    $this->dbg('Accept connection from ' . $acceptedSocket->getHost()->getTarget());
                 }
             }
         }
@@ -296,7 +296,7 @@ class Server extends aBase
         $errNo = -1;
         $errStr = '';
 
-        $this->dbg(static::$dbgLvl,'Connect to ' . $host->getTarget());
+        $this->dbg('Connect to ' . $host->getTarget());
 
         try {
             $fd = @stream_socket_client(
@@ -346,7 +346,7 @@ class Server extends aBase
 
         $socket = $this->newReadSocket($fd, $this->getListenHost(), self::LISTEN_KEY);
 
-        $this->dbg(static::$dbgLvl, 'Server listening at ' . $this->getListenHost()->getTarget());
+        $this->dbg('Server listening at ' . $this->getListenHost()->getTarget());
     }
 
     private function newReadSocket($fd, Host $host, string $key = null) : Socket
@@ -429,9 +429,14 @@ class Server extends aBase
     {
         if (($this->nowTime - $this->garbTime) < self::GARBAGE_TIMEOUT) return;
 
-        gc_enable();
-        gc_collect_cycles();
-        gc_disable();
+//        gc_enable();
+        $gcCycles = gc_collect_cycles();
+        $gcMemCaches = gc_mem_caches();
+//        gc_disable();
+
+        if ($gcCycles || $gcMemCaches) {
+            $this->dbg("Garbage collect: $gcCycles cycles & $gcMemCaches bytes of memory was cleaned");
+        }
 
         $this->garbTime = $this->nowTime;
     }

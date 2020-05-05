@@ -35,7 +35,7 @@ class aNode extends aBase
             ->setCanAccept($data[NodeClassEnum::DATA_CAN_ACCEPT])
             ->setCanConnect($data[NodeClassEnum::DATA_CAN_CONNECT]);
 
-        $app->dbg(static::$dbgLvl,$me->getName() .  ' defined');
+        $app->dbg($me->getName() .  ' defined');
 
         return $me;
     }

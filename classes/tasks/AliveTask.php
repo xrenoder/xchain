@@ -16,7 +16,7 @@ class AliveTask extends aTask
     protected function customRun() : bool
     {
         if (!$this->useSocket()) {
-            $this->dbg(static::$dbgLvl,static::$name . ' Task cannot get socket');
+            $this->dbg(static::$name . ' Task cannot get socket');
             return false;
         }
 

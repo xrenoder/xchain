@@ -74,14 +74,14 @@ class TaskPool extends aBase
     public function toQueue() : self
     {
         if ($this->isAdded) {
-            $this->dbg(static::$dbgLvl,$this->name . ' Pool already added to Queue');
+            $this->dbg($this->name . ' Pool already added to Queue');
             return $this;
         }
 
         $this->isAdded = true;
         $this->getQueue()->addPool($this);
 
-        $this->dbg(static::$dbgLvl,$this->name . ' Pool added to Queue');
+        $this->dbg($this->name . ' Pool added to Queue');
 
         return $this;
     }
@@ -93,7 +93,7 @@ class TaskPool extends aBase
     public function addTask(aTask $task) : bool
     {
         if ($this->isFinished) {
-            $this->dbg(static::$dbgLvl,$this->name . ' Pool already finished, cannot add ' . $task->getName() . ' Task');
+            $this->dbg($this->name . ' Pool already finished, cannot add ' . $task->getName() . ' Task');
             return false;
         }
 
@@ -106,7 +106,7 @@ class TaskPool extends aBase
         }
 
         $this->tasks[] = $task;
-        $this->dbg(static::$dbgLvl,$task->getName() . ' Task added to ' . $this->name. ' Pool');
+        $this->dbg($task->getName() . ' Task added to ' . $this->name. ' Pool');
 
         if ($this->isRunned) {
             if ($task->run() === false) {
@@ -127,17 +127,17 @@ class TaskPool extends aBase
     public function run() : bool
     {
         if ($this->isFinished) {
-            $this->dbg(static::$dbgLvl,$this->name . ' Pool already finished, cannot start');
+            $this->dbg($this->name . ' Pool already finished, cannot start');
             return false;
         }
 
         if ($this->isRunned) {
-            $this->dbg(static::$dbgLvl,$this->name . ' Pool already started, cannot start');
+            $this->dbg($this->name . ' Pool already started, cannot start');
             return false;
         }
 
         $this->isRunned = true;
-        $this->dbg(static::$dbgLvl,$this->name . ' Pool started');
+        $this->dbg($this->name . ' Pool started');
 
         $result = true;
 
@@ -179,7 +179,7 @@ class TaskPool extends aBase
         }
 
         $this->isFinished = true;
-        $this->dbg(static::$dbgLvl,$this->name . ' Pool finished (' . $this->finishedTasks . ' tasks)');
+        $this->dbg($this->name . ' Pool finished (' . $this->finishedTasks . ' tasks)');
 
         return $this;
     }

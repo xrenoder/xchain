@@ -31,7 +31,24 @@ define('RUN_PATH', XCHAIN_PATH . 'run' . DS);
 define('DATA_PATH', XCHAIN_PATH . 'data' . DS);                 // blockchain organized data
 define('WALLET_PATH', XCHAIN_PATH . 'wallet' . DS);
 
-define('MAINCHAIN_FILE', DATA_PATH . 'main.chain' . DBA_EXT);              // "blockNumber" => "blockRawData" ; need for master & torrent nodes
+define('COMMON_FILE', DATA_PATH . 'common' . DBA_EXT);              // actual summary data states (last prepared block, last known block, etc)
+define('NODE_PINGS_FILE', DATA_PATH . 'node.pings' . DBA_EXT);      // "address" => "ping" ; used for all nodes; data from tests, not in chain
+
+define('MAINCHAIN_FILE', DATA_PATH . 'main.chain' . DBA_EXT);       // "blockNumber" => "blockRawData" ; used for master & torrent nodes
+
+define('PUBLIC_KEYS_FILE', DATA_PATH . 'public.keys' . DBA_EXT);    // "address" => "publicKey" ; used for all nodes
+
+define('AMOUNTS_FILE', DATA_PATH . 'amounts' . DBA_EXT);            // "address" => amount ; used for all nodes
+define('DELEGATIONS_FILE', DATA_PATH . 'delegations' . DBA_EXT);    // "addressTo" => amount ; used for all nodes
+
+
+define('NODE_TYPES_FILE', DATA_PATH . 'node.types' . DBA_EXT);      // "address" => nodeType ; used for all nodes
+define('NODE_HOSTS_FILE', DATA_PATH . 'node.hosts' . DBA_EXT);      // "address" => "host" ; used for all nodes
+define('NODE_TRUSTS_FILE', DATA_PATH . 'node.trusts' . DBA_EXT);    // "address" => "trust" ; used for all nodes
+define('NODE_ONLINE_FILE', DATA_PATH . 'node.online' . DBA_EXT);    // "address" => isOnline ; used for all nodes
+define('NODE_LOADS_FILE', DATA_PATH . 'node.loads' . DBA_EXT);      // "address" => load ; used for all nodes
+
+
 
 
 define('NODES_MAP_FILE', DATA_PATH . 'nodes_map');

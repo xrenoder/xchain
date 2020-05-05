@@ -1,6 +1,6 @@
 https://dou.ua/lenta/articles/12-konsensus-protocols/
 
-7    main node (M-node)
+16    main node (M-node)
 0111
                 1st level
                 heart of network, create and keep critical network data
@@ -28,7 +28,7 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 must have hi-perf CPU & good channel
                 sometimes work and tested as master node (if S-nodes reached optimal count)
 
-5    side node (S-node)
+8    side node (S-node)
 0101
                 2nd level
                 wheelhorse of network: create & keep utility network data
@@ -49,7 +49,7 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
     0100
                 must work as P-node
 
-3   Proxy node (P-node)
+4   Proxy node (P-node)
 0011
 
                 30% of transaction reward
@@ -58,7 +58,7 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
     0010
                 must work as F-node
 
-1   front node (F-node)
+2   front node (F-node)
 0001
                 3rd level
 
@@ -69,5 +69,12 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 optimal 512 F-nodes (8 per 1 S-node)
                 outside border of network
 
-0   client
-0000
+1   client
+
+
+
+
+
+32	torrent-node (T-node)
+
+64	crypto-node	(C-node)
