@@ -19,8 +19,8 @@ if (MY_ADDRESS === '') {
 
 define('RESERVE_SOCKETS', 128);
 define('MAX_SOCKETS', 640);     // 512 + 128 reserve sockets
-define('DBA_HANDLER', 'lmdb');
-define('DBA_EXT', '.lmdb');
+define('DBA_HANDLER', 'qdbm');
+define('DBA_EXT', '.qdbm');
 
 define('CLASS_EXT', '.php');
 define('LOG_EXT', '.log');
@@ -39,7 +39,8 @@ define('MAINCHAIN_FILE', DATA_PATH . 'main.chain' . DBA_EXT);       // "blockNum
 define('PUBLIC_KEYS_FILE', DATA_PATH . 'public.keys' . DBA_EXT);    // "address" => "publicKey" ; used for all nodes
 
 define('AMOUNTS_FILE', DATA_PATH . 'amounts' . DBA_EXT);            // "address" => amount ; used for all nodes
-define('DELEGATIONS_FILE', DATA_PATH . 'delegations' . DBA_EXT);    // "addressTo" => amount ; used for all nodes
+define('DELEGATE_FROM_FILE', DATA_PATH . 'delegate.from' . DBA_EXT);// "addressFrom" => amount ; used for all nodes
+define('DELEGATE_TO_FILE', DATA_PATH . 'delegate.to' . DBA_EXT);    // "addressTo" => amount ; used for all nodes
 
 
 define('NODE_TYPES_FILE', DATA_PATH . 'node.types' . DBA_EXT);      // "address" => nodeType ; used for all nodes

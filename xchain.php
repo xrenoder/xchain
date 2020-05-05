@@ -3,11 +3,12 @@
 require_once 'local.inc';
 
 $dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
-$test = (int) dba_fetch("testKey", $dbh) . "\n";
-dba_insert("testKey", $test + 1234567890, $dbh);
+$test = dba_fetch("testKey", $dbh) . "\n";
+$test += 1234567890;
+dba_insert("testKey", $test, $dbh);
 echo dba_fetch("testKey", $dbh) . "\n";
-dba_sync($dbh);
-dba_optimize ($dbh);
+//dba_sync($dbh);
+//dba_optimize ($dbh);
 dba_close($dbh);
 
 die(var_export(dba_handlers(true), true));

@@ -8,20 +8,31 @@ PHP 7.2 or more must be congigured with
 
 ***********************************************
 
+# Install QDBM
+cd /tmp
+rm -rf /tmp/qdbm-1.8.78/
+wget -O qdbm-1.8.78.tar.gz https://fallabs.com/qdbm/qdbm-1.8.78.tar.gz
+tar -xvf qdbm-1.8.78.tar.gz
+cd /tmp/qdbm-1.8.78/
 
-# Install LMDB
-git clone https://github.com/LMDB/lmdb.git 
-cd lmdb/libraries/liblmdb
-sudo make 
+./configure
+
+--enable-debug : build for debugging. Enable debugging symbols, do not perform optimization, and perform static linking.
+--enable-devel : build for development. Enable debugging symbols, perform optimization, and perform dynamic linking.
+--enable-stable : build for stable release. Perform conservative optimization, and perform dynamic linking.
+--enable-pthread : feature POSIX thread and treat global variables as thread specific data.
+--disable-lock : build for environments without file locking.
+--disable-mmap : build for environments without memory mapping.
+--enable-zlib : feature ZLIB compression for B+ tree and inverted index.
+--enable-lzo : feature LZO compression for B+ tree and inverted index.
+--enable-bzip : feature BZIP2 compression for B+ tree and inverted index.
+--enable-iconv : feature ICONV utilities for conversion of character encodings.
+
+make
 sudo make install
 
-sudo apt update
-sudo apt install libdb-dev
-sudo apt install lmdb-utils
-sudo apt install liblmdb-dev
-
 # Install DBA for php7
-sudo add-apt-repository ppa:nacc/lp1569128
+#sudo add-apt-repository ppa:nacc/lp1569128
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install php7.0-dba
@@ -33,7 +44,7 @@ wget -O php-7.3.2.tar.bz2 http://nl1.php.net/get/php-7.3.2.tar.bz2/from/this/mir
 tar -xvf php-7.3.2.tar.bz2
 cd /tmp/php-7.3.2/
 
-./configure --with-config-file-path=/etc/php --enable-fd-setsize=65536  --enable-dba=shared --with-lmdb=/usr/local/lib --enable-sockets --enable-pcntl --with-curl --with-gmp
+./configure --with-config-file-path=/etc/php --enable-fd-setsize=65536  --enable-dba=shared --with-qdbm --enable-sockets --enable-pcntl --with-curl --with-gmp
 
 make
 sudo make install
