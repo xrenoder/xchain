@@ -3,7 +3,8 @@
 require_once 'local.inc';
 
 $dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
-//dba_insert("testKey", 234567890123456789, $dbh);
+$test = (int) dba_fetch("testKey", $dbh) . "\n";
+dba_insert("testKey", $test + 1234567890, $dbh);
 echo dba_fetch("testKey", $dbh) . "\n";
 dba_sync($dbh);
 dba_optimize ($dbh);
