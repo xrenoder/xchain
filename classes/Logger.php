@@ -11,6 +11,7 @@ class Logger extends aBase
     public const DBG_TASK = 16;
     public const DBG_NODE = 32;
     public const DBG_ADDR = 64;
+    public const DBG_DBA = 128;
 
     private static $flags = array(
         self::DBG_SERV => 'Server ',
@@ -20,6 +21,7 @@ class Logger extends aBase
         self::DBG_TASK => 'Task   ',
         self::DBG_NODE => 'Node   ',
         self::DBG_ADDR => 'Address',
+        self::DBG_DBA =>  'DBA    ',
     );
 
     /** @var string */

@@ -3,17 +3,18 @@
 require_once 'local.inc';
 
 $dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
-$test = dba_fetch("testKey", $dbh) . "\n";
+dba_insert("testKey1", 1234567890, $dbh);
+$test = dba_fetch("testKey1", $dbh) . "\n";
 $test += 1234567890;
-dba_insert("testKey", $test, $dbh);
-echo dba_fetch("testKey", $dbh) . "\n";
+dba_insert("testKey1", $test, $dbh);
+echo var_export( dba_fetch("testKey1", $dbh) . "\n", true);
 //dba_sync($dbh);
 //dba_optimize ($dbh);
 dba_close($dbh);
 
 die(var_export(dba_handlers(true), true));
 
-$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS | Logger::DBG_POOL | Logger::DBG_TASK | Logger::DBG_NODE | Logger::DBG_ADDR;
+$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS | Logger::DBG_POOL | Logger::DBG_TASK | Logger::DBG_NODE | Logger::DBG_ADDR | Logger::DBG_DBA;
 //$debugMode = 0;
 
 $command = '';
