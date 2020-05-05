@@ -19,8 +19,13 @@ if (MY_ADDRESS === '') {
 
 define('RESERVE_SOCKETS', 128);
 define('MAX_SOCKETS', 640);     // 512 + 128 reserve sockets
-define('DBA_HANDLER', 'qdbm');
-define('DBA_EXT', '.qdbm');
+//define('DBA_HANDLER', 'qdbm');
+//define('DBA_EXT', '.qdbm');
+
+define('DBA_HANDLER', 'cdb_make');
+define('DBA_EXT', '.cdbmk');
+
+
 
 define('CLASS_EXT', '.php');
 define('LOG_EXT', '.log');
