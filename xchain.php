@@ -60,6 +60,8 @@ try {
     // load node private key
     $app->setMyAddr(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
 
+    ChainState::create($app);
+
 //    $startPool = TaskPool::create($app->getServer()->getQueue(), "Start Operations");
 //    GetFnodesTask::create($app->getServer(), $startPool, $firstRemoteHost);
 //    $startPool->toQueue();
