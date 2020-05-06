@@ -12,7 +12,7 @@ class DBA extends aBase
 
     protected static $dbgLvl = Logger::DBG_DBA;
 
-    protected static $dbaMode = "c-t";
+    protected static $dbaMode = "cd";
 
     /** @var string  */
     private $dbaHandler = null;
