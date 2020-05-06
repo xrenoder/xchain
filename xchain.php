@@ -2,8 +2,9 @@
 <?php
 require_once 'local.inc';
 
+/*
 $key = "testKey1";
-$dbh = dba_open(MAINCHAIN_FILE, "w", DBA_HANDLER);
+$dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
 dba_insert($key, 1234567890, $dbh);
 echo var_export( dba_fetch($key, $dbh) . "\n", true);
 $test = dba_fetch($key, $dbh) . "\n";
@@ -18,6 +19,7 @@ dba_sync($dbh);
 dba_close($dbh);
 
 die(var_export(dba_handlers(true), true));
+*/
 
 $debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS | Logger::DBG_POOL | Logger::DBG_TASK | Logger::DBG_NODE | Logger::DBG_ADDR | Logger::DBG_DBA;
 //$debugMode = 0;
@@ -34,6 +36,9 @@ $app = new App(SCRIPT_NAME);
 Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
 
 try {
+    // set DBA
+    DBA::create($app, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
+
     // set current node as Client (always, before full syncronization)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 
