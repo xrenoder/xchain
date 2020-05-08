@@ -5,49 +5,71 @@
 class aDbRecord extends aBase
 {
     /** @var string  */
-    protected static $dbaTable = null; /* override me */
+    protected $table = null;
+    public function setTable($val) : self {$this->table = $val; return $this;}
 
     protected $id = null;
-    public function setId($val) : self {$this->id = $val; return $this;}
-    public function getId() : string {return $this->id;}
+//    public function setId($val) : self {$this->id = $val; return $this;}
+//    public function getId() : string {return $this->id;}
 
     protected $data = null;
-    public function setData($val) : self {$this->data = $val; return $this;}
-    public function getData() : string {return $this->data;}
+//    public function setData($val) : self {$this->data = $val; return $this;}
+//    public function getData() : string {return $this->data;}
 
-    protected function dbTrans()
+    protected $fields = array();  /* override me */
+
+    public function fillFields()
     {
-        $this->getApp()->getDba()->transactionBegin();
+        $transKey = $this->dbTrans();
+
+        $rowCnt = 0;
+
+        if ($this->id = $this->first()) {
+            do {
+                $this->fields[$this->id] = $this->load();
+                $rowCnt++;
+            } while ($this->id = $this->next());
+        }
+
+        if ($rowCnt !== count($this->fields)) {
+            foreach($this->fields as $this->id => $this->data) {
+                $this->save(true);
+            }
+        }
+
+        $this->dbCommit($transKey);
+
+        return $this;
     }
 
-    protected function dbCommit()
+    protected function dbTrans() : string
     {
-        $this->getApp()->getDba()->transactionCommit();
+        return $this->getApp()->getDba()->transactionBegin();
     }
 
-    protected function dbRollback()
+    protected function dbCommit(string $transactionKey)
     {
-        $this->getApp()->getDba()->transactionRollback();
+        $this->getApp()->getDba()->transactionCommit($transactionKey);
     }
 
     protected function first()
     {
-        return $this->getApp()->getDba()->first(static::$dbaTable);
+        return $this->getApp()->getDba()->first($this->table);
     }
 
     protected function next()
     {
-        return $this->getApp()->getDba()->next(static::$dbaTable);
+        return $this->getApp()->getDba()->next($this->table);
     }
 
     protected function check() : bool
     {
-        return $this->getApp()->getDba()->check(static::$dbaTable, $this->id);
+        return $this->getApp()->getDba()->check($this->table, $this->id);
     }
 
     protected function load()
     {
-        $this->data = $this->getApp()->getDba()->fetch(static::$dbaTable, $this->id);
+        $this->data = $this->getApp()->getDba()->fetch($this->table, $this->id);
 
         return $this->data;
     }
@@ -55,9 +77,19 @@ class aDbRecord extends aBase
     protected function save(bool $replace = false)
     {
         if ($replace && $this->check()) {
-            $this->getApp()->getDba()->update(static::$dbaTable, $this->id, $this->data);
+            $this->getApp()->getDba()->update($this->table, $this->id, $this->data);
         } else {
-            $this->getApp()->getDba()->insert(static::$dbaTable, $this->id, $this->data);
+            $this->getApp()->getDba()->insert($this->table, $this->id, $this->data);
         }
+    }
+
+    protected function setAndSaveField($fieldId, $val) : self
+    {
+        $this->id = $fieldId;
+        $this->fields[$fieldId] = $val;
+        $this->data = $val;
+        $this->save(true);
+
+        return $this;
     }
 }

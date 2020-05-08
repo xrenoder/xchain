@@ -5,8 +5,6 @@
 
 class ChainState extends aDbRecord
 {
-    protected static $dbaTable = STATES_TABLE; /* overrided */
-
     private const LAST_KNOWN_BLOCK = 'lastKnownBlock';
     private const LAST_PREPARED_BLOCK = 'lastPreparedBlock';
     private const TRANSACTION_REWARD_RULE = 'transactionRewardRule';
@@ -19,39 +17,30 @@ class ChainState extends aDbRecord
         self::TRANSACTION_EMISSION_RULE => 'default rule',
     );
 
-    public function setField($id, $val) : self {$this->fields[$id] = $val; return $this;}
-    public function getField($id) : string {return $this->fields[$id];}
+//    public function setField($id, $val) : self {$this->fields[$id] = $val; return $this;}
+//    public function getField($id) : string {return $this->fields[$id];}
 
-    public static function create(App $app)
+    public function setLastKnownBlock(int $val) : self {return $this->setAndSaveField(self::LAST_KNOWN_BLOCK, $val);}
+    public function getLastKnownBlock() : string {return $this->fields[self::LAST_KNOWN_BLOCK];}
+
+    public function setLastPreparedBlock(int $val) : self {return $this->setAndSaveField(self::LAST_PREPARED_BLOCK, $val);}
+    public function getLastPreparedBlock() : string {return $this->fields[self::LAST_PREPARED_BLOCK];}
+
+    public function setTransactionRewardRule(int $val) : self {return $this->setAndSaveField(self::TRANSACTION_REWARD_RULE, $val);}
+    public function getTransactionRewardRule() : string {return $this->fields[self::TRANSACTION_REWARD_RULE];}
+
+    public function setTransactionEmissionRule(int $val) : self {return $this->setAndSaveField(self::TRANSACTION_EMISSION_RULE, $val);}
+    public function getTransactionEmissionRule() : string {return $this->fields[self::TRANSACTION_EMISSION_RULE];}
+
+    public static function create(App $app, string $table)
     {
         $me = new static($app);
 
         $me
-            ->fill()
+            ->setTable($table)
+            ->fillFields()
             ->getApp()->setChainState($me);
 
         return $me;
-    }
-
-    public function fill() {
-        $this->dbTrans();
-
-        $rowCnt =0;
-
-        if ($this->id = $this->first()) {
-            do {
-                $this->fields[$this->id] = $this->load();
-            } while ($this->id = $this->next());
-        }
-
-        if ($rowCnt !== count($this->fields)) {
-            foreach($this->fields as $this->id => $this->data) {
-                $this->save(true);
-            }
-        }
-
-        $this->dbCommit();
-
-        return $this;
     }
 }

@@ -7,8 +7,10 @@ class DBA extends aBase
     // TODO сделать обработку ошибок
     private const TRANS_FD = 'fd';
     private const TRANS_OP = 'op';
-    private const TRANS_KEY = 'key';
+    private const TRANS_ID = 'id';
     private const TRANS_VAL = 'val';
+
+    private const TRANS_KEY = 'tkey';
 
     protected static $dbgLvl = Logger::DBG_DBA;
 
@@ -36,9 +38,7 @@ class DBA extends aBase
 
     private $fdDbLock = null;
 
-    /** @var bool  */
-    private $inTransaction = false;
-
+    private $transactions = array();
     private $transactionStack = array();
 
     private $dbhTables = array();
@@ -66,95 +66,110 @@ class DBA extends aBase
         return $me;
     }
 
-    public function transactionBegin()
+    public function inTransaction() : bool
     {
-        if ($this->inTransaction) return;
-
-        $this->lockEx();
-        $this->inTransaction = true;
-    }
-
-    public function transactionCommit()
-    {
-        if (!$this->inTransaction) return;
-
-        foreach($this->transactionStack as $record) {
-            $table = $record[self::TRANS_FD];
-            $operation = $record[self::TRANS_OP];
-            $key = $record[self::TRANS_KEY];
-            $val = $record[self::TRANS_VAL];
-
-            $this->$operation($table, $key, $val);
+        if (!count($this->transactions)) {
+            return false;
         }
 
-        $this->unlock();
-
-        $this->transactionStack = array();
-        $this->inTransaction = false;
+        return true;
     }
 
-    public function transactionRollback()
+    public function transactionBegin() : string
     {
-        if (!$this->inTransaction) return;
+        if (!$this->inTransaction()) {
+            $this->lockEx();
+        }
 
-        $this->transactionStack = array();
+        $transactionKey = self::TRANS_KEY . count($this->transactions);
+        $this->transactions[$transactionKey] = true;
 
-        $this->unlock();
-        $this->inTransaction = false;
+        return $transactionKey;
+    }
+
+    public function transactionCommit(string $transactionKey)
+    {
+        if (isset($this->transactions[$transactionKey])) {
+            unset($this->transactions[$transactionKey]);
+        }
+
+        if (!count($this->transactions)) {
+            foreach($this->transactionStack as $record) {
+                $table = $record[self::TRANS_FD];
+                $operation = $record[self::TRANS_OP];
+                $id = $record[self::TRANS_ID];
+                $val = $record[self::TRANS_VAL];
+
+                $this->$operation($table, $id, $val);
+            }
+
+            $this->unlock();
+
+            $this->transactionStack = array();
+        }
     }
 
     public function first(string $table) : string
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!$this->inTransaction) {
+        if (!$this->inTransaction()) {
             $isLock = true;
             $this->lockSh();
         } else {
             $isLock = false;
         }
 
-        $key = dba_firstkey($this->dbhTables[$table]);
+        $id = dba_firstkey($this->dbhTables[$table]);
 
         if ($isLock) {
             $this->unlock();
         }
 
-        return $key;
+        return $id;
     }
 
     public function next(string $table) : string
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!$this->inTransaction) {
+        if (!$this->inTransaction()) {
             $isLock = true;
             $this->lockSh();
         } else {
             $isLock = false;
         }
 
-        $key = dba_nextkey($this->dbhTables[$table]);
+        $id = dba_nextkey($this->dbhTables[$table]);
 
         if ($isLock) {
             $this->unlock();
         }
 
-        return $key;
+        return $id;
     }
 
-    public function check(string $table, string $key) : bool
+    public function check(string $table, string $id) : bool
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!$this->inTransaction) {
+        $result = null;
+
+        if (!$this->inTransaction()) {
             $isLock = true;
             $this->lockSh();
         } else {
             $isLock = false;
+            $cacheId = $table . $id;
+
+            if (isset($this->transactionStack[$cacheId])) {
+                $result = true;
+            }
         }
 
-        $result = dba_exists($key, $this->dbhTables[$table]);
+        if ($result === null) {
+            $result = dba_exists($id, $this->dbhTables[$table]);
+        }
 
         if ($isLock) {
             $this->unlock();
@@ -163,18 +178,27 @@ class DBA extends aBase
         return $result;
     }
 
-    public function fetch(string $table, string $key) : string
+    public function fetch(string $table, string $id) : string
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!$this->inTransaction) {
+        $result = null;
+
+        if (!$this->inTransaction()) {
             $isLock = true;
             $this->lockSh();
         } else {
             $isLock = false;
+            $cacheId = $table . $id;
+
+            if (isset($this->transactionStack[$cacheId])) {
+                $result = $this->transactionStack[$cacheId][self::TRANS_VAL];
+            }
         }
 
-        $result = dba_fetch($key, $this->dbhTables[$table]);
+        if ($result === null) {
+            $result = dba_fetch($id, $this->dbhTables[$table]);
+        }
 
         if ($isLock) {
             $this->unlock();
@@ -183,14 +207,14 @@ class DBA extends aBase
         return $result;
     }
 
-    public function insert(string $table, string $key, string $val)
+    public function insert(string $table, string $id, string $val)
     {
-        $this->writing('realInsert', $table, $key, $val);
+        $this->writing('realInsert', $table, $id, $val);
     }
 
-    public function update(string $table, string $key, string $val)
+    public function update(string $table, string $id, string $val)
     {
-        $this->writing('realUpdate', $table, $key, $val);
+        $this->writing('realUpdate', $table, $id, $val);
     }
 
     public function close()
@@ -203,42 +227,39 @@ class DBA extends aBase
         }
     }
 
-    private function writing(string $operation, string $table, string $key, string $val)
+    private function writing(string $operation, string $table, string $id, string $val)
     {
-        if (!$this->inTransaction) {
+        if (!$this->inTransaction()) {
             $this->lockEx();
-            $result = $this->$operation($table, $key, $val);
+            $this->$operation($table, $id, $val);
             $this->unlock();
         } else {
             $record = array();
 
             $record[self::TRANS_FD] = $table;
             $record[self::TRANS_OP] = $operation;
-            $record[self::TRANS_KEY] = $key;
+            $record[self::TRANS_ID] = $id;
             $record[self::TRANS_VAL] = $val;
 
-            $this->transactionStack[] = $record;
-
-            $result = true;
+            $cacheId = $table . $id;
+            $this->transactionStack[$cacheId] = $record;
         }
-
-        return $result;
     }
 
-    private function realInsert(string $table, string $key, string $val)
+    private function realInsert(string $table, string $id, string $val)
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!dba_insert($key, $val, $this->dbhTables[$table])) {
+        if (!dba_insert($id, $val, $this->dbhTables[$table])) {
             throw new RuntimeException("Cannot insert record into " . $table);
         }
     }
 
-    public function realUpdate(string $table, string $key, string $val)
+    public function realUpdate(string $table, string $id, string $val)
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!dba_replace($key, $val, $this->dbhTables[$table])) {
+        if (!dba_replace($id, $val, $this->dbhTables[$table])) {
             throw new RuntimeException("Cannot replace record in " . $table);
         }
     }
