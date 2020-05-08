@@ -5,12 +5,12 @@
 
 class ChainState extends aDbRecord
 {
-    private const LAST_KNOWN_BLOCK = 'lastKnownBlock';
-    private const LAST_PREPARED_BLOCK = 'lastPreparedBlock';
-    private const TRANSACTION_REWARD_RULE = 'transactionRewardRule';
-    private const TRANSACTION_EMISSION_RULE = 'transactionEmissionRule';
+    protected const LAST_KNOWN_BLOCK = 'lastKnownBlock';
+    protected const LAST_PREPARED_BLOCK = 'lastPreparedBlock';
+    protected const TRANSACTION_REWARD_RULE = 'transactionRewardRule';
+    protected const TRANSACTION_EMISSION_RULE = 'transactionEmissionRule';
 
-    private $fields = array(
+    protected $fields = array(
         self::LAST_KNOWN_BLOCK => 1,
         self::LAST_PREPARED_BLOCK => 0,
         self::TRANSACTION_REWARD_RULE => 'default rule',
