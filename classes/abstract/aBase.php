@@ -14,7 +14,7 @@ abstract class aBase
     private $parent;
     protected function getParent() : aBase {return $this->parent;}
 
-    public function getMyNodeId() : int {return $this->app->getMyNode()->getId();}
+    public function getMyNodeId() : ?int {return $this->app->getMyNode()->getId();}
 
     /**
      * AppBase constructor.
