@@ -9,7 +9,7 @@
 
 class MessageClassEnum extends aClassEnum
 {
-    protected static $baseClassName = 'aMessage';
+    protected static $baseClassName = 'aMessage'; /* overrided */
 
     public const DATA_MAX_LEN  = 'maxLength';
 
@@ -27,10 +27,10 @@ class MessageClassEnum extends aClassEnum
     );
 
     protected static $data = array(
-        self::ALIVE_REQ =>      array(self::DATA_MAX_LEN => MessFldEnum::SIMPLE_MAX_LEN),
-        self::ALIVE_RES =>      array(self::DATA_MAX_LEN => MessFldEnum::SIMPLE_MAX_LEN),
-        self::BUSY_RES =>       array(self::DATA_MAX_LEN => MessFldEnum::SIMPLE_MAX_LEN),
-        self::BAD_NODE_RES =>   array(self::DATA_MAX_LEN => MessFldEnum::SIMPLE_MAX_LEN),
+        self::ALIVE_REQ =>      array(self::DATA_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
+        self::ALIVE_RES =>      array(self::DATA_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
+        self::BUSY_RES =>       array(self::DATA_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
+        self::BAD_NODE_RES =>   array(self::DATA_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
     );
 
     /**

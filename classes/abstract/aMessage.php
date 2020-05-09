@@ -2,9 +2,11 @@
 /**
  * Base class for classes of messages between nodes
  */
-abstract class aMessage extends aBase implements icMessageFields
+abstract class aMessage extends aBase
 {
     protected static $dbgLvl = Logger::DBG_MESS;
+
+    public const MY_NODE_ID = 'myNodeId';
 
     /** @var int  */
     protected static $id;  /* override me */
@@ -16,41 +18,45 @@ abstract class aMessage extends aBase implements icMessageFields
     protected static $needAliveCheck = true; /** can be overrided or not */
 
     public function getSocket() : Socket {return $this->getParent();}
+    public function getMyNodeId() : int {return $this->getApp()->getMyNode()->getId();}
 
     /** @var string */
     protected $name;
     public function setName() : self {$this->name = MessageClassEnum::getItem(static::$id); return $this;}
+    public function getName() : string {return $this->name;}
 
     /** @var int  */
     protected $maxLen = null;
     public function setMaxLen() : self {$this->maxLen = MessageClassEnum::getMaxLen(static::$id); return $this;}
+    public function getMaxLen() : int {return $this->maxLen;}
 
     /** @var string */
     private $str;
 
     /** @var int  */
     protected $len = null;
-//    public function getLen() : int {return $this->len;}
+    public function getLen() : int {return $this->len;}
 
     /** @var int  */
-    private $fieldCounter = 1;
+    private $fieldCounter = 1;      // not 0 - zero is id of field 'message type'
 
     /**
-     * array of message fields ['property', 'checker']
-     * @var string[][]
+     * fieldId => 'propertyName'
+     * @var string[]
      */
     protected static $fields = array(
-        self::MESS_TYPE =>      array('',               'checkEmpty'),
-        self::MESS_LENGTH =>    array('declaredLen',    'checkLength'),
-        self::MESS_NODE =>      array('remoteNodeId',   'checkNode'),
+        MessageFieldClassEnum::MESS_FLD_TYPE =>      '',
+        MessageFieldClassEnum::MESS_FLD_LENGTH =>    'declaredLen',
+        MessageFieldClassEnum::MESS_FLD_NODE =>      'remoteNodeId',
     );
 
-    /** @var int  */
+    /** @var aMessageField  */
     protected $declaredLen = null;
-    public function getDeclaredLen() : int {return $this->declaredLen;}
+    public function getDeclaredLen() : int {return $this->declaredLen->getValue();}
 
-    /** @var int  */
+    /** @var aMessageField  */
     private $remoteNodeId = null;
+    public function getRemoteNodeId() : int {return $this->remoteNodeId->getValue();}
 
     abstract public static function createMessage(array $data) : string;
     abstract protected function incomingMessageHandler() : bool;
@@ -59,7 +65,7 @@ abstract class aMessage extends aBase implements icMessageFields
      * @param Socket $socket
      * @return aMessage|null
      */
-    protected static function create(Socket $socket) : ?aMessage
+    protected static function create(Socket $socket) : ?self
     {
         if (static::$needAliveCheck && !$socket->isAliveChecked()) {
             $socket->dbg(MessageClassEnum::getItem(static::$id) . ' cannot explored before Alive checking');
@@ -83,7 +89,7 @@ abstract class aMessage extends aBase implements icMessageFields
      * @return aMessage|null
      * @throws Exception
      */
-    public static function spawn(Socket $socket, int $id) : ?aMessage
+    public static function spawn(Socket $socket, int $id) : ?self
     {
         /** @var aMessage $className */
 
@@ -103,7 +109,7 @@ abstract class aMessage extends aBase implements icMessageFields
     public static function parser(Socket $socket, string $packet) : bool
     {
         if (!$socket->getMessage()) {
-            $messageType = MessFldEnum::prepareField(0, $packet);
+            $messageType = MessageFieldClassEnum::prepareField(0, $packet);
 
             if (!($message = self::spawn($socket, $messageType))) {
 // if cannot create class of request by declared type - incoming data is bad
@@ -123,7 +129,7 @@ abstract class aMessage extends aBase implements icMessageFields
      */
     public function getBufferSize() : int
     {
-        return $this->declaredLen - $this->len + 1;
+        return $this->getDeclaredLen() - $this->len + 1;
     }
 
     /**
@@ -142,26 +148,23 @@ abstract class aMessage extends aBase implements icMessageFields
         }
 
 // check message len for declared len
-        if ($this->declaredLen && $this->len > $this->declaredLen) {
-            $this->dbg("BAD DATA length $this->len more than declared length $this->declaredLen for $this->name (1)");
+        if ($this->declaredLen && $this->getDeclaredLen() !== null && $this->len > $this->getDeclaredLen()) {
+            $this->dbg("BAD DATA length $this->len more than declared length "  . $this->getDeclaredLen() . "for $this->name (1)");
             return $this->getSocket()->badData();
         }
 
 // prepare fields
-        foreach (static::$fields as $fieldId => $props) {
+        foreach (static::$fields as $fieldId => $property) {
             if ($this->fieldCounter > $fieldId) {
                 continue;
             }
 
-            [$property, $checker] = $props;
-
-            if (!$this->prepareField($property, $checker)) {
-// if field cannot be prepared - break  (not 'return false'), may be all fields was readed
+            if (!$this->prepareField($fieldId, $property)) {
+// if field cannot be prepared - break  (not 'return false'), may be all fields was prepared
                 break;
             }
         }
 
-//
         if ($this->len < $this->declaredLen) {
             return false;
         }
@@ -169,56 +172,21 @@ abstract class aMessage extends aBase implements icMessageFields
         return $this->incomingMessageHandler();
     }
 
-    protected function prepareField(string $property, string $checker) : bool
+    protected function prepareField(int $fieldId, string $property) : bool
     {
-        if ($this->$property !== null) return true;
+        if ($this->$property !== null && $this->$property->getValue() !== null) return true;
 
-        if ($this->len >= MessFldEnum::getPoint($this->fieldCounter)) {
-            $this->$property = MessFldEnum::prepareField($this->fieldCounter, $this->str);
-            $this->dbg("Prepare field $this->fieldCounter : $property = " . $this->$property);
+        if ($this->$property === null) {
+            $this->$property = aMessageField::spawn($this, $fieldId);
+        }
+
+        if ($this->len >= $this->$property->getPoint()) {
+            $this->$property->unpackField($this->str);
+            $this->dbg("Prepare field $this->fieldCounter : $property = " . $this->$property->getValue());
             $this->fieldCounter++;
-            return $this->$checker();
+            return $this->$property->check();
         }
 
         return false;
-    }
-
-    protected static function packField(int $fieldId, $val)
-    {
-        return pack(MessFldEnum::getFormat($fieldId), $val);
-    }
-
-    protected static function getLenLength()
-    {
-        return MessFldEnum::getLength(static::MESS_LENGTH);
-    }
-
-    // check declared len for maximum len
-    private function checkLength() : bool
-    {
-        if ($this->maxLen && $this->declaredLen > $this->maxLen) {
-            $this->dbg("BAD DATA declared length $this->declaredLen more than maximum $this->maxLen for $this->name");
-            return $this->getSocket()->badData();
-        }
-
-        if ($this->len > $this->declaredLen) {
-            $this->dbg("BAD DATA length $this->len more than declared length $this->declaredLen for $this->name (2)");
-            return $this->getSocket()->badData();
-        }
-
-        return true;
-    }
-
-    private function checkNode() : bool
-    {
-        $this->getSocket()->setRemoteNode(aNode::spawn($this->getApp(), $this->remoteNodeId));
-        $this->getSocket()->checkNodesCompatiblity();
-// TODO добавить проверку в блокчейне, может ли отправитель сообщения исполнять роль той ноды, которой представляется
-        return true;
-    }
-
-    private function checkEmpty() : bool
-    {
-        return true;
     }
 }

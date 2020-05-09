@@ -32,8 +32,8 @@ class aNode extends aBase
 
         $me
             ->setName()
-            ->setCanAccept($data[NodeClassEnum::DATA_CAN_ACCEPT])
-            ->setCanConnect($data[NodeClassEnum::DATA_CAN_CONNECT]);
+            ->setCanAccept($data[NodeClassEnum::CAN_ACCEPT])
+            ->setCanConnect($data[NodeClassEnum::CAN_CONNECT]);
 
         $app->dbg($me->getName() .  ' defined');
 

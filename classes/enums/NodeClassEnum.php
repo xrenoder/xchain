@@ -12,8 +12,8 @@ class NodeClassEnum extends aClassEnum
 {
     protected static $baseClassName = 'aNode';
 
-    public const DATA_CAN_CONNECT  = 'canConnect';
-    public const DATA_CAN_ACCEPT  = 'canAccept';
+    public const CAN_CONNECT  = 'canConnect';
+    public const CAN_ACCEPT  = 'canAccept';
 
     /* maximal ID is 255 (8 bits) */
     public const CLIENT_ID =    1;
@@ -34,39 +34,39 @@ class NodeClassEnum extends aClassEnum
 
     protected static $data = array(
         self::CLIENT_ID => array(
-            self::DATA_CAN_ACCEPT => 0,
-            self::DATA_CAN_CONNECT => self::FRONT_ID
+            self::CAN_ACCEPT => 0,
+            self::CAN_CONNECT => self::FRONT_ID
         ),
         self::FRONT_ID => array(
-            self::DATA_CAN_ACCEPT => self::CLIENT_ID,
-            self::DATA_CAN_CONNECT => self::PROXY_ID
+            self::CAN_ACCEPT => self::CLIENT_ID,
+            self::CAN_CONNECT => self::PROXY_ID
         ),
         self::PROXY_ID => array(
-            self::DATA_CAN_ACCEPT => self::FRONT_ID,
-            self::DATA_CAN_CONNECT => self::SIDE_ID
+            self::CAN_ACCEPT => self::FRONT_ID,
+            self::CAN_CONNECT => self::SIDE_ID
         ),
         self::SIDE_ID => array(
-            self::DATA_CAN_ACCEPT => self::PROXY_ID | self::SIDE_ID,
-            self::DATA_CAN_CONNECT => self::SIDE_ID | self::MASTER_ID
+            self::CAN_ACCEPT => self::PROXY_ID | self::SIDE_ID,
+            self::CAN_CONNECT => self::SIDE_ID | self::MASTER_ID
         ),
         self::MASTER_ID => array(
-            self::DATA_CAN_ACCEPT => self::SIDE_ID | self::MASTER_ID,
-            self::DATA_CAN_CONNECT => self::SIDE_ID | self::MASTER_ID
+            self::CAN_ACCEPT => self::SIDE_ID | self::MASTER_ID,
+            self::CAN_CONNECT => self::SIDE_ID | self::MASTER_ID
         ),
         self::TORRENT_ID => array(
-            self::DATA_CAN_ACCEPT => self::PROXY_ID | self::SIDE_ID | self::MASTER_ID,
-            self::DATA_CAN_CONNECT => self::SIDE_ID
+            self::CAN_ACCEPT => self::PROXY_ID | self::SIDE_ID | self::MASTER_ID,
+            self::CAN_CONNECT => self::SIDE_ID
         ),
     );
 
     public static function getCanConnect(int $id) : int
     {
-        return self::$data[$id][self::DATA_CAN_CONNECT];
+        return self::$data[$id][self::CAN_CONNECT];
     }
 
     public static function getCanAccept(int $id) : int
     {
-        return self::$data[$id][self::DATA_CAN_ACCEPT];
+        return self::$data[$id][self::CAN_ACCEPT];
     }
 
     public static function getName(int $id) : string

@@ -2,26 +2,17 @@
 <?php
 require_once 'local.inc';
 
-/*
-$key = "testKey1";
-$dbh = dba_open(MAINCHAIN_FILE, "c", DBA_HANDLER);
-dba_insert($key, 1234567890, $dbh);
-echo var_export( dba_fetch($key, $dbh) . "\n", true);
-$test = dba_fetch($key, $dbh) . "\n";
-$test += 1234567890;
-dba_insert($key, $test, $dbh);
-echo var_export( dba_fetch($key, $dbh) . "\n", true);
-$test += 1234567890;
-dba_replace($key, $test, $dbh);
-echo var_export( dba_fetch($key, $dbh) . "\n", true);
-dba_optimize ($dbh);
-dba_sync($dbh);
-dba_close($dbh);
+$debugMode
+    = Logger::DBG_SERV
+    | Logger::DBG_SOCK
+    | Logger::DBG_MESS
+    | Logger::DBG_POOL
+    | Logger::DBG_TASK
+    | Logger::DBG_NODE
+    | Logger::DBG_ADDR
+    | Logger::DBG_DBA
+    | Logger::DBG_MSG_FLD;
 
-die(var_export(dba_handlers(true), true));
-*/
-
-$debugMode = Logger::DBG_SERV | Logger::DBG_SOCK | Logger::DBG_MESS | Logger::DBG_POOL | Logger::DBG_TASK | Logger::DBG_NODE | Logger::DBG_ADDR | Logger::DBG_DBA;
 //$debugMode = 0;
 
 $command = '';

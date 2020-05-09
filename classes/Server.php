@@ -13,7 +13,7 @@ class Server extends aBase
     private const SELECT_TIMEOUT_SEC = 0;
     private const SELECT_TIMEOUT_USEC = 50000;
     private const CONNECT_TIMEOUT = 30;
-    private const GARBAGE_TIMEOUT = 300;
+    private const GARBAGE_TIMEOUT = 60;
 
     private const LISTEN_KEY = 'lst';
     private const KEY_PREFIX = 'sock_';
@@ -475,6 +475,8 @@ class Server extends aBase
         foreach ($this->sockets as $key => $socket) {
             $this->closeSocket($key);
         }
+
+        $this->getApp()->getDba()->close();
 
         $this->log('******** Daemon ' . $this->getApp()->getPid() . ' close all sockets & finished ********');
         $this->log('******** ');

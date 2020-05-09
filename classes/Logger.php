@@ -12,16 +12,18 @@ class Logger extends aBase
     public const DBG_NODE = 32;
     public const DBG_ADDR = 64;
     public const DBG_DBA = 128;
+    public const DBG_MSG_FLD = 256;
 
     private static $flags = array(
-        self::DBG_SERV => 'Server ',
-        self::DBG_SOCK => 'Socket ',
-        self::DBG_MESS => 'Message',
-        self::DBG_POOL => 'Pool   ',
-        self::DBG_TASK => 'Task   ',
-        self::DBG_NODE => 'Node   ',
-        self::DBG_ADDR => 'Address',
-        self::DBG_DBA =>  'DBA    ',
+        self::DBG_SERV =>       'Server ',
+        self::DBG_SOCK =>       'Socket ',
+        self::DBG_MESS =>       'Message',
+        self::DBG_POOL =>       'Pool   ',
+        self::DBG_TASK =>       'Task   ',
+        self::DBG_NODE =>       'Node   ',
+        self::DBG_ADDR =>       'Address',
+        self::DBG_DBA =>        'DBA    ',
+        self::DBG_MSG_FLD =>    'MessFld',
     );
 
     /** @var string */

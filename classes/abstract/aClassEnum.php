@@ -2,10 +2,9 @@
 /**
  * Base class for enumerations of classes (with checking pre-spawning tool)
  */
-
 class aClassEnum extends aEnum
 {
-    protected static $baseClassName = '';
+    protected static $baseClassName = ''; /* override me */
 
     /**
      * @return string

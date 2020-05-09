@@ -16,6 +16,8 @@ class aDbRecord extends aBase
 //    public function setData($val) : self {$this->data = $val; return $this;}
 //    public function getData() : string {return $this->data;}
 
+
+
     protected $fields = array();  /* override me */
 
     public function fillFields()

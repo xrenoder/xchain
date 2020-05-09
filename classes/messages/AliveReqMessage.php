@@ -15,13 +15,13 @@ class AliveReqMessage extends aSimpleMessage
     {
         $socket = $this->getSocket();
         if (!$socket->areNodesCompatible()) {
-            $socket->addOutData(BadNodeResMessage::createMessage(array(static::DATA_MY_NODE_ID => $this->getApp()->getMyNode()->getId())));
+            $socket->addOutData(BadNodeResMessage::createMessage(array(static::MY_NODE_ID => $this->getMyNodeId())));
             $socket->setCloseAfterSend();
         } else if ($socket->isServerBusy()) {
-            $socket->addOutData(BusyResMessage::createMessage(array(static::DATA_MY_NODE_ID => $this->getApp()->getMyNode()->getId())));
+            $socket->addOutData(BusyResMessage::createMessage(array(static::MY_NODE_ID => $this->getMyNodeId())));
             $socket->setCloseAfterSend();
         } else {
-            $socket->addOutData(AliveResMessage::createMessage(array(static::DATA_MY_NODE_ID => $this->getApp()->getMyNode()->getId())));
+            $socket->addOutData(AliveResMessage::createMessage(array(static::MY_NODE_ID => $this->getMyNodeId())));
             $socket->setAliveChecked();
             $socket->cleanMessage();
         }

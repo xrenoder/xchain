@@ -8,14 +8,14 @@ abstract class aSimpleMessage extends aMessage
      */
     public static function createMessage(array $data) : string
     {
-        $myNodeId = $data[static::DATA_MY_NODE_ID];
+        $myNodeId = $data[static::MY_NODE_ID];
 
-        $type = static::packField(static::MESS_TYPE, static::$id);
-        $node = static::packField(static::MESS_NODE, $myNodeId);
+        $type = TypeMessageField::packField(static::$id);
+        $node = NodeMessageField::packField($myNodeId);
 
-        $lenLength = static::getLenLength();
+        $lenLength = MessageFieldClassEnum::getLenLength();
         $messLength = $lenLength + strlen($type . $node);
-        $len = static::packField(static::MESS_LENGTH, $messLength);
+        $len = LengthMessageField::packField($messLength);
 
         $mess = $type . $len . $node;
 
