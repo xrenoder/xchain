@@ -18,7 +18,6 @@ abstract class aMessage extends aBase
     protected static $needAliveCheck = true; /** can be overrided or not */
 
     public function getSocket() : Socket {return $this->getParent();}
-    public function getMyNodeId() : int {return $this->getApp()->getMyNode()->getId();}
 
     /** @var string */
     protected $name;

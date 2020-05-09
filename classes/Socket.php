@@ -241,7 +241,7 @@ class Socket extends aBase
             $this->needAliveCheck = false;
             $this->delayedOutData = $data;
 
-            return $this->addOutData(AliveReqMessage::createMessage(array(static::DATA_MY_NODE_ID => $this->getApp()->getMyNode()->getId())));
+            return $this->addOutData(AliveReqMessage::createMessage(array(aMessage::MY_NODE_ID => $this->getMyNodeId())));
         }
 
         $this->outData .= $data;
