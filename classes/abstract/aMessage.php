@@ -181,7 +181,7 @@ abstract class aMessage extends aBase
 
         if ($this->len >= $this->$property->getPoint()) {
             $this->$property->unpackField($this->str);
-            $this->dbg("Prepare field $this->fieldCounter : $property = " . $this->$property->getValue());
+            $this->dbg("Prepare field $fieldId : $property = " . $this->$property->getValue());
             $this->fieldCounter++;
             return $this->$property->check();
         }
