@@ -18,7 +18,7 @@ class FieldFormatEnum extends aEnum
         self::ULONG_BE =>   4,
     );
 
-    public static function getLength(int $id) : int
+    public static function getLength(string $id) : int
     {
         return self::$data[$id];
     }
