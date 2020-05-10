@@ -23,9 +23,9 @@ class Server extends aBase
     public function setListenHost(Host $val) : self {$this->listenHost = $val; return $this;}
     public function getListenHost() : Host {return $this->listenHost;}
 
-    /** @var Host */
+    /** @var ?Host */
     private $bindHost;
-    public function setBindHost(Host $val) : self {$this->bindHost = $val; return $this;}
+    public function setBindHost(?Host $val) : self {$this->bindHost = $val; return $this;}
     public function getBindHost() : Host {return $this->bindHost;}
 
     /** @var Queue */
@@ -202,7 +202,7 @@ class Server extends aBase
 
 // проверяем новые подключения
         $listenFd = null;
-        $isServerBusy = true;
+        $isServerBusy = false;
 
         if ($listenSocket = $this->getSocket(self::LISTEN_KEY)) {
             $listenFd = $listenSocket->getFd();
@@ -214,7 +214,7 @@ class Server extends aBase
 
                 if (count($this->sockets) >= (self::MAX_SOCK - self::RESERVE_SOCK)) {
                     if (!$this->removeUnusedConnected()) {      // try to remove unused connected socket to accept connection
-                        $isServerBusy = true;                         // if cannot remove unused socket - accept, read "@"alive req", answer "Busy!" and close socket
+                        $isServerBusy = true;                   // if cannot remove unused socket - accept, read "alive req", answer "Busy!" and close socket
                     }
                 }
 

@@ -266,7 +266,7 @@ class Socket extends aBase
         if($this->task) {
             $myNodeId = $this->task->getPool()->getMyNodeId();
         } else {
-            $myNodeId = $this->getApp()->getMyNode()->getId();
+            $myNodeId = $this->getMyNodeId();
         }
         if($this->isConnected()) {
             $myCriteria = NodeClassEnum::getCanConnect($myNodeId);

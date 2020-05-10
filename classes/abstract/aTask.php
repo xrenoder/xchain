@@ -7,7 +7,7 @@ abstract class aTask extends aBase
 {
     protected static $dbgLvl = Logger::DBG_TASK;
 
-    public function getPool() : TaskPool {return $this->getParent();}
+    public function getPool() : Pool {return $this->getParent();}
     public function getQueue() : Queue {return $this->getPool()->getQueue();}
     public function getServer() : Server {return $this->getQueue()->getServer();}
 
@@ -44,15 +44,15 @@ abstract class aTask extends aBase
     /**
      * Create task and add it to pool
      * @param Server $server
-     * @param TaskPool|null $pool when null - create pool with one task and same name as task
+     * @param Pool|null $pool when null - create pool with one task and same name as task
      * @param Host $host
      * @return aTask
      */
-    public static function create(Server $server, ?TaskPool $pool, Host $host) : self
+    public static function create(Server $server, ?Pool $pool, Host $host) : self
     {
         if (!$pool) {
             $queue = $server->getQueue();
-            $pool = TaskPool::create($queue, static::$name);
+            $pool = Pool::create($queue, static::$name);
         }
 
         $me = new static($pool);

@@ -21,10 +21,10 @@ class Queue extends aBase
     }
 
     /**
-     * @param TaskPool $pool
+     * @param Pool $pool
      * @return self
      */
-    public function addPool(TaskPool $pool) : self
+    public function addPool(Pool $pool) : self
     {
         $priority = $pool->getPriority();
 

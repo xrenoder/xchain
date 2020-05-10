@@ -1,7 +1,7 @@
 <?php
 
 
-class TaskPool extends aBase
+class Pool extends aBase
 {
     protected static $dbgLvl = Logger::DBG_POOL;
 
@@ -161,7 +161,7 @@ class TaskPool extends aBase
     {
         $this->finishedTasks++;
 
-        if ($this->finishedTasks && $this->finishedTasks == $this->runnedTasks) {
+        if ($this->finishedTasks && $this->finishedTasks === $this->runnedTasks) {
             $this->finish();
         }
 
