@@ -10,17 +10,18 @@ abstract class aSimpleMessage extends aMessage
     {
         $myNodeId = $data[static::MY_NODE_ID];
 
-        $type = TypeMessageField::packField(static::$id);
+// TODO вставлять время в момент начала отправки запроса, посколько более приоритетные запросы могут отложить выполнение других и те окажутся просрочены
+        $time = TimeMessageField::packField(time());
         $node = NodeMessageField::packField($myNodeId);
+        $body = $time . $node;
 
+        $type = TypeMessageField::packField(static::$id);
         $lenLength = MessageFieldClassEnum::getLenLength();
-        $messLength = $lenLength + strlen($type . $node);
+        $messLength = $lenLength + strlen($type . $body);
         $len = LengthMessageField::packField($messLength);
 
-        $mess = $type . $len . $node;
-
-        return $mess;
+        return $type . $len . $body;
     }
 
-    abstract protected function incomingMessageHandler(): bool;
+//    abstract protected function incomingMessageHandler(): bool;
 }

@@ -8,20 +8,23 @@ class MessageFieldClassEnum extends aClassEnum
 // must be serial from 0
     public const MESS_FLD_TYPE = 0;
     public const MESS_FLD_LENGTH = 1;
-    public const MESS_FLD_NODE = 2;
+    public const MESS_FLD_TIME = 2;
+    public const MESS_FLD_NODE = 3;
 
     public const UNLIMIT_LEN  = 0;
-    public const SIMPLE_MAX_LEN  = 1 + 4 + 1;
+    public const SIMPLE_MAX_LEN  = 1 + 4 + 4 + 1; // type + length + time + node
 
     protected static $items = array(
         self::MESS_FLD_TYPE => 'TypeMessageField',
         self::MESS_FLD_LENGTH => 'LengthMessageField',
+        self::MESS_FLD_TIME => 'TimeMessageField',
         self::MESS_FLD_NODE => 'NodeMessageField',
     );
 
     protected static $data = array(
         self::MESS_FLD_TYPE => FieldFormatEnum::UCHAR,
         self::MESS_FLD_LENGTH => FieldFormatEnum::ULONG_BE,
+        self::MESS_FLD_TIME => FieldFormatEnum::ULONG_BE,
         self::MESS_FLD_NODE => FieldFormatEnum::UCHAR,
     );
 
