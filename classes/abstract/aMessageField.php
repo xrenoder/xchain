@@ -45,8 +45,6 @@ abstract class aMessageField extends aBase
 
     protected static function create(aMessage $message) : ?self
     {
-        $message->dbg(MessageFieldClassEnum::getItem(static::$id) .  ' parsed');
-
         $me = new static($message);
 
         $me
@@ -54,6 +52,8 @@ abstract class aMessageField extends aBase
             ->setLength()
             ->setOffsetAndPoint()
             ->setName();
+
+        $message->dbg(MessageFieldClassEnum::getItem(static::$id) .  ' object created');
 
         return $me;
     }
