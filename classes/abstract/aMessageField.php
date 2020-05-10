@@ -71,7 +71,7 @@ abstract class aMessageField extends aBase
 
     public function unpackField(string $str) : void
     {
-        $this->value = unpack($this->format, substr($str, $this->offset, $this->length));
+        $this->value = unpack($this->format, substr($str, $this->offset, $this->length))[1];
     }
 
     public static function packField($val)
