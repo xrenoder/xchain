@@ -36,9 +36,6 @@ abstract class aMessage extends aBase
     protected $len = null;
     public function getLen() : int {return $this->len;}
 
-    /** @var int  */
-    private $fieldCounter = 1;      // not 0 - zero is id of field 'message type'
-
     /**
      * fieldId => 'propertyName'
      * @var string[]
@@ -49,13 +46,19 @@ abstract class aMessage extends aBase
         MessageFieldClassEnum::MESS_FLD_NODE =>      'remoteNodeId',
     );
 
-    /** @var aMessageField  */
-    protected $declaredLen = null;
-    public function getDeclaredLen() : int {return $this->declaredLen->getValue();}
+    /** @var int  */
+    private $fieldCounter = 1;      // not 0 - zero is id of field 'message type'
 
     /** @var aMessageField  */
+    private $fieldObject = null;
+
+    /** @var int  */
+    protected $declaredLen = null;
+    public function getDeclaredLen() : int {return $this->declaredLen;}
+
+    /** @var int  */
     private $remoteNodeId = null;
-    public function getRemoteNodeId() : int {return $this->remoteNodeId->getValue();}
+    public function getRemoteNodeId() : int {return $this->remoteNodeId;}
 
     abstract public static function createMessage(array $data) : string;
     abstract protected function incomingMessageHandler() : bool;
@@ -78,6 +81,8 @@ abstract class aMessage extends aBase
         $me
             ->setMaxLen()
             ->setName();
+
+        $socket->setMessage($me);
 
         return $me;
     }
@@ -116,8 +121,6 @@ abstract class aMessage extends aBase
 //                $socket->dbg(static::$dbgLvl, 'RequestEnum list: ' . var_export(MessageClassEnum::getItemsList(), true));
                 return $socket->badData();
             }
-
-            $socket->setMessage($message);
         }
 
         return $socket->getMessage()->addPacket($packet);
@@ -128,7 +131,7 @@ abstract class aMessage extends aBase
      */
     public function getBufferSize() : int
     {
-        return $this->getDeclaredLen() - $this->len + 1;
+        return $this->declaredLen - $this->len + 1;
     }
 
     /**
@@ -137,19 +140,29 @@ abstract class aMessage extends aBase
      */
     private function addPacket(string $packet) : bool
     {
+        $socket = $this->getSocket();
+
+// if server is busy - not check incoming fields, quick answer 'busy' and disconnect
+        if ($socket->isServerBusy()) {
+            $socket->addOutData(BusyResMessage::createMessage(array(static::MY_NODE_ID => $this->getMyNodeId())));
+            $socket->setCloseAfterSend();
+
+            return false;
+        }
+
         $this->str .= $packet;
         $this->len = strlen($this->str);
 
 // check message len for maximum len
         if ($this->maxLen && $this->len > $this->maxLen) {
             $this->dbg("BAD DATA length $this->len more than maximum $this->maxLen for $this->name");
-            return $this->getSocket()->badData();
+            return $socket->badData();
         }
 
 // check message len for declared len
-        if ($this->declaredLen && $this->getDeclaredLen() !== null && $this->len > $this->getDeclaredLen()) {
-            $this->dbg("BAD DATA length $this->len more than declared length "  . $this->getDeclaredLen() . "for $this->name (1)");
-            return $this->getSocket()->badData();
+        if ($this->declaredLen !== null && $this->len > $this->declaredLen) {
+            $this->dbg("BAD DATA length $this->len more than declared length " . $this->declaredLen . "for $this->name (1)");
+            return $socket->badData();
         }
 
 // prepare fields
@@ -173,17 +186,21 @@ abstract class aMessage extends aBase
 
     protected function prepareField(int $fieldId, string $property) : bool
     {
-        if ($this->$property !== null && $this->$property->getValue() !== null) return true;
+        if ($this->$property !== null) return true;
 
-        if ($this->$property === null) {
-            $this->$property = aMessageField::spawn($this, $fieldId);
+        if ($this->fieldObject === null) {
+            $this->fieldObject = aMessageField::spawn($this, $fieldId);
         }
 
-        if ($this->len >= $this->$property->getPoint()) {
-            $this->$property->unpackField($this->str);
-            $this->dbg("Prepare field $fieldId : $property = " . $this->$property->getValue());
+        if ($this->len >= $this->fieldObject->getPoint()) {
+            $this->$property = $this->fieldObject->unpackField($this->str);
+            $this->dbg("Prepare field $fieldId : $property = " . $this->$property);
+            $result = $this->fieldObject->check();
+            $this->fieldObject = null;
+
             $this->fieldCounter++;
-            return $this->$property->check();
+
+            return $result;
         }
 
         return false;

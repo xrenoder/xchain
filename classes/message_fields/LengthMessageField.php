@@ -8,13 +8,16 @@ class LengthMessageField extends aMessageField
 
     public function check(): bool
     {
-        if ($this->getMessage()->getMaxLen() && $this->value > $this->getMessage()->getMaxLen()) {
-            $this->dbg("BAD DATA declared length $this->value more than maximum " . $this->getMessage()->getMaxLen() . "for " . $this->getMessage()->getName());
+        $message = $this->getMessage();
+        $maxLen = $message->getMaxLen();
+
+        if ($maxLen && $this->value > $maxLen) {
+            $this->dbg("BAD DATA declared length $this->value more than maximum $maxLen for " . $message->getName());
             return $this->getSocket()->badData();
         }
 
-        if ($this->getMessage()->getLen() > $this->value) {
-            $this->dbg("BAD DATA length " . $this->getMessage()->getLen() . " more than declared length $this->value for " . $this->getMessage()->getName() . " (2)");
+        if ($message->getLen() > $this->value) {
+            $this->dbg("BAD DATA length " . $message->getLen() . " more than declared length $this->value for " . $message->getName() . " (2)");
             return $this->getSocket()->badData();
         }
 

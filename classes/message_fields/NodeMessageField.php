@@ -8,8 +8,10 @@ class NodeMessageField extends aMessageField
 
     public function check(): bool
     {
-        $this->getSocket()->setRemoteNode(aNode::spawn($this->getApp(), $this->getMessage()->getRemoteNodeId()));
-        $this->getSocket()->checkNodesCompatiblity();
+        $socket = $this->getSocket();
+
+        $socket->setRemoteNode(aNode::spawn($this->getApp(), $this->getMessage()->getRemoteNodeId()));
+        $socket->checkNodesCompatiblity();
 // TODO добавить проверку в блокчейне, может ли отправитель сообщения исполнять роль той ноды, которой представляется
         return true;
     }

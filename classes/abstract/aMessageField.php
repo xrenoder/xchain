@@ -32,7 +32,6 @@ abstract class aMessageField extends aBase
     public function getPoint() {return $this->point;}
 
     protected $value = null;
-    public function getValue() : int {return $this->value;}
 
     abstract public function check() : bool;
 
@@ -69,9 +68,11 @@ abstract class aMessageField extends aBase
         return null;
     }
 
-    public function unpackField(string $str) : void
+    public function unpackField(string $str)
     {
         $this->value = unpack($this->format, substr($str, $this->offset, $this->length))[1];
+
+        return $this->value;
     }
 
     public static function packField($val)
