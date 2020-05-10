@@ -11,7 +11,7 @@ class MessageClassEnum extends aClassEnum
 {
     protected static $baseClassName = 'aMessage'; /* overrided */
 
-    public const DATA_MAX_LEN  = 'maxLength';
+    public const MESSAGE_MAX_LEN  = 'maxLength';
 
     public const ALIVE_REQ      = 0;
     public const ALIVE_RES      = 1;
@@ -27,10 +27,10 @@ class MessageClassEnum extends aClassEnum
     );
 
     protected static $data = array(
-        self::ALIVE_REQ =>      array(self::DATA_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
-        self::ALIVE_RES =>      array(self::DATA_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
-        self::BUSY_RES =>       array(self::DATA_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
-        self::BAD_NODE_RES =>   array(self::DATA_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
+        self::ALIVE_REQ =>      array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
+        self::ALIVE_RES =>      array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
+        self::BUSY_RES =>       array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
+        self::BAD_NODE_RES =>   array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
     );
 
     /**
@@ -40,6 +40,6 @@ class MessageClassEnum extends aClassEnum
      */
     public static function getMaxLen(int $id) : int
     {
-        return static::$data[$id][self::DATA_MAX_LEN];
+        return static::$data[$id][self::MESSAGE_MAX_LEN];
     }
 }
