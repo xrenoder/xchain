@@ -43,6 +43,7 @@ abstract class aMessage extends aBase
     protected static $fields = array(
         MessageFieldClassEnum::MESS_FLD_TYPE =>      '',
         MessageFieldClassEnum::MESS_FLD_LENGTH =>    'declaredLen',
+        MessageFieldClassEnum::MESS_FLD_TIME =>      'sendingTime',
         MessageFieldClassEnum::MESS_FLD_NODE =>      'remoteNodeId',
     );
 
@@ -55,6 +56,10 @@ abstract class aMessage extends aBase
     /** @var int  */
     protected $declaredLen = null;
     public function getDeclaredLen() : int {return $this->declaredLen;}
+
+    /** @var int  */
+    private $sendingTime = null;
+    public function getSendingTime() : int {return $this->sendingTime;}
 
     /** @var int  */
     private $remoteNodeId = null;
