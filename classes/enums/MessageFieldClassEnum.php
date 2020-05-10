@@ -49,7 +49,7 @@ class MessageFieldClassEnum extends aClassEnum
         $offset = 0;
 
         for ($i = 0; $i < $fieldId; $i++) {
-            $offset += static::getLength($fieldId);
+            $offset += static::getLength($i);
         }
 
         return $offset;
