@@ -179,8 +179,6 @@ abstract class aMessage extends aBase
             $this->$property = aMessageField::spawn($this, $fieldId);
         }
 
-        $this->dbg("$this->len ? " . $this->$property->getPoint());
-
         if ($this->len >= $this->$property->getPoint()) {
             $this->$property->unpackField($this->str);
             $this->dbg("Prepare field $fieldId : $property = " . $this->$property->getValue());
