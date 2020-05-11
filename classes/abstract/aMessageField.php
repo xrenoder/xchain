@@ -79,4 +79,9 @@ abstract class aMessageField extends aBase
     {
         return pack(MessageFieldClassEnum::getFormat(static::$id), $val);
     }
+
+    public static function getLength() : int
+    {
+        return MessageFieldClassEnum::getLength(static::$id);
+    }
 }

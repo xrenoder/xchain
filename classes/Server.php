@@ -264,10 +264,10 @@ class Server extends aBase
     /**
      * Connecting to remote host
      * @param Host $host
-     * @param string $dataSend
+     * @param string $message
      * @return Socket
      */
-    public function connect(Host $host, string $dataSend = null) : ?Socket
+    public function connect(Host $host, aMessage $message = null) : ?Socket
     {
         if (count($this->sockets) >= self::MAX_SOCK) {
             if (!$this->removeUnusedConnected()) {      // try to remove unused connected socket to accept connection
@@ -320,8 +320,8 @@ class Server extends aBase
         $socket = $this->newWriteSocket($fd, $host);
         $socket->setConnected();
 
-        if ($dataSend) {
-            $socket->addOutData($dataSend);
+        if ($message) {
+            $socket->sendMessage($message);
         }
 
         return $socket;

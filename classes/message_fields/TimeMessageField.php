@@ -14,8 +14,9 @@ class TimeMessageField extends aMessageField
 // TODO заменить 2 секунды разницы во времени между созданием запроса и приемом на константу или полученое из блокчейна правило
 // возможно, локальное время нужно брать в момент получения запроса
         if ($diff >= 2) {
-            $this->dbg("BAD DATA message time $this->value have big different with local time $time for " . $this->getMessage()->getName());
-            return $this->getSocket()->badData();
+            $this->dbg("BAD TIME message time $this->value have too big different with local time $time for " . $this->getMessage()->getName());
+            $this->getMessage()->setBadTime();
+            return false;
         }
 
         return true;

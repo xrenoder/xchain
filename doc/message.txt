@@ -1,9 +1,11 @@
 1 bytes         type of message (255)
 4 bytes         length of message body (include this field and type field) (2 Gb)
+1 byte          sender node type (255)
 4 bytes         time (if "local time" is different from "message time" to 2 sec or more - decline)
-1 byte          sender node type (255) (last field for "BusyRes", and "BadNodeRes")
+(last field for "BusyRes", "BadNodeRes" and "BadTimeRes")
 
-25 bytes        sender X-address    (last field for "AliveReq", "AliveRes")
+25 bytes        sender X-address
+(last field for "AliveReq", "AliveRes")
 
 1 byte          step on way of message between nodes (255)
                                         1 - User to F-peer "transaction",

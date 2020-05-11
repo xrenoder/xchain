@@ -6,22 +6,18 @@ abstract class aSimpleMessage extends aMessage
     /**
      * @return string
      */
-    public static function createMessage(array $data) : string
+    public function createMessageString() : string
     {
-        $myNodeId = $data[static::MY_NODE_ID];
+        $myNodeId = $this->getSocket()->getMyNodeId();
 
-// TODO вставлять время в момент начала отправки запроса, посколько более приоритетные запросы могут отложить выполнение других и те окажутся просрочены
-        $time = TimeMessageField::packField(time());
-        $node = NodeMessageField::packField($myNodeId);
-        $body = $time . $node;
+        $nodeField = NodeMessageField::packField($myNodeId);
+        $timeField = TimeMessageField::packField(time());
+        $body = $nodeField . $timeField;
 
-        $type = TypeMessageField::packField(static::$id);
-        $lenLength = MessageFieldClassEnum::getLenLength();
-        $messLength = $lenLength + strlen($type . $body);
-        $len = LengthMessageField::packField($messLength);
+        $typeField = TypeMessageField::packField(static::$id);
+        $messageStringLength = strlen($typeField) + LengthMessageField::getLength() + strlen($body);
+        $lenField = LengthMessageField::packField($messageStringLength);
 
-        return $type . $len . $body;
+        return $typeField . $lenField . $body;
     }
-
-//    abstract protected function incomingMessageHandler(): bool;
 }

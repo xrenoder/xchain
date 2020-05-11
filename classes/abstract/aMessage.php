@@ -36,6 +36,10 @@ abstract class aMessage extends aBase
     protected $len = null;
     public function getLen() : int {return $this->len;}
 
+    /** @var array  */
+    protected $outData = null;
+    public function setOutData(array $val) : self {$this->outData = $val; return $this;}
+
     /**
      * fieldId => 'propertyName'
      * @var string[]
@@ -43,8 +47,8 @@ abstract class aMessage extends aBase
     protected static $fields = array(
         MessageFieldClassEnum::MESS_FLD_TYPE =>      '',
         MessageFieldClassEnum::MESS_FLD_LENGTH =>    'declaredLen',
-        MessageFieldClassEnum::MESS_FLD_TIME =>      'sendingTime',
         MessageFieldClassEnum::MESS_FLD_NODE =>      'remoteNodeId',
+        MessageFieldClassEnum::MESS_FLD_TIME =>      'sendingTime',
     );
 
     /** @var int  */
@@ -58,23 +62,28 @@ abstract class aMessage extends aBase
     public function getDeclaredLen() : int {return $this->declaredLen;}
 
     /** @var int  */
-    private $sendingTime = null;
-    public function getSendingTime() : int {return $this->sendingTime;}
-
-    /** @var int  */
     private $remoteNodeId = null;
     public function getRemoteNodeId() : int {return $this->remoteNodeId;}
 
-    abstract public static function createMessage(array $data) : string;
+    /** @var int  */
+    protected $sendingTime = null;
+    public function getSendingTime() : int {return $this->sendingTime;}
+
+    /** @var bool  */
+    protected $isBadTime = false;
+    public function setBadTime() : self {$this->isBadTime = true; return $this;}
+    public function isBadTime() : bool {return $this->isBadTime;}
+
+    abstract public function createMessageString() : string;
     abstract protected function incomingMessageHandler() : bool;
 
     /**
      * @param Socket $socket
      * @return aMessage|null
      */
-    protected static function create(Socket $socket) : ?self
+    public static function create(Socket $socket, array $outData = null) : ?self
     {
-        if (static::$needAliveCheck && !$socket->isAliveChecked()) {
+        if ($outData === null && static::$needAliveCheck && !$socket->isAliveChecked()) {
             $socket->dbg(MessageClassEnum::getItem(static::$id) . ' cannot explored before Alive checking');
             return null;
         }
@@ -87,7 +96,11 @@ abstract class aMessage extends aBase
             ->setMaxLen()
             ->setName();
 
-        $socket->setMessage($me);
+        if ($outData === null) {
+            $socket->setInMessage($me);
+        } else {
+            $me->setOutData($outData);
+        }
 
         return $me;
     }
@@ -103,7 +116,7 @@ abstract class aMessage extends aBase
         /** @var aMessage $className */
 
         if ($className = MessageClassEnum::getClassName($id)) {
-            return $className::create($socket);
+            return $className::create($socket, null);
         }
 
         return null;
@@ -117,7 +130,7 @@ abstract class aMessage extends aBase
      */
     public static function parser(Socket $socket, string $packet) : bool
     {
-        if (!$socket->getMessage()) {
+        if (!$socket->getInMessage()) {
             $messageType = MessageFieldClassEnum::prepareField(0, $packet);
 
             if (!($message = self::spawn($socket, $messageType))) {
@@ -128,7 +141,7 @@ abstract class aMessage extends aBase
             }
         }
 
-        return $socket->getMessage()->addPacket($packet);
+        return $socket->getInMessage()->addPacket($packet);
     }
 
     /**
@@ -149,7 +162,7 @@ abstract class aMessage extends aBase
 
 // if server is busy - not check incoming fields, quick answer 'busy' and disconnect
         if ($socket->isServerBusy()) {
-            $socket->addOutData(BusyResMessage::createMessage(array(static::MY_NODE_ID => $this->getMyNodeId())));
+            $socket->sendMessage(BusyResMessage::create($socket,[]));
             $socket->setCloseAfterSend();
 
             return false;

@@ -17,7 +17,7 @@ class AliveResMessage extends aSimpleMessage
 
         $this->getSocket()->setAliveChecked();
         $this->getSocket()->cleanMessage();
-        $this->getSocket()->addDelayedOutData();
+        $this->getSocket()->sendDelayedOutMessage();
 
         return true;
     }

@@ -21,24 +21,23 @@ class Socket extends aBase
     /** @var bool  */
     private $blockMode = true;
 
-    /** @var bool  */
-    private $keepAlive = false;
+//    /** @var bool  */
+//    private $keepAlive = false;
 
     /** @var int  */
     private $time = null;
     public function setTime() : self {$this->time = time(); return $this;}
 
     /** @var aMessage  */
-    private $message;
-    public function setMessage(aMessage $val) : self {$this->message = $val; return $this;}
-    public function getMessage() : ?aMessage {return $this->message;}
+    private $inMessage = null;
+    public function setInMessage(aMessage $val) : self {$this->inMessage = $val; return $this;}
+    public function getInMessage() : ?aMessage {return $this->inMessage;}
 
     /** @var string  */
-    private $outData = '';
-    public function setOutData(string $val) :  self {$this->outData = $val; return $this;}
-    public function getOutData() : string {return $this->outData;}
+    private $outString = '';
 
-    private $delayedOutData = '';
+    /** @var aMessage  */
+    private $delayedOutMessage = null;
 
     /** @var Host  */
     private $host;
@@ -225,26 +224,31 @@ class Socket extends aBase
      */
     public function cleanMessage() : self
     {
-        $this->message = null;
+        $this->inMessage = null;
 
         return $this;
     }
 
     /**
      * Add packet to socket for sending
-     * @param $data
+     * @param $message
      * @return self
      */
-    public function addOutData($data) : self
+    public function sendMessage(aMessage $message) : self
     {
         if ($this->needAliveCheck && $this->isConnected()) {
             $this->needAliveCheck = false;
-            $this->delayedOutData = $data;
+            $this->delayedOutMessage = $message;
 
-            return $this->addOutData(AliveReqMessage::createMessage(array(aMessage::MY_NODE_ID => $this->getMyNodeId())));
+            $message = AliveReqMessage::create($this, []);
+
+            return $this;
         }
 
-        $this->outData .= $data;
+        if ($message !== null) {
+            $this->outString .= $message->createMessageString();
+        }
+
         $this->setSends();
 
         return $this;
@@ -253,21 +257,27 @@ class Socket extends aBase
     /**
      * @return self
      */
-    public function addDelayedOutData() : self
+    public function sendDelayedOutMessage() : self
     {
-        $data = $this->delayedOutData;
-        $this->delayedOutData = '';
+        $message = $this->delayedOutMessage;
+        $this->delayedOutMessage = null;
 
-        return $this->addOutData($data);
+        return $this->sendMessage($message);
+    }
+
+    public function getMyNodeId() : int
+    {
+        if ($this->task) {
+            return $this->task->getPool()->getMyNodeId();
+        }
+
+        return $this->getApp()->getMyNode()->getId();
     }
 
     public function checkNodesCompatiblity() : void
     {
-        if($this->task) {
-            $myNodeId = $this->task->getPool()->getMyNodeId();
-        } else {
-            $myNodeId = $this->getMyNodeId();
-        }
+        $myNodeId = $this->getMyNodeId();
+
         if($this->isConnected()) {
             $myCriteria = NodeClassEnum::getCanConnect($myNodeId);
             $logTxt = "cannot connect to";
@@ -292,7 +302,7 @@ class Socket extends aBase
     public function send() : self
     {
         $this->setTime();
-        $buff = $this->getOutData();
+        $buff = $this->outString;
 
         if ($buff) {
             if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
@@ -300,7 +310,7 @@ class Socket extends aBase
             }
 
             if ($realLength) {
-                $this->setOutData(substr($this->getOutData(), $realLength));
+                $this->outString = (substr($this->outString, $realLength));
             }
 
             $this->dbg('SEND ' . $this->key . ": $realLength bytes");
@@ -308,7 +318,7 @@ class Socket extends aBase
             $this->dbg('SEND ' . $this->key . ": ZERO bytes, switch to received mode");
         }
 
-        if (!$this->getOutData()) {
+        if (!$this->outString) {
             if ($this->needCloseAfterSend()) {
                 $this->close();
             } else {
@@ -335,8 +345,8 @@ class Socket extends aBase
 
         $needRead = -1;
 
-        if ($this->message && $this->message->getDeclaredLen()) {
-            $needRead = $this->message->getBufferSize();
+        if ($this->inMessage && $this->inMessage->getDeclaredLen()) {
+            $needRead = $this->inMessage->getBufferSize();
         }
 
         if (($data = stream_get_contents($this->fd, $needRead)) === false) {
@@ -348,7 +358,7 @@ class Socket extends aBase
             return false;
         }
 
-        $this->dbg('RECV ' . $this->getKey() . ': '. $data);
+        $this->dbg('RECV ' . $this->getKey() . ': '. strlen($data) . ' bytes');
 
         return aMessage::parser($this, $data);
     }

@@ -20,8 +20,7 @@ class AliveTask extends aTask
             return false;
         }
 
-//        $this->socket->addOutData(AliveReqMessage::createMessage());
-        $this->socket->addOutData('');      // empty message will be not sended, but Socket before first message always send AliveRequest
+        $this->socket->sendMessage(null);      // empty message will be not sended, but Socket before first message always send AliveRequest
 
         return true;
     }
