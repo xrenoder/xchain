@@ -8,10 +8,9 @@ abstract class aSimpleMessage extends aMessage
      */
     public function createMessageString() : string
     {
-        $myNodeId = $this->getSocket()->getMyNodeId();
-
-        $nodeField = NodeMessageField::packField($myNodeId);
+        $nodeField = NodeMessageField::packField($this->getSocket()->getMyNodeId());
         $timeField = TimeMessageField::packField(time());
+
         $body = $nodeField . $timeField;
 
         $typeField = TypeMessageField::packField(static::$id);

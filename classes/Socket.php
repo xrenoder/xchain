@@ -31,6 +31,7 @@ class Socket extends aBase
     /** @var aMessage  */
     private $inMessage = null;
     public function setInMessage(aMessage $val) : self {$this->inMessage = $val; return $this;}
+    public function cleanInMessage() : self {$this->inMessage = null; return $this; }
     public function getInMessage() : ?aMessage {return $this->inMessage;}
 
     /** @var string  */
@@ -210,21 +211,11 @@ class Socket extends aBase
             $this->task->finish();
         }
 
-        $this->cleanMessage();
+        $this->cleanInMessage();
 
         $this->remoteNode = null;
 
         $this->time = 0;
-
-        return $this;
-    }
-
-    /**
-     * @return self
-     */
-    public function cleanMessage() : self
-    {
-        $this->inMessage = null;
 
         return $this;
     }

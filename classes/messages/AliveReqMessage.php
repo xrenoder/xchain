@@ -23,7 +23,7 @@ class AliveReqMessage extends aSimpleMessage
         } else {
             $socket->sendMessage(AliveResMessage::create($socket, []));
             $socket->setAliveChecked();
-            $socket->cleanMessage();
+            $socket->cleanInMessage();
         }
 
 //        $this->getSocket()->setFreeAfterSend();
