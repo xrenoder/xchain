@@ -8,7 +8,7 @@ class TimeMessageField extends aMessageField
 
     public function check(): bool
     {
-        $time = time();
+        $time = time() + 3;
         $diff = abs($this->value - $time);
 
 // TODO заменить 2 секунды разницы во времени между созданием запроса и приемом на константу или полученое из блокчейна правило
