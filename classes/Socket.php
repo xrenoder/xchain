@@ -234,7 +234,7 @@ class Socket extends aBase
      * @param $message
      * @return self
      */
-    public function sendMessage(aMessage $message) : self
+    public function sendMessage(?aMessage $message) : self
     {
         if ($this->needAliveCheck && $this->isConnected()) {
             $this->needAliveCheck = false;

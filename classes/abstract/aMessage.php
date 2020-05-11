@@ -81,7 +81,7 @@ abstract class aMessage extends aBase
      * @param Socket $socket
      * @return aMessage|null
      */
-    public static function create(Socket $socket, array $outData = null) : ?self
+    public static function create(Socket $socket, ?array $outData = null) : ?self
     {
         if ($outData === null && static::$needAliveCheck && !$socket->isAliveChecked()) {
             $socket->dbg(MessageClassEnum::getItem(static::$id) . ' cannot explored before Alive checking');
