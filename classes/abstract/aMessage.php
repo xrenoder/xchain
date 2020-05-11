@@ -6,8 +6,6 @@ abstract class aMessage extends aBase
 {
     protected static $dbgLvl = Logger::DBG_MESS;
 
-    public const MY_NODE_ID = 'myNodeId';
-
     /** @var int  */
     protected static $id;  /* override me */
 
@@ -88,7 +86,11 @@ abstract class aMessage extends aBase
             return null;
         }
 
-        $socket->dbg(MessageClassEnum::getItem(static::$id) .  ' detected');
+        if ($outData === null) {
+            $socket->dbg(MessageClassEnum::getItem(static::$id) .  ' detected');
+        } else {
+            $socket->dbg(MessageClassEnum::getItem(static::$id) .  ' created');
+        }
 
         $me = new static($socket);
 
