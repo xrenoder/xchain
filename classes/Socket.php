@@ -241,8 +241,6 @@ class Socket extends aBase
             $this->delayedOutMessage = $message;
 
             $message = AliveReqMessage::create($this, []);
-
-            return $this;
         }
 
         if ($message !== null) {
