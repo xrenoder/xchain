@@ -59,4 +59,14 @@ abstract class aBase
     {
         $this->getApp()->getLogger()->debugLog(static::$dbgLvl, $message);
     }
+
+    protected function dbTrans() : string
+    {
+        return $this->getApp()->getDba()->transactionBegin();
+    }
+
+    protected function dbCommit(string $transactionKey)
+    {
+        $this->getApp()->getDba()->transactionCommit($transactionKey);
+    }
 }

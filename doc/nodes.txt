@@ -1,6 +1,6 @@
 https://dou.ua/lenta/articles/12-konsensus-protocols/
 
-16    main node (M-node)
+16    master node (M-node)
 0111
                 1st level
                 heart of network, create and keep critical network data

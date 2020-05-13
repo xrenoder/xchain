@@ -52,7 +52,7 @@ try {
     $app->setMyAddr(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
 
     // load chain state data
-    ChainState::create($app, STATES_TABLE);
+    ChainSummaryData::create($app);
 
 //    $startPool = TaskPool::create($app->getServer()->getQueue(), "Start Operations");
 //    GetFnodesTask::create($app->getServer(), $startPool, $firstRemoteHost);

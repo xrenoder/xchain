@@ -43,34 +43,23 @@ abstract class aMessage extends aBase
      * @var string[]
      */
     protected static $fields = array(
-        MessageFieldClassEnum::MESS_FLD_TYPE =>      '',
-        MessageFieldClassEnum::MESS_FLD_LENGTH =>    'declaredLen',
-        MessageFieldClassEnum::MESS_FLD_NODE =>      'remoteNodeId',
-        MessageFieldClassEnum::MESS_FLD_TIME =>      'sendingTime',
+        MessageFieldClassEnum::MESS_FLD_TYPE =>      '',                // must be always first field in message
+        MessageFieldClassEnum::MESS_FLD_LENGTH =>    'declaredLen',     // must be always second field in message
     );
 
     /** @var int  */
-    private $fieldCounter = 1;      // not 0 - zero is id of field 'message type'
+    private $fieldCounter = 1;      // not 0 - zero is id of field 'message type', parsed before field object created
 
     /** @var aMessageField  */
     private $fieldObject = null;
 
     /** @var int  */
+    private $fieldOffset = null;
+    public function setFieldOffset() : self {$this->fieldOffset = MessageFieldClassEnum::getLength(MessageFieldClassEnum::MESS_FLD_TYPE); return $this;}
+
+    /** @var int  */
     protected $declaredLen = null;
     public function getDeclaredLen() : int {return $this->declaredLen;}
-
-    /** @var int  */
-    private $remoteNodeId = null;
-    public function getRemoteNodeId() : int {return $this->remoteNodeId;}
-
-    /** @var int  */
-    protected $sendingTime = null;
-    public function getSendingTime() : int {return $this->sendingTime;}
-
-    /** @var bool  */
-    protected $isBadTime = false;
-    public function setBadTime() : self {$this->isBadTime = true; return $this;}
-    public function isBadTime() : bool {return $this->isBadTime;}
 
     abstract public function createMessageString() : string;
     abstract protected function incomingMessageHandler() : bool;
@@ -96,7 +85,8 @@ abstract class aMessage extends aBase
 
         $me
             ->setMaxLen()
-            ->setName();
+            ->setName()
+            ->setFieldOffset();
 
         if ($outData === null) {
             $socket->setInMessage($me);
@@ -133,7 +123,7 @@ abstract class aMessage extends aBase
     public static function parser(Socket $socket, string $packet) : bool
     {
         if (!$socket->getInMessage()) {
-            $messageType = MessageFieldClassEnum::prepareField(0, $packet);
+            $messageType = FieldFormatEnum::unpack($packet,MessageFieldClassEnum::getFormat(MessageFieldClassEnum::MESS_FLD_TYPE), 0)[1];
 
             if (!($message = self::spawn($socket, $messageType))) {
 // if cannot create class of request by declared type - incoming data is bad
@@ -209,15 +199,31 @@ abstract class aMessage extends aBase
         if ($this->$property !== null) return true;
 
         if ($this->fieldObject === null) {
-            $this->fieldObject = aMessageField::spawn($this, $fieldId);
+            $this->fieldObject = aMessageField::spawn($this, $fieldId, $this->fieldOffset);
+
+            if ($this->fieldObject->isLast()) {
+                $this->fieldObject
+                    ->setLength($this->declaredLen - $this->fieldOffset)
+                    ->setPoint();
+            }
         }
 
         if ($this->len >= $this->fieldObject->getPoint()) {
-            $this->$property = $this->fieldObject->unpackField($this->str);
-            $this->dbg("Prepare field $fieldId : $property = " . $this->$property);
-            $result = $this->fieldObject->check();
-            $this->fieldObject = null;
+            [$length, $this->$property] = $this->fieldObject->unpackField($this->str);
 
+            if ($this->$property === null) {
+                $this->dbg("Prepare field " . $this->fieldObject->getName() . ": field length = " . $length);
+                $this->fieldObject->setLength($length);
+                $this->fieldObject->setPoint();
+
+                return $this->prepareField($fieldId, $property);
+            }
+
+            $this->dbg("Prepare field " . $this->fieldObject->getName() . ": $property = " . $this->$property);
+            $result = $this->fieldObject->check();
+
+            $this->fieldObject = null;
+            $this->fieldOffset += $length;
             $this->fieldCounter++;
 
             return $result;

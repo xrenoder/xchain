@@ -2,7 +2,7 @@
 /**
  * Base class for enumerations of classes (with checking pre-spawning tool)
  */
-class aClassEnum extends aEnum
+abstract class aClassEnum extends aEnum
 {
     protected static $baseClassName = ''; /* override me */
 

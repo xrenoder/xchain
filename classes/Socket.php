@@ -35,7 +35,7 @@ class Socket extends aBase
     public function getInMessage() : ?aMessage {return $this->inMessage;}
 
     /** @var string  */
-    private $outString = '';
+    private $outData = '';
 
     /** @var aMessage  */
     private $delayedOutMessage = null;
@@ -235,7 +235,7 @@ class Socket extends aBase
         }
 
         if ($message !== null) {
-            $this->outString .= $message->createMessageString();
+            $this->outData .= $message->createMessageString();
         }
 
         $this->setSends();
@@ -291,15 +291,18 @@ class Socket extends aBase
     public function send() : self
     {
         $this->setTime();
-        $buff = $this->outString;
 
-        if ($buff) {
+        if ($this->outData) {
+//            $buff = $this->outData;
+// TODO убрать отладочную побайтовую отправку
+            $buff = $this->outData[0];
+
             if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
                 $this->err('ERROR: write to socket error');
             }
 
             if ($realLength) {
-                $this->outString = (substr($this->outString, $realLength));
+                $this->outData = (substr($this->outData, $realLength));
             }
 
             $this->dbg('SEND ' . $this->key . ": $realLength bytes");
@@ -307,7 +310,7 @@ class Socket extends aBase
             $this->dbg('SEND ' . $this->key . ": ZERO bytes, switch to received mode");
         }
 
-        if (!$this->outString) {
+        if (!$this->outData) {
             if ($this->needCloseAfterSend()) {
                 $this->close();
             } else {
@@ -343,7 +346,7 @@ class Socket extends aBase
         }
 
         if (!$data)	{	// удаленный сервер разорвал соединение
-            $this->close();
+            $this->close(" from remote side");
             return false;
         }
 
@@ -356,7 +359,7 @@ class Socket extends aBase
      * Close socket
      * @return self
      */
-    public function close() : self
+    public function close($logStr = '') : self
     {
         stream_socket_shutdown($this->fd, STREAM_SHUT_RDWR);
         fclose($this->fd);
@@ -375,7 +378,7 @@ class Socket extends aBase
 
         unset($this->task);
 
-        $this->dbg('Socket ' . $key . ' closed');
+        $this->dbg("Socket $key closed" . $logStr);
 
         return $this;
     }

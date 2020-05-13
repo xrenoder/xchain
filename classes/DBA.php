@@ -197,7 +197,9 @@ class DBA extends aBase
         }
 
         if ($result === null) {
-            $result = dba_fetch($id, $this->dbhTables[$table]);
+            if (dba_exists($id, $this->dbhTables[$table])) {
+                $result = dba_fetch($id, $this->dbhTables[$table]);
+            }
         }
 
         if ($isLock) {
