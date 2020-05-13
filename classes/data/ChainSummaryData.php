@@ -5,7 +5,7 @@
 
 class ChainSummaryData extends aDbRowsCollection
 {
-    protected $rows = array(
+    protected static $rows = array(
         'lastKnownBlock' => 'LastKnownBlockRow',
         'lastPreparedBlock' => 'LastPreparedBlockRow',
         'transactionEmissionRule' => 'TransactionEmissionRuleRow',
