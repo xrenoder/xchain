@@ -51,10 +51,12 @@ try {
 //
     $text1 = "ldfjdljgal;saldgasldkjsagdlaskdgj;asldgkjas;ldkjgas;dgjas;dgkjas;dlkgjas;dlgkjas;dgjk;saldgkjsa;gdkj";
     $text2 = "ldfjdljgal;saldgasldkjsagdlaskdgj;asldgkjas;ldkjgas;dgjas;dgkjas;dlkgjas;dlgkjas;dgjk;saldgkjsa;gdkjoetquoqweotpqoieutpqoupopzpovicxp";
-    $sign1 = $app->getMyAddr()->sign($text1);
-    $sign2 = $app->getMyAddr()->sign($text2);
+    $sign1 = $app->getMyAddr()->signBin($text1);
+    $sign2 = $app->getMyAddr()->signBin($text2);
+    $ver1 = $app->getMyAddr()->verifyBin($sign1, $text1);
+    $ver2 = $app->getMyAddr()->verifyBin($sign2, $text2);
 
-    die("$sign1\n\n$sign2\n\n" . strlen($sign1) . "\n" . strlen($sign1));
+    die("$sign1\n\n$sign2\n\n" . strlen($sign1) . " bytes\n" . strlen($sign1) . " bytes\n$ver1\$ver2\n");
 
     // get daemon-object
     Daemon::create($app, RUN_PATH,  'pid');

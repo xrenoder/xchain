@@ -109,7 +109,7 @@ class Address extends aBase
      * @param $data
      * @return |null
      */
-    public function sign($data) : string
+    public function signBin($data) : string
     {
         $sign = null;
 
@@ -124,7 +124,7 @@ class Address extends aBase
      * @param $data
      * @return mixed
      */
-    public function verify($signBin, $data) : bool
+    public function verifyBin($signBin, $data) : bool
     {
         return mhcrypto_check_sign_text($signBin, $this->publicKeyHex, $data);
     }
