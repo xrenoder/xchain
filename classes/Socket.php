@@ -293,9 +293,8 @@ class Socket extends aBase
         $this->setTime();
 
         if ($this->outData) {
-//            $buff = $this->outData;
-// TODO убрать отладочную побайтовую отправку
-            $buff = $this->outData[0];
+            $buff = $this->outData;
+//            $buff = $this->outData[0];
 
             if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
                 $this->err('ERROR: write to socket error');
