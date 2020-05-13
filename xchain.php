@@ -45,6 +45,17 @@ try {
 
     Server::create($app,$listenTCPHost, $bindTCPHost);
 
+    // load node private key
+    $app->setMyAddr(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
+
+//
+    $text1 = "ldfjdljgal;saldgasldkjsagdlaskdgj;asldgkjas;ldkjgas;dgjas;dgkjas;dlkgjas;dlgkjas;dgjk;saldgkjsa;gdkj";
+    $text2 = "ldfjdljgal;saldgasldkjsagdlaskdgj;asldgkjas;ldkjgas;dgjas;dgkjas;dlkgjas;dlgkjas;dgjk;saldgkjsa;gdkjoetquoqweotpqoieutpqoupopzpovicxp";
+    $sign1 = $app->getMyAddr()->sign($text1);
+    $sign2 = $app->getMyAddr()->sign($text2);
+
+    die("$sign1\n\n$sign2\n\n" . strlen($sign1) . "\n" . strlen($sign1));
+
     // get daemon-object
     Daemon::create($app, RUN_PATH,  'pid');
 
@@ -52,16 +63,6 @@ try {
     if (!$app->getDaemon()->run($command)) {
         throw new Exception('Cannot daemon start');
     }
-
-    // load node private key
-    $app->setMyAddr(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
-
-    $text1 = "ldfjdljgal;saldgasldkjsagdlaskdgj;asldgkjas;ldkjgas;dgjas;dgkjas;dlkgjas;dlgkjas;dgjk;saldgkjsa;gdkj";
-    $text2 = "ldfjdljgal;saldgasldkjsagdlaskdgj;asldgkjas;ldkjgas;dgjas;dgkjas;dlkgjas;dlgkjas;dgjk;saldgkjsa;gdkjoetquoqweotpqoieutpqoupopzpovicxp";
-    $sign1 = $app->getMyAddr()->sign($text1);
-    $sign2 = $app->getMyAddr()->sign($text2);
-
-    die("$sign1\n\n$sign2\n\n" . strlen($sign1) . "\n" . strlen($sign1));
 
     // load chain state data
     SummaryDataSet::create($app);
