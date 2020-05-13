@@ -187,7 +187,7 @@ abstract class aMessage extends aBase
             }
         }
 
-        if ($this->len < $this->declaredLen) {
+        if ($this->declaredLen === null || $this->len < $this->declaredLen) {
             return false;
         }
 

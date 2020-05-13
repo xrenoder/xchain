@@ -91,8 +91,8 @@ class Socket extends aBase
     public function getRemoteNode() : ?aNode {return $this->remoteNode;}
 
     /** @var bool  */
-    private $areNodesCompatible = false;
-    public function areNodesCompatible() : bool {return $this->areNodesCompatible;}
+    private $areNodesCompatible = null;
+    public function areNodesCompatible() : ?bool {return $this->areNodesCompatible;}
 
     /**
      * @param Server $server

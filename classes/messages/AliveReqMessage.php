@@ -14,7 +14,7 @@ class AliveReqMessage extends aSimpleMessage
     protected function incomingMessageHandler() : bool
     {
         $socket = $this->getSocket();
-        if (!$socket->areNodesCompatible()) {
+        if ($socket->areNodesCompatible() === false) {
             $socket->sendMessage(BadNodeResMessage::create($socket, []));
             $socket->setCloseAfterSend();
         } else if ($this->isBadTime()) {
