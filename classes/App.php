@@ -43,10 +43,10 @@ class App extends aBase
     public function setMyAddr(Address $val) : self {$this->myAddr = $val; return $this;}
     public function getMyAddr() : Address {return $this->myAddr;}
 
-    /** @var ChainSummaryData */
-    private $chainSummaryData;
-    public function setChainSummaryData(ChainSummaryData $val) : self {$this->chainSummaryData = $val; return $this;}
-    public function getChainSummaryData() : ChainSummaryData {return $this->chainSummaryData;}
+    /** @var SummaryDataSet */
+    private $summaryDataSet;
+    public function setSummaryDataSet(SummaryDataSet $val) : self {$this->summaryDataSet = $val; return $this;}
+    public function getSummaryDataSet() : SummaryDataSet {return $this->summaryDataSet;}
 
     /**
      * App constructor.

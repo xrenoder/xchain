@@ -3,7 +3,7 @@
  * Class of current states of blockchain (last prepared block, last known block, rules, etc)
  */
 
-class ChainSummaryData extends aDbRowsCollection
+class SummaryDataSet extends aDbRowsSet
 {
     protected static $rows = array(
         'lastKnownBlock' => 'LastKnownBlockRow',
@@ -12,17 +12,21 @@ class ChainSummaryData extends aDbRowsCollection
         'transactionRewardsRule' => 'TransactionRewardsRuleRow',
     );
 
+    /** @var LastKnownBlockRow */
     protected $lastKnownBlock;
-    public function getLastKnownBlock() : string {return $this->lastKnownBlock;}
+    public function getLastKnownBlock() : ?LastKnownBlockRow {return $this->lastKnownBlock;}
 
+    /** @var LastPreparedBlockRow */
     protected $lastPreparedBlock;
-    public function getLastPreparedBlock() : string {return $this->lastPreparedBlock;}
+    public function getLastPreparedBlock() : ?LastPreparedBlockRow {return $this->lastPreparedBlock;}
 
+    /** @var TransactionEmissionRuleRow */
     protected $transactionEmissionRule;
-    public function getTransactionEmissionRule() : string {return $this->transactionEmissionRule;}
+    public function getTransactionEmissionRule() : ?TransactionEmissionRuleRow {return $this->transactionEmissionRule;}
 
+    /** @var TransactionRewardsRuleRow */
     protected $transactionRewardsRule;
-    public function getTransactionRewardsRule() : string {return $this->transactionRewardsRule;}
+    public function getTransactionRewardsRule() : ?TransactionRewardsRuleRow {return $this->transactionRewardsRule;}
 
     public static function create(App $app)
     {
@@ -30,7 +34,7 @@ class ChainSummaryData extends aDbRowsCollection
 
         $me
             ->fillRows()
-            ->getApp()->setChainSummaryData($me);
+            ->getApp()->setSummaryDataSet($me);
 
         return $me;
     }

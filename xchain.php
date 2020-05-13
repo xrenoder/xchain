@@ -2,6 +2,7 @@
 <?php
 require_once 'local.inc';
 
+///*
 $debugMode
     = Logger::DBG_SERV
     | Logger::DBG_SOCK
@@ -11,9 +12,13 @@ $debugMode
     | Logger::DBG_NODE
     | Logger::DBG_ADDR
     | Logger::DBG_DBA
-    | Logger::DBG_MSG_FLD;
-
-//$debugMode = 0;
+    | Logger::DBG_MSG_FLD
+    | Logger::DBG_ROW
+    | Logger::DBG_ROW_SET;
+//*/
+/*
+$debugMode = 0;
+*/
 
 $command = '';
 
@@ -51,8 +56,15 @@ try {
     // load node private key
     $app->setMyAddr(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
 
+    $text1 = "ldfjdljgal;saldgasldkjsagdlaskdgj;asldgkjas;ldkjgas;dgjas;dgkjas;dlkgjas;dlgkjas;dgjk;saldgkjsa;gdkj";
+    $text2 = "ldfjdljgal;saldgasldkjsagdlaskdgj;asldgkjas;ldkjgas;dgjas;dgkjas;dlkgjas;dlgkjas;dgjk;saldgkjsa;gdkjoetquoqweotpqoieutpqoupopzpovicxp";
+    $sign1 = $app->getMyAddr()->sign($text1);
+    $sign2 = $app->getMyAddr()->sign($text2);
+
+    die("$sign1\n\n$sign2\n\n" . strlen($sign1) . "\n" . strlen($sign1));
+
     // load chain state data
-    ChainSummaryData::create($app);
+    SummaryDataSet::create($app);
 
 //    $startPool = TaskPool::create($app->getServer()->getQueue(), "Start Operations");
 //    GetFnodesTask::create($app->getServer(), $startPool, $firstRemoteHost);

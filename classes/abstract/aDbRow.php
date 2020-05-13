@@ -4,6 +4,8 @@
  */
 abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
 {
+    protected static $dbgLvl = Logger::DBG_ROW;
+
     /** @var string  */
     protected static $table = null;     /* override me */
 
@@ -74,6 +76,9 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
     {
         $this->data = $this->getApp()->getDba()->fetch(static::$table, $this->id);
         $this->unpackFields();
+
+        $this->dbg(get_class($this) . " loaded");
+
         return $this;
     }
 
@@ -94,6 +99,8 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
         } else {
             $this->getApp()->getDba()->insert(static::$table, $this->id, $this->data);
         }
+
+        $this->dbg(get_class($this) . " saved");
 
         $this->isChanged = false;
 

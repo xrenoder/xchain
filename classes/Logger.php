@@ -4,15 +4,17 @@
  */
 class Logger extends aBase
 {
-    public const DBG_SERV = 1;
-    public const DBG_SOCK = 2;
-    public const DBG_MESS = 4;
-    public const DBG_POOL = 8;
-    public const DBG_TASK = 16;
-    public const DBG_NODE = 32;
-    public const DBG_ADDR = 64;
-    public const DBG_DBA = 128;
-    public const DBG_MSG_FLD = 256;
+    public const DBG_SERV =     1;
+    public const DBG_SOCK =     2;
+    public const DBG_MESS =     4;
+    public const DBG_POOL =     8;
+    public const DBG_TASK =     16;
+    public const DBG_NODE =     32;
+    public const DBG_ADDR =     64;
+    public const DBG_DBA =      128;
+    public const DBG_MSG_FLD =  256;
+    public const DBG_ROW =      512;
+    public const DBG_ROW_SET =  1024;
 
     private static $flags = array(
         self::DBG_SERV =>       'Server ',
@@ -23,7 +25,9 @@ class Logger extends aBase
         self::DBG_NODE =>       'Node   ',
         self::DBG_ADDR =>       'Address',
         self::DBG_DBA =>        'DBA    ',
-        self::DBG_MSG_FLD =>    'MessFld',
+        self::DBG_MSG_FLD =>    'Msg Fld',
+        self::DBG_ROW =>        'DB Row ',
+        self::DBG_ROW_SET =>    'DB RSet',
     );
 
     /** @var string */

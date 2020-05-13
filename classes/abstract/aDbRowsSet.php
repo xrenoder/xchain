@@ -1,8 +1,10 @@
 <?php
 
 
-abstract class aDbRowsCollection extends aBase implements constDbRowIds
+abstract class aDbRowsSet extends aBase implements constDbRowIds
 {
+    protected static $dbgLvl = Logger::DBG_ROW_SET;
+
     /**
      * 'propertyName' => 'rowClassName'
      * @var string[]
@@ -11,7 +13,7 @@ abstract class aDbRowsCollection extends aBase implements constDbRowIds
 
     abstract public static function create(App $app);
 
-    public function fillRows()
+    public function fillRows() : self
     {
         $transKey = $this->dbTrans();
 
@@ -21,6 +23,8 @@ abstract class aDbRowsCollection extends aBase implements constDbRowIds
         }
 
         $this->dbCommit($transKey);
+
+        $this->dbg(get_class($this) . " loaded");
 
         return $this;
     }
