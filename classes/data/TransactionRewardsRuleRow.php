@@ -1,7 +1,7 @@
 <?php
 
 
-class TransactionRewardsdRuleRow extends aDbRow
+class TransactionRewardsRuleRow extends aDbRow
 {
     /** @var string  */
     protected static $table = self::SUMMARY_TABLE;     /* overrided */
