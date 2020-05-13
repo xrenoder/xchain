@@ -197,6 +197,8 @@ class Server extends aBase
         foreach($wr as $fd) {
             if ($key = array_search($fd, $this->sends, true)) {
                 $this->getSocket($key)->send();
+                // TODO убрать отладочную задержку
+                usleep(100000);
             }
         }
 

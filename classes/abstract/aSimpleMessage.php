@@ -15,7 +15,7 @@ abstract class aSimpleMessage extends aMessage
     );
 
     /** @var int  */
-    private $remoteNodeId = null;
+    protected $remoteNodeId = null;
     public function getRemoteNodeId() : int {return $this->remoteNodeId;}
 
     /** @var int  */
