@@ -56,7 +56,7 @@ try {
     $ver1 = $app->getMyAddr()->verifyBin($sign1, $text1);
     $ver2 = $app->getMyAddr()->verifyBin($sign2, $text2);
 
-    die("$sign1\n\n$sign2\n\n" . strlen($sign1) . " bytes\n" . strlen($sign1) . " bytes\n$ver1\$ver2\n");
+    die("$sign1\n\n$sign2\n\n" . strlen($sign1) . " bytes\n" . strlen($sign1) . " bytes\n$ver1\n$ver2\n");
 
     // get daemon-object
     Daemon::create($app, RUN_PATH,  'pid');
