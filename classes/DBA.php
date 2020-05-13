@@ -178,7 +178,7 @@ class DBA extends aBase
         return $result;
     }
 
-    public function fetch(string $table, string $id) : string
+    public function fetch(string $table, string $id) : ?string
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
