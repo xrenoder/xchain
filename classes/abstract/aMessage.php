@@ -32,7 +32,7 @@ abstract class aMessage extends aBase
 
     /** @var int  */
     protected $len = null;
-    public function getLen() : int {return $this->len;}
+    public function getLen() : ?int {return $this->len;}
 
     /** @var array  */
     protected $outData = null;
@@ -59,7 +59,7 @@ abstract class aMessage extends aBase
 
     /** @var int  */
     protected $declaredLen = null;
-    public function getDeclaredLen() : int {return $this->declaredLen;}
+    public function getDeclaredLen() : ?int {return $this->declaredLen;}
 
     abstract public function createMessageString() : string;
     abstract protected function incomingMessageHandler() : bool;
