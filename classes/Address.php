@@ -25,9 +25,9 @@ class Address extends aBase
     private $publicKeyHex = null;      // hex 496 bytes
     private $addressHex = null;        // hex 50 bytes
 
-    private $privateKeyBase16 = null;  // base16
-    private $publicKeyBase16 = null;   // base16
-    private $addressBase16 = null;     // base16
+    private $privateKeyBase16 = null;  // base16 (hex + 2 bytes)
+    private $publicKeyBase16 = null;   // base16 (hex + 2 bytes)
+    private $addressBase16 = null;     // base16 (hex + 2 bytes)
 
     public function getPublicKeyBin() : string {return $this->publicKey;}
     public function getAddressBin() : string {return $this->address;}
@@ -111,6 +111,10 @@ class Address extends aBase
      */
     public function signBin($data) : string
     {
+        if ($this->privateKeyHex === null ) {
+            throw new Exception("Cannot sign without private key");
+        }
+
         $sign = null;
 
         mhcrypto_sign_text($sign, $this->privateKeyHex, $data);
@@ -126,10 +130,24 @@ class Address extends aBase
      */
     public function verifyBin($signBin, $data) : bool
     {
+        if ($this->publicKeyHex === null ) {
+            throw new Exception("Cannot verify signature without public key");
+        }
+
         return mhcrypto_check_sign_text($signBin, $this->publicKeyHex, $data);
     }
 
-    public static function checkAddress($addressHuman) : bool
+    public static function checkAddressBin($addressBin) : bool
+    {
+        if ($addressBin) {
+            $addressHex = bin2hex($addressBin);
+            return mhcrypto_check_address($addressHex);
+        }
+
+        return false;
+    }
+
+    public static function checkAddressHuman($addressHuman) : bool
     {
         if ($addressHuman) {
             $addressHex = static::hexFromBase16($addressHuman);
@@ -182,7 +200,7 @@ class Address extends aBase
             throw new RuntimeException(sprintf('Directory "%s" was not found', $walletPath));
         }
 
-        if (!static::checkAddress($addressHuman)) {
+        if (!static::checkAddressHuman($addressHuman)) {
             throw new RuntimeException("Address $addressHuman is not valid");
         }
 
@@ -217,7 +235,7 @@ class Address extends aBase
         return $this;
     }
 
-    public function loadPublicKey($publicKeyBin) : self
+    public function loadPublicKey($publicKeyBin, $addressBin = null) : self
     {
         if ($this->privateKey !== null || $this->publicKey !== null) {
             throw new RuntimeException('Cannot load new public key - this address-object is already filled');
@@ -233,7 +251,11 @@ class Address extends aBase
 
         $this->publicToAddress();
 
-        $this->dbg('Private key for ' . $this->addressBase16 . " loaded");
+        if ($addressBin !== null && $addressBin !== $this->address) {
+            throw new RuntimeException('Cannot load: this public key is not for address ' . $this->hexToBase16(bin2hex($addressBin)));
+        }
+
+        $this->dbg('Public key for ' . $this->addressBase16 . " loaded");
 
         return $this;
     }
