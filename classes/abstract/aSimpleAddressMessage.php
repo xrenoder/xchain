@@ -15,7 +15,7 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
         MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
         MessageFieldClassEnum::NODE =>      'remoteNodeId',
         MessageFieldClassEnum::TIME =>      'sendingTime',
-        MessageFieldClassEnum::ADDR =>      'remoteAddr',
+        MessageFieldClassEnum::ADDR =>      'remoteAddrBin',
     );
 
     /** @var string  */
