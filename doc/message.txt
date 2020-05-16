@@ -5,7 +5,9 @@
 (last field for "BusyRes", "BadNodeRes" and "BadTimeRes")
 
 25 bytes        sender X-address
-(last field for "AliveReq", "AliveRes")
+(last field for "AliveReq" and "AliveRes")
+
+var             data
 
 1 byte          step on way of message between nodes (255)
                                         1 - User to F-peer "transaction",

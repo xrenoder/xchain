@@ -9,11 +9,25 @@ abstract class aMessage extends aBase
     /** @var int  */
     protected static $id;  /* override me */
 
+    /** @var int  */
+    protected $maxLen = null;   /* override me */
+    public function getMaxLen() : int {return $this->maxLen;}
+
     /**
      * If false - this message can be first sended or received after socket creation
      * @var bool
      */
     protected static $needAliveCheck = true; /** can be overrided or not */
+
+    /**
+     * override me
+     * fieldId => 'propertyName'
+     * @var string[]
+     */
+    protected static $fields = array(
+        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
+        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
+    );
 
     public function getSocket() : Socket {return $this->getParent();}
 
@@ -21,11 +35,6 @@ abstract class aMessage extends aBase
     protected $name;
     public function setName() : self {$this->name = MessageClassEnum::getItem(static::$id); return $this;}
     public function getName() : string {return $this->name;}
-
-    /** @var int  */
-    protected $maxLen = null;
-    public function setMaxLen() : self {$this->maxLen = MessageClassEnum::getMaxLen(static::$id); return $this;}
-    public function getMaxLen() : int {return $this->maxLen;}
 
     /** @var string */
     private $str;
@@ -38,24 +47,15 @@ abstract class aMessage extends aBase
     protected $outData = null;
     public function setOutData(array $val) : self {$this->outData = $val; return $this;}
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
-    protected static $fields = array(
-        MessageFieldClassEnum::MESS_FLD_TYPE =>      '',                // must be always first field in message
-        MessageFieldClassEnum::MESS_FLD_LENGTH =>    'declaredLen',     // must be always second field in message
-    );
-
     /** @var int  */
-    private $fieldCounter = 1;      // not 0 - zero is id of field 'message type', parsed before field object created
+    private $fieldPointer = MessageFieldClassEnum::LENGTH;      // first fieldId prepared inside message-object (field 'Message Length')
 
     /** @var aMessageField  */
     private $fieldObject = null;
 
     /** @var int  */
     private $fieldOffset = null;
-    public function setFieldOffset() : self {$this->fieldOffset = MessageFieldClassEnum::getLength(MessageFieldClassEnum::MESS_FLD_TYPE); return $this;}
+    public function setFieldOffset() : self {$this->fieldOffset = MessageFieldClassEnum::getLength(MessageFieldClassEnum::TYPE); return $this;}
 
     /** @var int  */
     protected $declaredLen = null;
@@ -84,7 +84,7 @@ abstract class aMessage extends aBase
         $me = new static($socket);
 
         $me
-            ->setMaxLen()
+            ->checkFieldsId()
             ->setName()
             ->setFieldOffset();
 
@@ -95,6 +95,21 @@ abstract class aMessage extends aBase
         }
 
         return $me;
+    }
+
+    public function checkFieldsId() : self
+    {
+        $prevId = -1;
+
+        foreach (static::$fields as $fieldId => $property) {
+            if ($fieldId <= $prevId) {
+                throw new Exception("Bad fields set description - not serial, later field less or equal previous");
+            }
+
+            $prevId = $fieldId;
+        }
+
+        return $this;
     }
 
     /**
@@ -123,7 +138,7 @@ abstract class aMessage extends aBase
     public static function parser(Socket $socket, string $packet) : bool
     {
         if (!$socket->getInMessage()) {
-            $messageType = FieldFormatEnum::unpack($packet,MessageFieldClassEnum::getFormat(MessageFieldClassEnum::MESS_FLD_TYPE), 0)[1];
+            $messageType = FieldFormatEnum::unpack($packet,MessageFieldClassEnum::getFormat(MessageFieldClassEnum::TYPE), 0)[1];
 
             if (!($message = self::spawn($socket, $messageType))) {
 // if cannot create class of request by declared type - incoming data is bad
@@ -177,7 +192,7 @@ abstract class aMessage extends aBase
 
 // prepare fields
         foreach (static::$fields as $fieldId => $property) {
-            if ($this->fieldCounter > $fieldId) {
+            if ($this->fieldPointer > $fieldId) {
                 continue;
             }
 
@@ -224,7 +239,7 @@ abstract class aMessage extends aBase
 
             $this->fieldObject = null;
             $this->fieldOffset += $length;
-            $this->fieldCounter++;
+            $this->fieldPointer = $fieldId + 1;
 
             return $result;
         }

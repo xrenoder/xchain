@@ -94,6 +94,11 @@ class Socket extends aBase
     private $areNodesCompatible = null;
     public function areNodesCompatible() : ?bool {return $this->areNodesCompatible;}
 
+    /** @var string  */
+    private $remoteAddrBin = null;
+    public function setRemoteAddrBin(string $val) : self {$this->remoteAddrBin = $val; return $this;}
+    public function getRemoteAddrBin() : string {return $this->remoteAddrBin;}
+
     /**
      * @param Server $server
      * @param $fd

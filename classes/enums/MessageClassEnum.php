@@ -11,14 +11,11 @@ class MessageClassEnum extends aClassEnum
 {
     protected static $baseClassName = 'aMessage'; /* overrided */
 
-    public const MESSAGE_MAX_LEN  = 'maxLength';
-
     public const ALIVE_REQ      = 0;
     public const ALIVE_RES      = 1;
     public const BUSY_RES       = 2;
     public const BAD_NODE_RES   = 3;
     public const BAD_TIME_RES   = 4;
-    public const NODES_REQ      = 5;
 
     protected static $items = array(
         self::ALIVE_REQ =>      'AliveReqMessage',      // request "Is daemon alive?"
@@ -28,21 +25,4 @@ class MessageClassEnum extends aClassEnum
         self::BAD_TIME_RES =>   'BadTimeResMessage',    // response "Daemon is alive, but node times are unsynchronized, socket will be closed"
     );
 
-    protected static $data = array(
-        self::ALIVE_REQ =>      array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
-        self::ALIVE_RES =>      array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
-        self::BUSY_RES =>       array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
-        self::BAD_NODE_RES =>   array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
-        self::BAD_TIME_RES =>   array(self::MESSAGE_MAX_LEN => MessageFieldClassEnum::SIMPLE_MAX_LEN),
-    );
-
-    /**
-     * @param int $id
-     * @return int
-     * @throws Exception
-     */
-    public static function getMaxLen(int $id) : int
-    {
-        return static::$data[$id][self::MESSAGE_MAX_LEN];
-    }
 }

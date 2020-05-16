@@ -2,7 +2,7 @@
 /**
  * Request "Is daemon alive?"
  */
-class AliveReqMessage extends aSimpleMessage
+class AliveReqMessage extends aSimpleAddressMessage
 {
     /** @var int  */
     protected static $id = MessageClassEnum::ALIVE_REQ; /* overrided */
@@ -14,6 +14,7 @@ class AliveReqMessage extends aSimpleMessage
     protected function incomingMessageHandler() : bool
     {
         $socket = $this->getSocket();
+
         if ($socket->areNodesCompatible() === false) {
             $socket->sendMessage(BadNodeResMessage::create($socket, []));
             $socket->setCloseAfterSend();

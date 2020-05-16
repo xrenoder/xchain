@@ -4,7 +4,7 @@
 class LengthMessageField extends aMessageField
 {
     /** @var int  */
-    protected static $id = MessageFieldClassEnum::MESS_FLD_LENGTH;  /* overrided */
+    protected static $id = MessageFieldClassEnum::LENGTH;  /* overrided */
 
     public function check(): bool
     {

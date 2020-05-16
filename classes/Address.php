@@ -17,7 +17,6 @@ class Address extends aBase
     public const PUBLIC_BIN_LEN = 248;
     public const ADDRESS_HUM_LEN = 52;
 
-    private $privateKey = null;     // bin  279 bytes
     private $publicKey = null;      // bin  248 bytes
     private $address = null;        // bin  25 bytes
 
@@ -25,18 +24,11 @@ class Address extends aBase
     private $publicKeyHex = null;      // hex 496 bytes
     private $addressHex = null;        // hex 50 bytes
 
-    private $privateKeyBase16 = null;  // base16 (hex + 2 bytes)
-    private $publicKeyBase16 = null;   // base16 (hex + 2 bytes)
     private $addressBase16 = null;     // base16 (hex + 2 bytes)
 
     public function getPublicKeyBin() : string {return $this->publicKey;}
     public function getAddressBin() : string {return $this->address;}
     public function getAddressHuman() : string {return $this->addressBase16;}
-
-    public static function createEmpty(App $app) : self
-    {
-        return static::create($app);
-    }
 
     public static function createNew(App $app, string $walletPath = null) : self
     {
@@ -75,11 +67,8 @@ class Address extends aBase
 	{
         mhcrypto_generate_wallet($this->privateKeyHex, $this->publicKeyHex, $this->addressHex);
 
-        $this->privateKeyBase16 = $this->hexToBase16($this->privateKeyHex);
-        $this->publicKeyBase16 = $this->hexToBase16($this->publicKeyHex);
-        $this->addressBase16 = $this->hexToBase16($this->addressHex);
+        $this->addressBase16 = static::hexToBase16($this->addressHex);
 
-        $this->privateKey = hex2bin($this->privateKeyHex);
         $this->publicKey = hex2bin($this->publicKeyHex);
         $this->address = hex2bin($this->addressHex);
 
@@ -93,14 +82,13 @@ class Address extends aBase
 	private function privateToPublic() : void
 	{
         mhcrypto_generate_public($this->privateKeyHex, $this->publicKeyHex);
-        $this->publicKeyBase16 = $this->hexToBase16($this->publicKeyHex);
         $this->publicKey = hex2bin($this->publicKeyHex);
 	}
 
     private function publicToAddress() : void
     {
         mhcrypto_generate_address($this->publicKeyHex, $this->addressHex);
-        $this->addressBase16 = $this->hexToBase16($this->addressHex);
+        $this->addressBase16 = static::hexToBase16($this->addressHex);
         $this->address = hex2bin($this->addressHex);
     }
 
@@ -137,36 +125,6 @@ class Address extends aBase
         return mhcrypto_check_sign_text($signBin, $this->publicKeyHex, $data);
     }
 
-    public static function checkAddressBin($addressBin) : bool
-    {
-        if ($addressBin) {
-            $addressHex = bin2hex($addressBin);
-            return mhcrypto_check_address($addressHex);
-        }
-
-        return false;
-    }
-
-    public static function checkAddressHuman($addressHuman) : bool
-    {
-        if ($addressHuman) {
-            $addressHex = static::hexFromBase16($addressHuman);
-            return mhcrypto_check_address($addressHex);
-        }
-
-        return false;
-    }
-
-	public function hexToBase16($string) : string
-	{
-		return (strpos($string, '0x') === 0) ? $string : '0x' . $string;
-	}
-
-	public static function hexFromBase16($string) : string
-	{
-		return (strpos($string, '0x') === 0) ? substr($string, 2) : $string;
-	}
-
     public function save(string $walletPath) : self
     {
         if (!is_dir($walletPath)) {
@@ -192,7 +150,7 @@ class Address extends aBase
 
     public function loadPrivateKey(string $addressHuman, string $walletPath) : self
     {
-        if ($this->privateKey !== null || $this->publicKey !== null) {
+        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null) {
             throw new RuntimeException('Cannot load new private key - this address-object is already filled');
         }
 
@@ -220,9 +178,6 @@ class Address extends aBase
         flock($fd, LOCK_UN);
         fclose($fd);
 
-        $this->privateKeyBase16 = $this->hexToBase16($this->privateKeyHex);
-        $this->privateKey = hex2bin($this->privateKeyHex);
-
         $this->privateToPublic();
         $this->publicToAddress();
 
@@ -237,7 +192,7 @@ class Address extends aBase
 
     public function loadPublicKey($publicKeyBin, $addressBin = null) : self
     {
-        if ($this->privateKey !== null || $this->publicKey !== null) {
+        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null) {
             throw new RuntimeException('Cannot load new public key - this address-object is already filled');
         }
 
@@ -247,16 +202,51 @@ class Address extends aBase
 
         $this->publicKey = $publicKeyBin;
         $this->publicKeyHex = bin2hex($this->publicKey);
-        $this->publicKeyBase16 = $this->hexToBase16($this->publicKeyHex);
 
         $this->publicToAddress();
 
         if ($addressBin !== null && $addressBin !== $this->address) {
-            throw new RuntimeException('Cannot load: this public key is not for address ' . $this->hexToBase16(bin2hex($addressBin)));
+            throw new RuntimeException('Cannot load: this public key is not for address ' . static::hexToBase16(bin2hex($addressBin)));
         }
 
         $this->dbg('Public key for ' . $this->addressBase16 . " loaded");
 
         return $this;
     }
+
+    public static function checkAddressBin($addressBin) : bool
+    {
+        if ($addressBin) {
+            $addressHex = bin2hex($addressBin);
+            return mhcrypto_check_address($addressHex);
+        }
+
+        return false;
+    }
+
+    public static function checkAddressHuman($addressHuman) : bool
+    {
+        if ($addressHuman) {
+            $addressHex = static::hexFromBase16($addressHuman);
+            return mhcrypto_check_address($addressHex);
+        }
+
+        return false;
+    }
+
+    public static function binToBase16($string) : string
+    {
+        $hex = bin2hex($string);
+        return '0x' . $hex;
+    }
+
+	public static function hexToBase16($string) : string
+	{
+		return (strpos($string, '0x') === 0) ? $string : '0x' . $string;
+	}
+
+	public static function hexFromBase16($string) : string
+	{
+		return (strpos($string, '0x') === 0) ? substr($string, 2) : $string;
+	}
 }

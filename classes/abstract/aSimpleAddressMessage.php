@@ -1,10 +1,10 @@
 <?php
 
 
-abstract class aSimpleMessage extends aMessage
+abstract class aSimpleAddressMessage extends aSimpleMessage
 {
     /** @var int  */
-    protected $maxLen = MessageFieldClassEnum::SIMPLE_MAX_LEN;   /* overrided */
+    protected $maxLen = MessageFieldClassEnum::SIMPLE_ADDR_MAX_LEN;   /* overrided */
 
     /**
      * fieldId => 'propertyName'
@@ -15,20 +15,12 @@ abstract class aSimpleMessage extends aMessage
         MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
         MessageFieldClassEnum::NODE =>      'remoteNodeId',
         MessageFieldClassEnum::TIME =>      'sendingTime',
+        MessageFieldClassEnum::ADDR =>      'remoteAddr',
     );
 
-    /** @var int  */
-    protected $remoteNodeId = null;
-    public function getRemoteNodeId() : int {return $this->remoteNodeId;}
-
-    /** @var int  */
-    protected $sendingTime = null;
-    public function getSendingTime() : int {return $this->sendingTime;}
-
-    /** @var bool  */
-    protected $isBadTime = false;
-    public function setBadTime() : self {$this->isBadTime = true; return $this;}
-    public function isBadTime() : bool {return $this->isBadTime;}
+    /** @var string  */
+    protected $remoteAddrBin = null;
+    public function getRemoteAddrBin() : string {return $this->remoteAddrBin;}
 
     /**
      * @return string
@@ -37,8 +29,9 @@ abstract class aSimpleMessage extends aMessage
     {
         $nodeField = NodeMessageField::packField($this->getSocket()->getMyNodeId());
         $timeField = TimeMessageField::packField(time());
+        $addrField = AddrMessageField::packField($this->getApp()->getMyAddr()->getAddressBin());
 
-        $body = $nodeField . $timeField;
+        $body = $nodeField . $timeField . $addrField;
 
         $typeField = TypeMessageField::packField(static::$id);
         $messageStringLength = strlen($typeField) + LengthMessageField::getLength() + strlen($body);

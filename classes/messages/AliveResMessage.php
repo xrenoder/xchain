@@ -2,7 +2,7 @@
 /**
  * Response "Daemon is alive"
  */
-class AliveResMessage extends aSimpleMessage
+class AliveResMessage extends aSimpleAddressMessage
 {
     /** @var int  */
     protected static $id = MessageClassEnum::ALIVE_RES; /* overrided */
@@ -13,11 +13,13 @@ class AliveResMessage extends aSimpleMessage
      */
     protected function incomingMessageHandler() : bool
     {
-//        $this->getSocket()->setFree();
+        $socket = $this->getSocket();
 
-        $this->getSocket()->setAliveChecked();
-        $this->getSocket()->cleanInMessage();
-        $this->getSocket()->sendDelayedOutMessage();
+//        $socket->setFree();
+
+        $socket->setAliveChecked();
+        $socket->cleanInMessage();
+        $socket->sendDelayedOutMessage();
 
         return true;
     }
