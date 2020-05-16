@@ -97,7 +97,7 @@ class Socket extends aBase
     /** @var string  */
     private $remoteAddrBin = null;
     public function setRemoteAddrBin(string $val) : self {$this->remoteAddrBin = $val; return $this;}
-    public function getRemoteAddrBin() : string {return $this->remoteAddrBin;}
+    public function getRemoteAddrBin() : ?string {return $this->remoteAddrBin;}
 
     /**
      * @param Server $server
