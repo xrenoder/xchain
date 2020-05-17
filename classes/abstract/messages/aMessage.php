@@ -29,7 +29,7 @@ abstract class aMessage extends aBase
         MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
     );
 
-    protected $fields = null;
+    protected $fields = array();
 
     public function getSocket() : Socket {return $this->getParent();}
 
@@ -68,9 +68,9 @@ abstract class aMessage extends aBase
 
     protected function __construct(aBase $parent)
     {
-        aBase::__construct($parent);
-        $this->fields = static::mergeFields();
-        $this->dbg("\n" . MessageClassEnum::getItem(static::$id) . " fields:\n" . var_export($this->fields, true) . "\n");
+        parent::__construct($parent);
+        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->dbg("\n" . __CLASS__ . " fields:\n" . var_export($this->fields, true) . "\n");
     }
 
     /**

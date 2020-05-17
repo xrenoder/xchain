@@ -30,6 +30,13 @@ abstract class aSimpleMessage extends aMessage
     public function setBadTime() : self {$this->isBadTime = true; return $this;}
     public function isBadTime() : bool {return $this->isBadTime;}
 
+    protected function __construct(aBase $parent)
+    {
+        parent::__construct($parent);
+        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->dbg("\n" . __CLASS__ . " fields:\n" . var_export($this->fields, true) . "\n");
+    }
+
     /**
      * @return string
      */

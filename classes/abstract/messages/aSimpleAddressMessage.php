@@ -22,6 +22,13 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
     protected $remoteAddrBin = null;
     public function getRemoteAddrBin() : string {return $this->remoteAddrBin;}
 
+    protected function __construct(aBase $parent)
+    {
+        parent::__construct($parent);
+        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->dbg("\n" . __CLASS__ . " fields:\n" . var_export($this->fields, true) . "\n");
+    }
+
     /**
      * @return string
      */

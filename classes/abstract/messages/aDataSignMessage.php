@@ -29,6 +29,13 @@ abstract class aDataSignMessage extends aSimpleAddressMessage
     protected $signature = null;
     public function getSignature() : string {return $this->signature;}
 
+    protected function __construct(aBase $parent)
+    {
+        parent::__construct($parent);
+        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->dbg("\n" . __CLASS__ . " fields:\n" . var_export($this->fields, true) . "\n");
+    }
+
     /**
      * @return string
      */
