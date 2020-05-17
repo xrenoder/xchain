@@ -3,14 +3,15 @@
 
 interface constDbTables
 {
-    public const SUMMARY_TABLE = 'summary';               // actual summary blockchain data (last prepared block, last known block, rules, etc)
+    public const SUMMARY_TABLE = 'summary';               // actual summary blockchain data (last prepared block, last known block, rules, etc); used for all non-client nodes
+
+    public const PUBLIC_KEYS_NODES_TABLE = 'public.keys.nodes';    // "address" => "nodeType, publicKey"; used for all non-client nodes
+
     public const NODE_PINGS_TABLE = 'node.pings';      // "address" => "ping" ; used for all nodes; data from tests, not in chain
 
-    public const MAINCHAIN_TABLE = 'main.chain';       // "blockNumber" => "blockRawData" ; used for master & torrent nodes
+    public const BLOCKS_TABLE = 'blocks';               // "blockNumber" => "blockRawData" ; used for master & torrent nodes
 
     public const TRANSACTIONS_TABLE = 'transactions';  // "transactionId" => '' ; for checking, is transaction ID exists, used for all nodes
-
-    public const PUBLIC_KEYS_TABLE = 'public.keys';    // "address" => "publicKey" ; used for all nodes
 
     public const AMOUNTS_TABLE = 'amounts';            // "address" => amount ; used for all nodes
     public const DELEGATE_FROM_TABLE = 'delegate.from';// "addressFrom" => amount ; used for all nodes

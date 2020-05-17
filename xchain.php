@@ -56,6 +56,7 @@ try {
         throw new Exception('Cannot daemon start');
     }
 
+// TODO перенести в точку определения собственной ноды, для клиентов не применяется
     // load chain state data
     SummaryDataSet::create($app);
 

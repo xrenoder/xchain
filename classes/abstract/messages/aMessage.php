@@ -24,10 +24,12 @@ abstract class aMessage extends aBase
      * fieldId => 'propertyName'
      * @var string[]
      */
-    protected static $fields = array(
+    protected static $fieldSet = array(
         MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
         MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
     );
+
+    protected $fields = null;
 
     public function getSocket() : Socket {return $this->getParent();}
 
@@ -61,8 +63,15 @@ abstract class aMessage extends aBase
     protected $declaredLen = null;
     public function getDeclaredLen() : ?int {return $this->declaredLen;}
 
-    abstract public function createMessageString() : string;
+    abstract public function createMessageString(string $data = null) : string;
     abstract protected function incomingMessageHandler() : bool;
+
+    protected function __construct(aBase $parent)
+    {
+        aBase::__construct($parent);
+        $this->fields = static::mergeFields();
+        $this->dbg("\n" . MessageClassEnum::getItem(static::$id) . " fields:\n" . var_export($this->fields, true) . "\n");
+    }
 
     /**
      * @param Socket $socket
@@ -97,11 +106,27 @@ abstract class aMessage extends aBase
         return $me;
     }
 
+    protected static function mergeFields()
+    {
+        $localFields = self::$fieldSet;
+
+        $parent = get_parent_class();
+        $method = __FUNCTION__;
+
+        if ($parent && method_exists($parent, $method)) {
+            $parentFields = $parent::$method();
+        } else {
+            $parentFields = array();
+        }
+
+        return array_replace($parentFields, $localFields);
+    }
+
     public function checkFieldsId() : self
     {
         $prevId = -1;
 
-        foreach (static::$fields as $fieldId => $property) {
+        foreach ($this->fields as $fieldId => $property) {
             if ($fieldId <= $prevId) {
                 throw new Exception("Bad fields set description - not serial, later field less or equal previous");
             }
@@ -191,7 +216,7 @@ abstract class aMessage extends aBase
         }
 
 // prepare fields
-        foreach (static::$fields as $fieldId => $property) {
+        foreach ($this->fields as $fieldId => $property) {
             if ($this->fieldPointer > $fieldId) {
                 continue;
             }
@@ -245,5 +270,14 @@ abstract class aMessage extends aBase
         }
 
         return false;
+    }
+
+    protected function compileMessage(string $body) : string
+    {
+        $typeField = TypeMessageField::packField(static::$id);
+        $messageStringLength = strlen($typeField) + LengthMessageField::getLength() + strlen($body);
+        $lenField = LengthMessageField::packField($messageStringLength);
+
+        return $typeField . $lenField . $body;
     }
 }

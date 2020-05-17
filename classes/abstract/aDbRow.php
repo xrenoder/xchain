@@ -10,15 +10,15 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
     protected static $table = null;     /* override me */
 
     protected $id = null; /* can be overrided */
-//    public function getId() {return $this->id;}
-
     protected $idFormat = null; /* override me */
+
+    private $internalId = null;
+
 
     protected static $canBeReplaced = null;     /* override me */
 
     protected $data = null;
-//    public function setData($val) : self {$this->data = $val; return $this;}
-//    public function getData() : string {return $this->data;}
+    public function getData() : ?string {return $this->data;}
 
     /**
      * 'propertyName' => fieldFormat
@@ -30,7 +30,7 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
 
     protected $isChanged = false;
 
-    protected $value = null;   /* override me with default value */
+    protected $value = null;   /* override me with default value or null */
     public function getValue() {return $this->value;}
 
     public function setValue($val, $needSave = true) : self
@@ -60,6 +60,7 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
     {
         if ($this->id === null) {
             $this->id = $val;
+            $this->packId();
         } else {
             throw new Exception( get_class($this) .  ": cannot change id $this->id to $val");
         }
@@ -67,17 +68,27 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
         return $this;
     }
 
+    private function packId() {
+        $this->internalId = FieldFormatEnum::pack($this->id, $this->idFormat);
+    }
+
     public function check() : bool
     {
-        return $this->getApp()->getDba()->check(static::$table, $this->id);
+        if (!$this->internalId === null) $this->packId();
+        return $this->getApp()->getDba()->check(static::$table, $this->internalId);
     }
 
     public function load() : self
     {
-        $this->data = $this->getApp()->getDba()->fetch(static::$table, $this->id);
+        if (!$this->internalId === null) $this->packId();
+        $this->data = $this->getApp()->getDba()->fetch(static::$table, $this->internalId);
         $this->unpackFields();
 
-        $this->dbg(get_class($this) . " loaded");
+        if ($this->data !== null) {
+            $this->dbg(get_class($this) . " loaded");
+        } else {
+            $this->dbg(get_class($this) . " loaded: NULL");
+        }
 
         return $this;
     }
@@ -94,10 +105,12 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
             return $this;
         }
 
+        if (!$this->internalId === null) $this->packId();
+
         if ($replace && $this->check()) {
-            $this->getApp()->getDba()->update(static::$table, $this->id, $this->data);
+            $this->getApp()->getDba()->update(static::$table, $this->internalId, $this->data);
         } else {
-            $this->getApp()->getDba()->insert(static::$table, $this->id, $this->data);
+            $this->getApp()->getDba()->insert(static::$table, $this->internalId, $this->data);
         }
 
         $this->dbg(get_class($this) . " saved");

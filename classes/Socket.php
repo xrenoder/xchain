@@ -94,10 +94,10 @@ class Socket extends aBase
     private $areNodesCompatible = null;
     public function areNodesCompatible() : ?bool {return $this->areNodesCompatible;}
 
-    /** @var string  */
-    private $remoteAddrBin = null;
-    public function setRemoteAddrBin(string $val) : self {$this->remoteAddrBin = $val; return $this;}
-    public function getRemoteAddrBin() : ?string {return $this->remoteAddrBin;}
+    /** @var Address  */
+    protected $remoteAddress = null;
+    public function setRemoteAddress(Address $val) : self {$this->remoteAddress = $val; return $this;}
+    public function getRemoteAddress() : ?Address {return $this->remoteAddress;}
 
     /**
      * @param Server $server
@@ -203,6 +203,7 @@ class Socket extends aBase
      */
     public function setFree() : self
     {
+// TODO если в ноду стучится клиент - после завершения операций соединение не сохраняется, а разрывается
         $this->freeTime = time();
         $this->freeAfterSend = false;
 

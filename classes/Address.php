@@ -56,11 +56,29 @@ class Address extends aBase
         return $me->loadPublicKey($publicKeyBin);
     }
 
+    public static function createFromAddress(App $app, string $addressBin) : self
+    {
+        $me = static::create($app);
+
+        return $me->setAddress($addressBin);
+    }
+
     protected static function create(App $app) : self
     {
-        $me = new self($app);
+        return new self($app);
+    }
 
-        return $me;
+    public function setAddress(string $addressBin) : self
+    {
+        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null || $this->address !== null) {
+            throw new RuntimeException('Cannot load new address - this address-object is already filled');
+        }
+
+        $this->address = $addressBin;
+        $this->addressHex = bin2hex($addressBin);
+        $this->addressBase16 = static::hexToBase16($this->addressHex);
+
+        return $this;
     }
 
 	public function generate() : void
@@ -100,7 +118,7 @@ class Address extends aBase
     public function signBin($data) : string
     {
         if ($this->privateKeyHex === null ) {
-            throw new Exception("Cannot sign without private key");
+            throw new Exception("Cannot sign data without private key");
         }
 
         $sign = null;
@@ -150,7 +168,7 @@ class Address extends aBase
 
     public function loadPrivateKey(string $addressHuman, string $walletPath) : self
     {
-        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null) {
+        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null || $this->address !== null) {
             throw new RuntimeException('Cannot load new private key - this address-object is already filled');
         }
 
@@ -192,7 +210,7 @@ class Address extends aBase
 
     public function loadPublicKey($publicKeyBin, $addressBin = null) : self
     {
-        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null) {
+        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null || $this->address !== null) {
             throw new RuntimeException('Cannot load new public key - this address-object is already filled');
         }
 

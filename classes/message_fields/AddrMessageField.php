@@ -11,27 +11,51 @@ class AddrMessageField extends aMessageField
         /* @var aSimpleAddressMessage $message */
         $message = $this->getMessage();
         $socket = $this->getSocket();
-        $addr = $message->getRemoteAddrBin();
+        $addrBin = $message->getRemoteAddrBin();
+        $app = $this->getApp();
 
-        if (!Address::checkAddressBin($addr)) {
-            $this->dbg("BAD DATA address is bad " . Address::binToBase16($addr));
-            return $this->getSocket()->badData();
+        if (!Address::checkAddressBin($addrBin)) {
+            $this->dbg("BAD DATA address is bad " . Address::binToBase16($addrBin));
+            return $socket->badData();
         }
 
-        $socketAddr = $socket->getRemoteAddrBin();
+        $socketAddress = $socket->getRemoteAddress();
 
-        if ($socketAddr !== null) {
-            if ($socketAddr !== $addr) {
-                $this->dbg("BAD DATA received address " . Address::binToBase16($addr) . " is different than recieved before " . Address::binToBase16($socketAddr));
-                return $this->getSocket()->badData();
+        if ($socketAddress !== null) {
+            if ($socketAddress->getAddressBin() !== $addrBin) {
+                $this->dbg("BAD DATA received address " . Address::binToBase16($addrBin) . " is different than recieved before " . Address::binToBase16($socketAddress->getAddressHuman()));
+                return $socket->badData();
             }
         } else {
-// TODO добавить проверку в блокчейне, может ли отправитель сообщения исполнять роль той ноды, которой представляется
+            $pubKeyAndNode = PubKeyNodeByAddr::create($app, $addrBin);
+            $savedNodeId = $pubKeyAndNode->getNodeId();
+            $savedPubKey = $pubKeyAndNode->getPublicKey();
 
-            $socket->setRemoteAddrBin($addr);
+            $remoteNodeId = $message->getRemoteNodeId();
+            $myNodeId = $socket->getMyNodeId();
+
+            if ($remoteNodeId !== NodeClassEnum::CLIENT_ID && $myNodeId !== NodeClassEnum::CLIENT_ID) {
+                if ($savedNodeId === null) {
+                    $this->dbg("BAD DATA don't know node with address " . Address::binToBase16($addrBin));
+                    return $socket->badData();
+                }
+
+                if ($savedNodeId !== $remoteNodeId) {
+                    $this->dbg("BAD DATA address " . Address::binToBase16($addrBin) . " cannot be node " . NodeClassEnum::getName($remoteNodeId) . " (is node " . NodeClassEnum::getName($savedNodeId) . ")");
+                    return $socket->badData();
+                }
+            }
+
+            if ($savedPubKey !== null) {
+                $remoteAddress = Address::createFromPublic($app, $savedPubKey);
+            } else {
+                $remoteAddress = Address::createFromAddress($app, $addrBin);
+            }
+
+            $socket->setRemoteAddress($remoteAddress);
         }
 
-        $this->dbg("Message received from address " . Address::binToBase16($addr));
+        $this->dbg("Message received from address " . Address::binToBase16($addrBin));
 
         return true;
     }

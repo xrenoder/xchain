@@ -11,8 +11,8 @@ abstract class aSimpleMessage extends aMessage
      * @var string[]
      */
     protected static $fields = array(
-        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
-        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
+//        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
+//        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
         MessageFieldClassEnum::NODE =>      'remoteNodeId',
         MessageFieldClassEnum::TIME =>      'sendingTime',
     );
@@ -33,17 +33,13 @@ abstract class aSimpleMessage extends aMessage
     /**
      * @return string
      */
-    public function createMessageString() : string
+    public function createMessageString(string $data = null) : string
     {
         $nodeField = NodeMessageField::packField($this->getSocket()->getMyNodeId());
         $timeField = TimeMessageField::packField(time());
 
         $body = $nodeField . $timeField;
 
-        $typeField = TypeMessageField::packField(static::$id);
-        $messageStringLength = strlen($typeField) + LengthMessageField::getLength() + strlen($body);
-        $lenField = LengthMessageField::packField($messageStringLength);
-
-        return $typeField . $lenField . $body;
+        return $this->compileMessage($body);
     }
 }

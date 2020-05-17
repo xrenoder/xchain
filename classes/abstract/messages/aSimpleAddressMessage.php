@@ -11,10 +11,10 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
      * @var string[]
      */
     protected static $fields = array(
-        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
-        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
-        MessageFieldClassEnum::NODE =>      'remoteNodeId',
-        MessageFieldClassEnum::TIME =>      'sendingTime',
+//        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
+//        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
+//        MessageFieldClassEnum::NODE =>      'remoteNodeId',
+//        MessageFieldClassEnum::TIME =>      'sendingTime',
         MessageFieldClassEnum::ADDR =>      'remoteAddrBin',
     );
 
@@ -25,7 +25,7 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
     /**
      * @return string
      */
-    public function createMessageString() : string
+    public function createMessageString(string $data = null) : string
     {
         $nodeField = NodeMessageField::packField($this->getSocket()->getMyNodeId());
         $timeField = TimeMessageField::packField(time());
@@ -33,10 +33,6 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
 
         $body = $nodeField . $timeField . $addrField;
 
-        $typeField = TypeMessageField::packField(static::$id);
-        $messageStringLength = strlen($typeField) + LengthMessageField::getLength() + strlen($body);
-        $lenField = LengthMessageField::packField($messageStringLength);
-
-        return $typeField . $lenField . $body;
+        return $this->compileMessage($body);
     }
 }
