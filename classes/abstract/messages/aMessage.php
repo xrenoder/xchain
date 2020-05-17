@@ -108,7 +108,7 @@ abstract class aMessage extends aBase
 
     protected static function mergeFields()
     {
-        $localFields = self::$fieldSet;
+        $localFields = static::$fieldSet;
 
         $parent = get_parent_class();
         $method = __FUNCTION__;
