@@ -11,7 +11,7 @@ abstract class aDataSignMessage extends aSimpleAddressMessage
      * @var string[]
      */
 
-    protected static $fields = array(
+    protected static $fieldSet = array(
 //        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
 //        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
 //        MessageFieldClassEnum::NODE =>      'remoteNodeId',
