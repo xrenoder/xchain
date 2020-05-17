@@ -12,11 +12,6 @@ abstract class aDataSignMessage extends aSimpleAddressMessage
      */
 
     protected static $fieldSet = array(
-//        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
-//        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
-//        MessageFieldClassEnum::NODE =>      'remoteNodeId',
-//        MessageFieldClassEnum::TIME =>      'sendingTime',
-//        MessageFieldClassEnum::ADDR =>      'remoteAddrBin',
         MessageFieldClassEnum::DATA =>      'data',
         MessageFieldClassEnum::SIGN =>      'signature',
     );
@@ -33,7 +28,6 @@ abstract class aDataSignMessage extends aSimpleAddressMessage
     {
         parent::__construct($parent);
         $this->fields = array_replace($this->fields, self::$fieldSet);
-        $this->dbg("\n" . __CLASS__ . " fields:\n" . var_export($this->fields, true) . "\n");
     }
 
     /**

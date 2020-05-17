@@ -35,7 +35,6 @@ abstract class aMessage extends aBase
 
     /** @var string */
     protected $name;
-    public function setName() : self {$this->name = MessageClassEnum::getItem(static::$id); return $this;}
     public function getName() : string {return $this->name;}
 
     /** @var string */
@@ -57,7 +56,6 @@ abstract class aMessage extends aBase
 
     /** @var int  */
     private $fieldOffset = null;
-    public function setFieldOffset() : self {$this->fieldOffset = MessageFieldClassEnum::getLength(MessageFieldClassEnum::TYPE); return $this;}
 
     /** @var int  */
     protected $declaredLen = null;
@@ -70,7 +68,8 @@ abstract class aMessage extends aBase
     {
         parent::__construct($parent);
         $this->fields = array_replace($this->fields, self::$fieldSet);
-        $this->dbg("\n" . __CLASS__ . " fields:\n" . var_export($this->fields, true) . "\n");
+        $this->fieldOffset = MessageFieldClassEnum::getLength(MessageFieldClassEnum::TYPE);
+        $this->name = MessageClassEnum::getItem(static::$id);
     }
 
     /**
@@ -92,11 +91,6 @@ abstract class aMessage extends aBase
 
         $me = new static($socket);
 
-        $me
-            ->checkFieldsId()
-            ->setName()
-            ->setFieldOffset();
-
         if ($outData === null) {
             $socket->setInMessage($me);
         } else {
@@ -104,37 +98,6 @@ abstract class aMessage extends aBase
         }
 
         return $me;
-    }
-
-    protected static function mergeFields()
-    {
-        $localFields = static::$fieldSet;
-
-        $parent = get_parent_class();
-        $method = __FUNCTION__;
-
-        if ($parent && method_exists($parent, $method)) {
-            $parentFields = $parent::$method();
-        } else {
-            $parentFields = array();
-        }
-
-        return array_replace($parentFields, $localFields);
-    }
-
-    public function checkFieldsId() : self
-    {
-        $prevId = -1;
-
-        foreach ($this->fields as $fieldId => $property) {
-            if ($fieldId <= $prevId) {
-                throw new Exception("Bad fields set description - not serial, later field less or equal previous");
-            }
-
-            $prevId = $fieldId;
-        }
-
-        return $this;
     }
 
     /**

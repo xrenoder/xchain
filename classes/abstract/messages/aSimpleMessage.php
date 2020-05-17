@@ -11,8 +11,6 @@ abstract class aSimpleMessage extends aMessage
      * @var string[]
      */
     protected static $fieldSet = array(
-//        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
-//        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
         MessageFieldClassEnum::NODE =>      'remoteNodeId',
         MessageFieldClassEnum::TIME =>      'sendingTime',
     );
@@ -34,7 +32,6 @@ abstract class aSimpleMessage extends aMessage
     {
         parent::__construct($parent);
         $this->fields = array_replace($this->fields, self::$fieldSet);
-        $this->dbg("\n" . __CLASS__ . " fields:\n" . var_export($this->fields, true) . "\n");
     }
 
     /**
