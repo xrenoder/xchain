@@ -98,10 +98,8 @@ class Logger extends aBase
     {
         $record =
             $this->getDate() . "\t"
-            . $this->getLocator()->getPid() . "\t"
+            . $this->getLocator()->getPid() . "\t\t"
             . $this->getLocator()->getName() . "\t";
-
-//        echo substr($message, 0, 3) . "@@@";
 
         if ($isErr) {
             $record .= '[error]' . "\t\t";

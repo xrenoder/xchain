@@ -83,14 +83,10 @@ try {
         try {
 // set DBA
             DBA::create($worker, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
-            echo "@@@";
 // load node private key
             $worker->setMyAddress(Address::createFromWallet($worker, MY_ADDRESS, WALLET_PATH));
-            echo "###";
             $worker->run($channelRecv, $channelSend);
-            echo "$$$";
         } catch (Exception $e) {
-            echo "%%%";
             throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
         }
 
@@ -121,6 +117,8 @@ try {
         );
 
         $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
+
+        $app->getServer()->dbg("Runtime $threadId runned");
     }
 
     $app->getServer()->dbg("Before sleep");
