@@ -67,6 +67,7 @@ try {
 // start worker threads
     $workerThread = function (string $threadId, parallel\Channel $channelRecv, parallel\Channel $channelSend, int $debugMode)
     {
+        echo "***";
         $worker = new Worker($threadId);
 // create logger-object
         Logger::create(
