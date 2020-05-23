@@ -1,9 +1,12 @@
 <?php
+use parallel\{Channel,Runtime,Events,Events\Event};
 /**
  * Daemonization
  */
 class Daemon extends aBase
 {
+    protected static $dbgLvl = Logger::DBG_DAEMON;
+
     public function getApp() : App {return $this->getParent();}
 
     /** @var string */
@@ -48,7 +51,92 @@ class Daemon extends aBase
 
         $app->setDaemon($me);
 
+        $me->dbg("Daemon created");
+
         return $me;
+    }
+
+    public function run(string $command = null) : bool
+    {
+// daemonization ...
+        if (pcntl_fork()) {
+// ... and finich undaemonized copy
+            $this->dbg("Undaemonized script finished");
+            exit(0);
+        }
+
+        $this->dbg("New daemon started");
+
+// set pid of new daemon to App
+        $pid = posix_getpid();
+        $this->getApp()->setPid($pid);
+
+// unmount console and standard IO channels
+        posix_setsid();
+        chdir('/');
+
+        fclose(STDIN);
+        fopen('/dev/null', 'rb');
+        fclose(STDOUT);
+        fopen('/dev/null', 'ab');
+        fclose(STDERR);
+        fopen('/dev/null', 'ab');
+
+        $this->dbg("Unmount suss");
+
+// start workers threads
+        $this->startWorkers();
+
+// check pid-file
+        $fd = fopen($this->pidFile, 'c+b');
+        flock($fd, LOCK_EX);			// lock file for prevent concurrency
+        $oldPid = fread($fd, 32);
+        fseek($fd, 0);
+
+// if daemon was started before ...
+        if ($oldPid) {
+// ... and no have STOP- or RESTART-command - check, is old daemon still alive
+            if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP) {
+                if ($this->getApp()->getServer()->isDaemonAlive()) {
+// exit, if old daemon is alive
+                    flock($fd, LOCK_UN);
+                    fclose($fd);
+                    $this->dbg("Old daemon is alive ($oldPid)");
+                    $this->dbg("New daemon finished");
+                    exit(0);
+                }
+            }
+
+// kill old daemon, if have STOP- or RESTART-command
+            $this->log("Old daemon will be killed (pid $oldPid)");
+            $this->kill($oldPid);
+        }
+
+        if ($command === static::CMD_STOP) {
+            ftruncate($fd, 0);
+            flock($fd, LOCK_UN);
+            fclose($fd);
+            $this->dbg("New daemon finished by STOP-command");
+            exit(0);
+        }
+
+// set signal handlers
+        foreach(static::$signals as $signal => $handler) {
+            pcntl_signal($signal, array($this, $handler));
+        }
+
+        pcntl_async_signals(true);
+
+// TODO сделать обработку сигналов в воркерах
+
+// write new daemon pid to file and unlock them - we are ready for working
+        ftruncate($fd, 0);
+        fwrite($fd, $pid);
+        flock($fd, LOCK_UN);
+        fclose($fd);
+
+        $this->log("Daemon started (pid $pid) and ready for working");
+        return true;
     }
 
     /**
@@ -56,7 +144,7 @@ class Daemon extends aBase
      * @param string $command
      * @return bool
      */
-    public function run(string $command = null) : bool
+    public function runOld(string $command = null) : bool
     {
         $fd = fopen($this->pidFile, 'c+b');
         flock($fd, LOCK_EX);			// lock file to daemon will be started or exit
@@ -136,6 +224,8 @@ class Daemon extends aBase
 
         pcntl_async_signals(true);
 
+// TODO сделать обработку сигналов в воркерах
+
         return true;
     }
 
@@ -195,10 +285,12 @@ class Daemon extends aBase
 
             $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
 
-            $app->getServer()->dbg("Runtime $threadId runned");
+            $this->dbg("Runtime $threadId runned");
         }
 
         sleep(1);
+
+        $this->dbg("Workers are started");
     }
 
     /**

@@ -5,8 +5,9 @@ require_once 'local.inc';
 use parallel\{Channel,Runtime,Events,Events\Event};
 
 ///*
-$debugMode
-    = Logger::DBG_LOCATOR
+$debugMode =
+      Logger::DBG_LOCATOR
+    | Logger::DBG_DAEMON
     | Logger::DBG_SERV
     | Logger::DBG_SOCK
     | Logger::DBG_MESS
@@ -58,18 +59,16 @@ try {
 
     Server::create($app,$listenTCPHost, $bindTCPHost);
 
-    // load node private key
+// load node private key
     $app->setMyAddress(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
 
-    // get daemon-object
+// get daemon-object
     Daemon::create($app, RUN_PATH,  'pid');
 
-    // run daemon
+// run daemon
     if (!$app->getDaemon()->run($command)) {
         throw new Exception('Cannot daemon start');
     }
-
-    $app->getServer()->dbg("Daemon runned");
 
 /*
     // load chain state data
@@ -82,7 +81,6 @@ try {
 
 // run server
     $app->getServer()->run();
-    $app->getServer()->dbg("Server runned");
 } catch (Exception $e) {
     throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
 }

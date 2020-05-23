@@ -5,18 +5,19 @@
 class Logger extends aBase
 {
     public const DBG_LOCATOR  = 1;
-    public const DBG_SERV =     2;
-    public const DBG_SOCK =     4;
-    public const DBG_MESS =     8;
-    public const DBG_POOL =     16;
-    public const DBG_TASK =     32;
-    public const DBG_NODE =     64;
-    public const DBG_ADDR =     128;
-    public const DBG_DBA =      256;
-    public const DBG_MSG_FLD =  512;
-    public const DBG_ROW =      1024;
-    public const DBG_ROW_SET =  2048;
-    public const DBG_TRANS =    4096;
+    public const DBG_DAEMON =   2;
+    public const DBG_SERV =     4;
+    public const DBG_SOCK =     8;
+    public const DBG_MESS =     16;
+    public const DBG_POOL =     32;
+    public const DBG_TASK =     64;
+    public const DBG_NODE =     128;
+    public const DBG_ADDR =     256;
+    public const DBG_DBA =      512;
+    public const DBG_MSG_FLD =  1024;
+    public const DBG_ROW =      2048;
+    public const DBG_ROW_SET =  4096;
+    public const DBG_TRANS =    8192;
 
 
     private static $flags = array(
