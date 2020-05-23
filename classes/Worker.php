@@ -22,8 +22,6 @@ class Worker extends aLocator implements constMessageParsingResult
     {
         parent::__construct($this);
         $this->setName($name);
-
-        $this->dbg("Worker created");
     }
 
     public function run(parallel\Channel $channelRecv, parallel\Channel $channelSend) : void
