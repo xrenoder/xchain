@@ -79,6 +79,8 @@ try {
             PHP_ERROR_LOG_FILE
         );
 
+        $worker->dbg("Logger created");
+
         try {
 // set DBA
             DBA::create($worker, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);

@@ -4,7 +4,7 @@
  */
 abstract class aBase implements constMessageDataIds
 {
-    protected static $dbgLvl = 0;   /* override me */
+    protected static $dbgLvl = Logger::DBG_LOCATOR; /* override me */
 
     /** @var aLocator */
     private $locator = null;

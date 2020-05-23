@@ -3,8 +3,6 @@
 
 class aLocator extends aBase
 {
-    protected static $dbgLvl = Logger::DBG_LOCATOR; /* overrided */
-
     /** @var string */
     private $name;
     public function setName(string $val) : self {$this->name = $val; return $this;}
