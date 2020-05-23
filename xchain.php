@@ -65,7 +65,7 @@ try {
     Daemon::create($app, RUN_PATH,  'pid');
 
 // start worker threads
-    $workerThread = function (string $threadId, Channel $channelRecv, Channel $channelSend, int $debugMode)
+    $workerThread = function (string $threadId, parallel\Channel $channelRecv, parallel\Channel $channelSend, int $debugMode)
     {
         $worker = new Worker($threadId);
 // create logger-object
@@ -92,16 +92,16 @@ try {
         }
     };
 
-    $app->setEvents(new Events());
+    $app->setEvents(new parallel\Events());
     $app->getEvents()->setBlocking(false); // Comment to block on Events::poll()
 //    $app->getEvents()->setTimeout(1000000); // Uncomment when blocking
 
     for($i = 1; $i <= THREADS_COUNT; $i++) {
         $threadId = "thrd_" . $i;
 
-        $app->setChannelFromSocket($threadId, new Channel(Channel::Infinite));
-        $app->setChannelFromWorker($threadId, Channel::make($threadId, Channel::Infinite));
-        $app->setThread($threadId,new Runtime("local.inc"));
+        $app->setChannelFromSocket($threadId, new parallel\Channel(Channel::Infinite));
+        $app->setChannelFromWorker($threadId, parallel\Channel::make($threadId, parallel\Channel::Infinite));
+        $app->setThread($threadId,new parallel\Runtime("local.inc"));
 
         $app->getThread($threadId)->run(
             $workerThread,

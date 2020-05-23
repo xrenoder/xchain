@@ -24,7 +24,7 @@ class Worker extends aLocator implements constMessageParsingResult
         $this->setName($name);
     }
 
-    public function run(Channel $channelRecv, Channel $channelSend) : void
+    public function run(parallel\Channel $channelRecv, parallel\Channel $channelSend) : void
     {
         $this->dbg("Worker " . $this->getName() . " started");
 

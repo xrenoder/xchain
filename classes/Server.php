@@ -188,7 +188,7 @@ class Server extends aBase implements constMessageParsingResult
             $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
 
 // TODO добавить отправку и обработку служебных сообщений через канал (закрытие воркера при завершении работы)
-            if ($event->type == Event\Type::Read) {
+            if ($event->type == parallel\Event\Type::Read) {
                 if (is_array($event->value) && count($event->value) === 2) {
                     [$legateId, $serializedLegate] = $event->value;
 

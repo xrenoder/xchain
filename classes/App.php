@@ -9,10 +9,10 @@ class App extends aLocator
     public function setPid($val) : self {$this->pid = $val; return $this;}
     public function getPid() : int {return $this->pid;}
 
-    /** @var Runtime[]  */
+    /** @var parallel\Runtime[]  */
     private $threads = array();
-    public function setThread(string $id, Runtime $val) : self {$this->threads[$id] = $val; $this->setThreadBusy($id, 0); return $this;}
-    public function getThread(string $id) : Runtime {return $this->threads[$id];}
+    public function setThread(string $id, parallel\Runtime $val) : self {$this->threads[$id] = $val; $this->setThreadBusy($id, 0); return $this;}
+    public function getThread(string $id) : parallel\Runtime {return $this->threads[$id];}
 
     /** @var int[]  */
     private $threadsBusy = array();
@@ -21,20 +21,20 @@ class App extends aLocator
     public function decThreadBusy(string $id) : self {$this->threadsBusy[$id]--; return $this;}
     public function getBestThreadId() : string {asort($this->threadsBusy); return array_key_first($this->threadsBusy);}
 
-    /** @var Channel[]  */
+    /** @var parallel\Channel[]  */
     private $channelsFromSocket = array();
-    public function setChannelFromSocket(string $id, Channel $val) : self {$this->channelsFromSocket[$id] = $val; return $this;}
-    public function getChannelFromSocket(string $id) : Channel {return $this->channelsFromSocket[$id];}
+    public function setChannelFromSocket(string $id, parallel\Channel $val) : self {$this->channelsFromSocket[$id] = $val; return $this;}
+    public function getChannelFromSocket(string $id) : parallel\Channel {return $this->channelsFromSocket[$id];}
 
-    /** @var Channel[]  */
+    /** @var parallel\Channel[]  */
     private $channelsFromWorker = array();
-    public function setChannelFromWorker(string $id, Channel $val) : self {$this->channelsFromWorker[$id] = $val; return $this;}
-    public function getChannelFromWorker(string $id) : Channel {return $this->channelsFromWorker[$id];}
+    public function setChannelFromWorker(string $id, parallel\Channel $val) : self {$this->channelsFromWorker[$id] = $val; return $this;}
+    public function getChannelFromWorker(string $id) : parallel\Channel {return $this->channelsFromWorker[$id];}
 
-    /** @var Events  */
+    /** @var parallel\Events  */
     private $events = null;
-    public function setEvents(Events $val) : self {$this->events = $val; return $this;}
-    public function getEvents() : Events {return $this->events;}
+    public function setEvents(parallel\Events $val) : self {$this->events = $val; return $this;}
+    public function getEvents() : parallel\Events {return $this->events;}
 
     /** @var Daemon */
     private $daemon;

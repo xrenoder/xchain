@@ -78,7 +78,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
         return $me->setId($id);
     }
 
-    public function messageHandler(Channel $channel) : void
+    public function messageHandler(parallel\Channel $channel) : void
     {
         $packet = $this->incomingBuffer;
         $this->incomingBuffer = null;
