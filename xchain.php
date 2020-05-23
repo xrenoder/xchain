@@ -104,11 +104,8 @@ try {
         $threadId = "thrd_" . $i;
 
         $app->setChannelFromSocket($threadId, new parallel\Channel(Channel::Infinite));
-        $app->getServer()->dbg("Channel Socket created");
         $app->setChannelFromWorker($threadId, parallel\Channel::make($threadId, parallel\Channel::Infinite));
-        $app->getServer()->dbg("Channel Worker created");
         $app->setThread($threadId,new parallel\Runtime(XCHAIN_PATH . "local.inc"));
-        $app->getServer()->dbg("Runtime created");
 
         $future[] = $app->getThread($threadId)->run(
             $workerThread,
