@@ -98,8 +98,6 @@ try {
     $app->getEvents()->setBlocking(false); // Comment to block on Events::poll()
 //    $app->getEvents()->setTimeout(1000000); // Uncomment when blocking
 
-    $app->getServer()->dbg("Events created");
-
     $future = array();
 
     for($i = 1; $i <= THREADS_COUNT; $i++) {
@@ -122,10 +120,7 @@ try {
             ]
         );
 
-        $app->getServer()->dbg("Runtime created");
-
         $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
-        $app->getServer()->dbg("Channel added to events");
     }
 
     sleep(1);
@@ -135,7 +130,8 @@ try {
         throw new Exception('Cannot daemon start');
     }
 
-// TODO перенести в точку определения собственной ноды, для клиентов не применяется
+    $app->getServer()->dbg("Daemon runned");
+
 /*
     // load chain state data
     SummaryDataSet::create($app);
@@ -147,6 +143,7 @@ try {
 
 // run server
     $app->getServer()->run();
+    $app->getServer()->dbg("Server runned");
 } catch (Exception $e) {
     throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
 }
