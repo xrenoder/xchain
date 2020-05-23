@@ -14,16 +14,6 @@ class Worker extends aLocator implements constMessageParsingResult
     public function unsetLegate(string $id) : self {unset($this->legates[$id]); return $this;}
     public function getLegate(string $id) : ?SocketLegate {return ($this->legates[$id] ?? null);}
 
-    /**
-     * Worker constructor.
-     * @param string $name
-     */
-    public function __construct(string $name)
-    {
-        parent::__construct($this);
-        $this->setName($name);
-    }
-
     public function run(parallel\Channel $channelRecv, parallel\Channel $channelSend) : void
     {
         $this->log("Worker " . $this->getName() . " started");

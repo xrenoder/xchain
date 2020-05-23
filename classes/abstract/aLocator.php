@@ -8,6 +8,11 @@ class aLocator extends aBase
     public function setName(string $val) : self {$this->name = $val; return $this;}
     public function getName() : string {return $this->name;}
 
+    /** @var int */
+    private $pid = null;
+    public function setPid($val) : self {$this->pid = $val; return $this;}
+    public function getPid() : int {return $this->pid;}
+
     /** @var Logger */
     private $logger;
     public function setLogger(Logger $val) : self {$this->logger = $val; return $this;}
@@ -27,6 +32,18 @@ class aLocator extends aBase
     private $myAddress;
     public function setMyAddress(Address $val) : self {$this->myAddress = $val; return $this;}
     public function getMyAddress() : Address {return $this->myAddress;}
+
+    /**
+     * App constructor.
+     * @param string $name
+     */
+    public function __construct(string $name)
+    {
+        parent::__construct($this);
+
+        $this->setName($name);
+        $this->pid = posix_getpid();
+    }
 
     /**
      * Collect garbage for optimal memory usage

@@ -4,11 +4,6 @@
  */
 class App extends aLocator
 {
-    /** @var int */
-    private $pid = null;
-    public function setPid($val) : self {$this->pid = $val; return $this;}
-    public function getPid() : int {return $this->pid;}
-
     /** @var parallel\Runtime[]  */
     private $threads = array();
     public function setThread(string $id, parallel\Runtime $val) : self {$this->threads[$id] = $val; $this->setThreadBusy($id, 0); return $this;}
@@ -46,15 +41,4 @@ class App extends aLocator
     public function setServer(Server $val): self {$this->server = $val; return $this;}
     public function getServer() : Server {return $this->server;}
 
-    /**
-     * App constructor.
-     * @param string $name
-     */
-    public function __construct(string $name)
-    {
-        parent::__construct($this);
-
-        $this->setName($name);
-        $this->pid = posix_getpid();
-    }
 }

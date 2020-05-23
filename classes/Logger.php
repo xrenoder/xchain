@@ -101,7 +101,7 @@ class Logger extends aBase
             . $this->getLocator()->getPid() . "\t"
             . $this->getLocator()->getName() . "\t";
 
-        echo substr($message, 0, 3) . "@@@";
+//        echo substr($message, 0, 3) . "@@@";
 
         if ($isErr) {
             $record .= '[error]' . "\t\t";
