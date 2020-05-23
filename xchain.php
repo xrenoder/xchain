@@ -38,7 +38,7 @@ Logger::create(
     $app,
     $debugMode,
     LOG_PATH,
-    LOCK_EXT,
+    LOG_EXT,
     LOG_FILE,
     SCRIPT_ERROR_LOG_FILE,
     PHP_ERROR_LOG_FILE
@@ -73,7 +73,7 @@ try {
             $worker,
             $debugMode,
             LOG_PATH,
-            LOCK_EXT,
+            LOG_EXT,
             LOG_FILE,
             SCRIPT_ERROR_LOG_FILE,
             PHP_ERROR_LOG_FILE
