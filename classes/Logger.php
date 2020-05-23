@@ -82,6 +82,8 @@ class Logger extends aBase
 
         $me->getLocator()->setLogger($me);
 
+        ini_set('error_log', $me->getPhpErrFile());
+
         $me->dbg("Logger created");
 
         return $me;

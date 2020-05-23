@@ -125,7 +125,6 @@ class Daemon extends aBase
 // unmount console and standard IO channels, set new PHP error log
         posix_setsid();
         chdir('/');
-        ini_set('error_log', $this->getApp()->getLogger()->getPhpErrFile());
 
         fclose(STDIN);
         fopen('/dev/null', 'rb');
