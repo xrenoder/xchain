@@ -90,11 +90,15 @@ try {
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
+
+        return true;
     };
 
     $app->setEvents(new parallel\Events());
     $app->getEvents()->setBlocking(false); // Comment to block on Events::poll()
 //    $app->getEvents()->setTimeout(1000000); // Uncomment when blocking
+
+    $future = array();
 
     for($i = 1; $i <= THREADS_COUNT; $i++) {
         $threadId = "thrd_" . $i;
@@ -103,7 +107,7 @@ try {
         $app->setChannelFromWorker($threadId, parallel\Channel::make($threadId, parallel\Channel::Infinite));
         $app->setThread($threadId,new parallel\Runtime(XCHAIN_PATH . "local.inc"));
 
-        $app->getThread($threadId)->run(
+        $future[] = $app->getThread($threadId)->run(
             $workerThread,
             [
                 $threadId,
