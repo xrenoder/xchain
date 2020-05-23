@@ -63,6 +63,7 @@ try {
 
     // get daemon-object
     Daemon::create($app, RUN_PATH,  'pid');
+    $app->getServer()->dbg("Daemon created");
 
 // start worker threads
     $workerThread = function (string $threadId, parallel\Channel $channelRecv, parallel\Channel $channelSend, int $debugMode)

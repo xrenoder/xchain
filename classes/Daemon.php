@@ -41,17 +41,12 @@ class Daemon extends aBase
      */
     public static function create(App $app, string $runPath, string $pidName) : self
     {
-        $app->getServer()->dbg("Test");
         $me = new self($app);
-
-        $me->dbg("Daemon will be created");
 
         $me->setRunPath($runPath);
         $me->setPidFile($runPath . $pidName);
 
         $app->setDaemon($me);
-
-        $me->dbg("Daemon created");
 
         return $me;
     }
