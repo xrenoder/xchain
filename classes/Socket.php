@@ -186,10 +186,6 @@ class Socket extends aBase implements constMessageParsingResult
     public function sendMessage(?aMessage $message) : self
     {
         if ($message !== null) {
-            if ($message->getLegate() !== null) {
-                throw new Exception("Bad code - parent object of sended " . $message->getName() . " cannot be SocketLegate");
-            }
-
             $messageString = $message->createMessageString();
         } else {
             $messageString = '';
