@@ -67,8 +67,8 @@ try {
 // start worker threads
     $workerThread = function (string $threadId, parallel\Channel $channelRecv, parallel\Channel $channelSend, int $debugMode)
     {
-        echo "***";
         $worker = new Worker($threadId);
+        echo "***";
 // create logger-object
         Logger::create(
             $worker,
@@ -80,15 +80,19 @@ try {
             PHP_ERROR_LOG_FILE
         );
 
+        echo "!!!";
+
         try {
 // set DBA
             DBA::create($worker, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
-
+            echo "@@@";
 // load node private key
             $worker->setMyAddress(Address::createFromWallet($worker, MY_ADDRESS, WALLET_PATH));
-
+            echo "###";
             $worker->run($channelRecv, $channelSend);
+            echo "$$$";
         } catch (Exception $e) {
+            echo "%%%";
             throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
         }
 
