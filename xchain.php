@@ -88,7 +88,7 @@ try {
 
             $worker->run($channelRecv, $channelSend);
         } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
         }
 
         return true;
