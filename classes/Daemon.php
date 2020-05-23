@@ -48,6 +48,8 @@ class Daemon extends aBase
 
         $app->setDaemon($me);
 
+        $me->dbg("Daemon created");
+
         return $me;
     }
 

@@ -82,6 +82,8 @@ class Logger extends aBase
 
         $me->getLocator()->setLogger($me);
 
+        $me->dbg("Logger created");
+
         return $me;
     }
 

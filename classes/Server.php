@@ -97,6 +97,8 @@ class Server extends aBase implements constMessageParsingResult
 
         $me->getLocator()->setServer($me);
 
+        $me->dbg("Server created");
+
         return $me;
     }
 

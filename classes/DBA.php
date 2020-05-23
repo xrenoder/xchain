@@ -4,6 +4,8 @@
  */
 class DBA extends aBase
 {
+    protected static $dbgLvl = Logger::DBG_DBA;
+
     // TODO сделать обработку ошибок
     private const TRANS_FD = 'fd';
     private const TRANS_OP = 'op';
@@ -11,8 +13,6 @@ class DBA extends aBase
     private const TRANS_VAL = 'val';
 
     private const TRANS_KEY = 'tkey';
-
-    protected static $dbgLvl = Logger::DBG_DBA;
 
     protected static $dbaMode = "cd";
 
@@ -62,6 +62,8 @@ class DBA extends aBase
             ->setLockFile($lockFile)
 
             ->getLocator()->setDba($me);
+
+        $me->dbg("DBA created");
 
         return $me;
     }
