@@ -63,7 +63,7 @@ class DBA extends aBase
 
             ->getLocator()->setDba($me);
 
-//        $me->dbg("DBA created");
+        $me->dbg("DBA created");
 
         return $me;
     }

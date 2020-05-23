@@ -58,8 +58,6 @@ class Daemon extends aBase
      */
     public function run(string $command = null) : bool
     {
-        $this->log("Old will be pid readed");
-
         $fd = fopen($this->pidFile, 'c+b');
         flock($fd, LOCK_EX);			// lock file to daemon will be started or exit
         $oldPid = fread($fd, 32);
@@ -79,8 +77,6 @@ class Daemon extends aBase
             $this->log("Daemon will be killed (pid $oldPid)");
             $this->kill($oldPid);
         }
-
-        $this->log("Old pid readed");
 
         if ($command === static::CMD_STOP) {
             ftruncate($fd, 0);

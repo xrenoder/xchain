@@ -96,6 +96,7 @@ class Logger extends aBase
      */
     private function createRecord($message, $isErr  = false, $debug = 0) : string
     {
+        echo substr($message, 0, 3) . "@@@";
         $record =
             $this->getDate() . "\t"
             . $this->getLocator()->getPid() . "\t"
