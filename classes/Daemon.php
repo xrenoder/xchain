@@ -43,6 +43,8 @@ class Daemon extends aBase
     {
         $me = new self($app);
 
+        $me->dbg("Daemon will be created");
+
         $me->setRunPath($runPath);
         $me->setPidFile($runPath . $pidName);
 
