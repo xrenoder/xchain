@@ -48,9 +48,10 @@ class Logger extends aBase
     public function setPhpErrFile($val) : self {$this->phpErrFile = $val; return $this;}
     public function getPhpErrFile() : string {return $this->phpErrFile;}
 
-    /** @var bool */
+    /** @var int */
     private $dbgMode = 0;
     public function setDbgMode($val) : self {$this->dbgMode = $val; return $this;}
+    public function getDbgMode() : int {return $this->dbgMode;}
 
     /**
      * Creating Logger object
@@ -98,7 +99,7 @@ class Logger extends aBase
     {
         $record =
             $this->getDate() . "\t"
-            . $this->getLocator()->getPid() . "\t\t"
+            . $this->getLocator()->getPid() . "\t"
             . $this->getLocator()->getName() . "\t";
 
         if ($isErr) {
