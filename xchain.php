@@ -101,7 +101,7 @@ try {
 
         $app->setChannelFromSocket($threadId, new parallel\Channel(Channel::Infinite));
         $app->setChannelFromWorker($threadId, parallel\Channel::make($threadId, parallel\Channel::Infinite));
-        $app->setThread($threadId,new parallel\Runtime("local.inc"));
+        $app->setThread($threadId,new parallel\Runtime(XCHAIN_PATH . "local.inc"));
 
         $app->getThread($threadId)->run(
             $workerThread,
