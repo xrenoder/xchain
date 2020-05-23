@@ -84,6 +84,7 @@ try {
 
         try {
 // set DBA
+            echo "~~~";
             DBA::create($worker, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
             echo "@@@";
 // load node private key
