@@ -62,7 +62,7 @@ class Daemon extends aBase
 
         $fd = fopen($this->pidFile, 'c+b');
         flock($fd, LOCK_EX);			// lock file to daemon will be started or exit
-        $oldPid = fread($fd, filesize($this->pidFile));
+        $oldPid = fread($fd, 32);
         fseek($fd, 0);
 
         if ($oldPid) {
@@ -105,7 +105,7 @@ class Daemon extends aBase
 // read pid of new daemon from file
         $fd = fopen($this->pidFile, "rb");
         flock($fd, LOCK_SH);
-        $pid = fread($fd, filesize($this->pidFile));
+        $pid = fread($fd, 32);
         flock($fd, LOCK_UN);
         fclose($fd);
 
