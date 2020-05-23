@@ -63,7 +63,6 @@ try {
 
     // get daemon-object
     Daemon::create($app, RUN_PATH,  'pid');
-    $app->getServer()->dbg("Daemon created");
 
 // start worker threads
     $workerThread = function (string $threadId, parallel\Channel $channelRecv, parallel\Channel $channelSend, int $debugMode)
@@ -99,14 +98,19 @@ try {
     $app->getEvents()->setBlocking(false); // Comment to block on Events::poll()
 //    $app->getEvents()->setTimeout(1000000); // Uncomment when blocking
 
+    $app->getServer()->dbg("Events created");
+
     $future = array();
 
     for($i = 1; $i <= THREADS_COUNT; $i++) {
         $threadId = "thrd_" . $i;
 
         $app->setChannelFromSocket($threadId, new parallel\Channel(Channel::Infinite));
+        $app->getServer()->dbg("Channel Socket created");
         $app->setChannelFromWorker($threadId, parallel\Channel::make($threadId, parallel\Channel::Infinite));
+        $app->getServer()->dbg("Channel Worker created");
         $app->setThread($threadId,new parallel\Runtime(XCHAIN_PATH . "local.inc"));
+        $app->getServer()->dbg("Runtime created");
 
         $future[] = $app->getThread($threadId)->run(
             $workerThread,
@@ -118,7 +122,10 @@ try {
             ]
         );
 
+        $app->getServer()->dbg("Runtime created");
+
         $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
+        $app->getServer()->dbg("Channel added to events");
     }
 
     sleep(1);
