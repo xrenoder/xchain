@@ -120,7 +120,9 @@ try {
         $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
     }
 
+    $app->getServer()->dbg("Before sleep");
     sleep(1);
+    $app->getServer()->dbg("After sleep");
 
     // run daemon
     if (!$app->getDaemon()->run($command)) {
