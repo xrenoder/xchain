@@ -68,7 +68,7 @@ try {
     $workerThread = function (string $threadId, parallel\Channel $channelRecv, parallel\Channel $channelSend, int $debugMode)
     {
         $worker = new Worker($threadId);
-        echo "***";
+
 // create logger-object
         Logger::create(
             $worker,
@@ -80,11 +80,8 @@ try {
             PHP_ERROR_LOG_FILE
         );
 
-        echo "!!!";
-
         try {
 // set DBA
-            echo "~~~";
             DBA::create($worker, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
             echo "@@@";
 // load node private key

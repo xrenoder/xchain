@@ -52,8 +52,9 @@ class DBA extends aBase
      */
     public static function create(aLocator $locator, string $handler, string $dbPath, string $dbExt, string $lockFile, string $lockExt) : self
     {
+        echo "***";
         $me = new static($locator);
-
+        echo "!!!";
         $me
             ->setDbaHandler($handler)
             ->setDbPath($dbPath)
@@ -62,9 +63,9 @@ class DBA extends aBase
             ->setLockFile($lockFile)
 
             ->getLocator()->setDba($me);
-
+        echo "~~~";
         $me->dbg("DBA created");
-
+        echo "^^^";
         return $me;
     }
 
