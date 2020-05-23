@@ -120,6 +120,8 @@ try {
         $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
     }
 
+    sleep(1);
+
     // run daemon
     if (!$app->getDaemon()->run($command)) {
         throw new Exception('Cannot daemon start');
