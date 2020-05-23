@@ -84,8 +84,6 @@ class Logger extends aBase
 
         ini_set('error_log', $me->getPhpErrFile());
 
-        $me->dbg("Logger created");
-
         return $me;
     }
 

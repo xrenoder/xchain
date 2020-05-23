@@ -62,7 +62,6 @@ try {
     $app->setMyAddress(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
 
     // get daemon-object
-    $app->getLogger()->dbg("Test");
     Daemon::create($app, RUN_PATH,  'pid');
 
 // start worker threads
