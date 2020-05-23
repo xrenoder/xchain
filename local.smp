@@ -13,6 +13,8 @@ define('FIRST_NODE_HOST', '');                             // remote node "IP:po
 define('DS', DIRECTORY_SEPARATOR);
 define('XCHAIN_PATH', $_SERVER['HOME'] . DS . 'xchain' . DS); // default xchain work directory (You can change it)
 
-define('SCRIPT_NAME', 'xchain.php');            // name of this file to check in ps-command
+define('SCRIPT_NAME', 'xchain.php');            // name of this file to check in ps-command (You can change it, if rename )
+
+define('THREADS_COUNT', 1);            // count of worker threads
 
 require_once 'global.inc';

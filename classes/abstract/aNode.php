@@ -9,6 +9,7 @@ abstract class aNode extends aBase
     /** @var int  */
     protected static $id;   /* override me */
     public function getId() : int {return static::$id;}
+
     /** @var string */
     protected $name;
     public function setName() : self {$this->name = NodeClassEnum::getItem(static::$id); return $this;}
@@ -24,9 +25,13 @@ abstract class aNode extends aBase
     public function setCanConnect($val) : self {$this->canConnect = $val; return $this;}
     public function getCanConnect() : int {return $this->canConnect;}
 
-    public static function create(App $app) : self
+    /** @var bool  */
+    protected $isClient = false;  /* can be overrided in client child */
+    public function isClient() : bool {return $this->isClient;}
+
+    public static function create(aLocator $locator) : self
     {
-        $me = new static($app);
+        $me = new static($locator);
 
         $data = NodeClassEnum::getData(static::$id);
 
@@ -35,17 +40,17 @@ abstract class aNode extends aBase
             ->setCanAccept($data[NodeClassEnum::CAN_ACCEPT])
             ->setCanConnect($data[NodeClassEnum::CAN_CONNECT]);
 
-        $app->dbg($me->getName() .  ' defined');
+        $locator->dbg($me->getName() .  ' defined');
 
         return $me;
     }
 
-    public static function spawn(App $app, int $id) : ?aNode
+    public static function spawn(aLocator $locator, int $id) : ?aNode
     {
         /** @var aNode $className */
 
         if ($className = NodeClassEnum::getClassName($id)) {
-            return $className::create($app);
+            return $className::create($locator);
         }
 
         return null;

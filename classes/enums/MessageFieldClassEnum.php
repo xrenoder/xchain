@@ -12,29 +12,33 @@ class MessageFieldClassEnum extends aClassEnum
     public const TIME =    3;
     public const ADDR =    4;
     public const DATA =    5;
-    public const SIGN =    6;
+    public const PUBKEY =  6;
+    public const SIGN =    7;
+
 
     public const UNKNOWN_LEN  = 0;
     public const SIMPLE_MAX_LEN  = 1 + 4 + 1 + 4; // type + length + node + time
     public const SIMPLE_ADDR_MAX_LEN  = 1 + 4 + 1 + 4 + 25; // type + length + node + time + addr
 
     protected static $items = array(
-        self::TYPE => 'TypeMessageField',
+        self::TYPE =>   'TypeMessageField',
         self::LENGTH => 'LengthMessageField',
-        self::NODE => 'NodeMessageField',
-        self::TIME => 'TimeMessageField',
-        self::ADDR => 'AddrMessageField',
-        self::DATA => 'DataMessageField',
-        self::SIGN => 'SignMessageField',
+        self::NODE =>   'NodeMessageField',
+        self::TIME =>   'TimeMessageField',
+        self::ADDR =>   'AddrMessageField',
+        self::DATA =>   'DataMessageField',
+        self::PUBKEY => 'AuthorPublicKeyMessageField',
+        self::SIGN =>   'SignMessageField',
     );
 
     protected static $data = array(
         self::TYPE =>   FieldFormatEnum::UCHAR,          // always must have fixed non-zero length
-        self::LENGTH => FieldFormatEnum::ULONG_BE,
+        self::LENGTH => FieldFormatEnum::ULONG_BE,      // always must have fixed non-zero length
         self::NODE =>   FieldFormatEnum::UCHAR,
         self::TIME =>   FieldFormatEnum::ULONG_BE,
         self::ADDR =>   FieldFormatEnum::ADDR,
         self::DATA =>   FieldFormatEnum::NOPACK_LBE,
+        self::PUBKEY => FieldFormatEnum::PUBKEY,
         self::SIGN =>   FieldFormatEnum::SIGN_LC,
     );
 

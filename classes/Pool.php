@@ -63,7 +63,7 @@ class Pool extends aBase
 
         $me
             ->setName($name)
-            ->setMyNodeId($me->getApp()->getMyNode()->getId());
+            ->setMyNodeId($me->getLocator()->getMyNode()->getId());
 
         return $me;
     }

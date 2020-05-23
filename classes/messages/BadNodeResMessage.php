@@ -10,10 +10,8 @@ class BadNodeResMessage extends aSimpleMessage
 
     protected function incomingMessageHandler(): bool
     {
-//        $this->getSocket()->setFree();
-
-        $this->getSocket()->close();
-
+// TODO продумать действия при получении сообщения о нашем неверном обращении к другой ноде
+        $this->getLegate()->setNeedCloseSocket();
         return true;
     }
 }

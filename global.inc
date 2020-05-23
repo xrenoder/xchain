@@ -20,19 +20,30 @@ if (MY_ADDRESS === '') {
 define('RESERVE_SOCKETS', 128);
 define('MAX_SOCKETS', 640);     // 512 + 128 reserve sockets
 
+define('CLASS_EXT', '.php');
+
+define('LOG_FILE', 'xchain');
+define('SCRIPT_ERROR_LOG_FILE', 'error');
+define('PHP_ERROR_LOG_FILE', 'php.err');
+define('LOG_EXT', '.log');
+
 define('DBA_HANDLER', 'qdbm');
 define('DBA_EXT', '.qdbm');
 define('DBA_LOCK_FILE', 'db');           // lock file for database transactions
 define('LOCK_EXT', '.lock');
-
-define('CLASS_EXT', '.php');
-define('LOG_EXT', '.log');
 
 define('CLASS_PATH', XCHAIN_PATH . 'classes' . DS);
 define('LOG_PATH', XCHAIN_PATH . 'logs' . DS);
 define('RUN_PATH', XCHAIN_PATH . 'run' . DS);
 define('DATA_PATH', XCHAIN_PATH . 'data' . DS);
 define('WALLET_PATH', XCHAIN_PATH . 'wallet' . DS);
+
+define('ALIVE_TIMEOUT', 3);
+define('KILL_TIMEOUT', 5);
+define('SELECT_TIMEOUT_SEC', 0);
+define('SELECT_TIMEOUT_USEC', 50000);
+define('CONNECT_TIMEOUT', 30);
+define('GARBAGE_TIMEOUT', 60);
 
 require_once 'init.inc';
 

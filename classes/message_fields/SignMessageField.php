@@ -8,29 +8,19 @@ class SignMessageField extends aMessageField
 
     public function check(): bool
     {
-        /* @var aDataSignMessage $message */
+        /* @var aSignMessage $message */
         $message = $this->getMessage();
-        $socket = $this->getSocket();
 
-        $remoteNodeId = $socket->getRemoteNode()->getId();
-        $myNodeId = $socket->getMyNodeId();
+        $remoteAddress = $message->getRemoteAddress();
 
-        if ($remoteNodeId === NodeClassEnum::CLIENT_ID || $myNodeId === NodeClassEnum::CLIENT_ID) {
-            $this->dbg("BAD DATA client cannot send and receive signed data message");
-            return $socket->badData();
+        if ($remoteAddress === null) {
+            throw new Exception("Bad code - public key must be here!!! Repair method AddrMessageField::check() and AuthorPublicKeyMessageField::check()");
         }
 
-        $remoteAddress = $socket->getRemoteAddress();
-
-        if ($remoteAddress !== null && $remoteAddress->getPublicKeyBin() !== null) {
-            $signedData = $remoteNodeId . $remoteAddress->getAddressBin() . $message->getSendingTime() . $message->getData();
-
-            if (!$remoteAddress->verifyBin($message->getSignature(), $signedData)) {
-                $this->dbg("BAD DATA signature is bad");
-                return $socket->badData();
-            }
-        } else {
-            throw new Exception("Bad code - public key must be here!!! Repair method AddrMessageField::check()");
+        if (!$remoteAddress->verifyBin($message->getSignature(), $message->getSignedData())) {
+            $this->dbg("BAD DATA message signature is bad");
+            $this->getLegate()->setBadData();
+            return false;
         }
 
         return true;

@@ -2,7 +2,7 @@
 /**
  * Socket
  */
-class Socket extends aBase
+class Socket extends aBase implements constMessageParsingResult
 {
     protected static $dbgLvl = Logger::DBG_SOCK;
 
@@ -21,83 +21,36 @@ class Socket extends aBase
     /** @var bool  */
     private $blockMode = true;
 
-//    /** @var bool  */
-//    private $keepAlive = false;
-
     /** @var int  */
     private $time = null;
     public function setTime() : self {$this->time = time(); return $this;}
 
-    /** @var aMessage  */
-    private $inMessage = null;
-    public function setInMessage(aMessage $val) : self {$this->inMessage = $val; return $this;}
-    public function cleanInMessage() : self {$this->inMessage = null; return $this; }
-    public function getInMessage() : ?aMessage {return $this->inMessage;}
+    /** @var SocketLegate */
+    private $legate = null;
+    public function setLegate(SocketLegate $val) : self {$this->legate = $val; return $this;}
+    public function getLegate() : SocketLegate {return $this->legate;}
+
+    /** @var int */
+    private $threadId = null;
 
     /** @var string  */
     private $outData = '';
-
-    /** @var aMessage  */
-    private $delayedOutMessage = null;
 
     /** @var Host  */
     private $host;
     public function setHost(Host $val) : self {$this->host = $val; return $this;}
     public function getHost() : Host {return $this->host;}
 
-    /** @var bool  */
-    private $freeAfterSend = false;
-    public function setFreeAfterSend() : self {$this->freeAfterSend = true; return $this;}
-    public function needFreeAfterSend() : bool {return $this->freeAfterSend;}
-
-    /** @var bool  */
-    private $closeAfterSend = false;
-    public function setCloseAfterSend() : self {$this->closeAfterSend = true; return $this;}
-    public function needCloseAfterSend() : bool {return $this->closeAfterSend;}
-
     /** @var int  */ /* when busy - 0, when free - time of freedom moment */
     private $freeTime = 0;
     public function getFreeTime() : int {return $this->freeTime;}
     public function isFree() : bool {return $this->freeTime !== 0;}
 
-    /* is this socket create by 'connect' */
-    /** @var bool  */
-    private $connected = false;
-    public function setConnected() : self {$this->connected = true; return $this;}
-    public function isConnected() : bool {return $this->connected;}
-
     /** @var aTask  */
     private $task;
-    public function setTask(aTask $val) : self {$this->task = $val; return $this;}
-    public function unsetTask() : self {$this->task = null; return $this;}
+    public function setTask(aTask $val) : self {$this->task = $val; $this->legate->setMyNodeId($this->task->getPool()->getMyNodeId()); return $this;}
+    public function unsetTask() : self {$this->task = null; $this->legate->setMyNodeId($this->getLocator()->getMyNode()->getId()); return $this;}
     public function getTask() : ?aTask {return $this->task;}
-
-    /** @var bool  */
-    private $needAliveCheck = true;
-
-    /** @var bool  */
-    private $isAliveChecked = false;
-    public function setAliveChecked() : self {$this->isAliveChecked = true; return $this;}
-    public function isAliveChecked() : bool {return $this->isAliveChecked;}
-
-    /** @var bool  */
-    private $isServerBusy = false;
-    public function setServerBusy() : self {$this->isServerBusy = true; return $this;}
-    public function isServerBusy() : bool {return $this->isServerBusy;}
-
-    /** @var aNode  */
-    private $remoteNode = null;
-    public function setRemoteNode(aNode $val) : self {$this->remoteNode = $val; return $this;}
-    public function getRemoteNode() : ?aNode {return $this->remoteNode;}
-
-    /** @var bool  */
-    private $areNodesCompatible = null;
-    public function areNodesCompatible() : ?bool {return $this->areNodesCompatible;}
-
-    /** @var Address  */
-    protected $remoteAddress = null;
-    public function setRemoteAddress(Address $val) : self {$this->remoteAddress = $val; return $this;}
-    public function getRemoteAddress() : ?Address {return $this->remoteAddress;}
 
     /**
      * @param Server $server
@@ -109,6 +62,9 @@ class Socket extends aBase
     public static function create(Server $server, Host $host, $fd, string $key) : self
     {
         $me = new self($server);
+
+        $me->setLegate(SocketLegate::create($me, $key));
+        $me->getLegate()->setMyNodeId($me->getLocator()->getMyNode()->getId());
 
         $me
             ->setHost($host)
@@ -186,14 +142,14 @@ class Socket extends aBase
      */
     public function setBusy() : self
     {
-        if ($this->connected) {
+        if ($this->legate->isConnected()) {
             $this->getServer()->busyConnected($this->host, $this->key);
         } else {
             $this->getServer()->busyAccepted($this->host, $this->key);
         }
 
         $this->freeTime = 0;
-        $this->freeAfterSend = false;
+        $this->legate->setFreeAfterSend(false);
 
         return $this;
     }
@@ -205,9 +161,9 @@ class Socket extends aBase
     {
 // TODO если в ноду стучится клиент - после завершения операций соединение не сохраняется, а разрывается
         $this->freeTime = time();
-        $this->freeAfterSend = false;
+        $this->legate->setFreeAfterSend(false);
 
-        if ($this->connected) {
+        if ($this->legate->isConnected()) {
             $this->getServer()->freeConnected($this, $this->host, $this->key);
         } else {
             $this->getServer()->freeAccepted($this, $this->host, $this->key);
@@ -216,10 +172,6 @@ class Socket extends aBase
         if ($this->task) {
             $this->task->finish();
         }
-
-        $this->cleanInMessage();
-
-        $this->remoteNode = null;
 
         $this->time = 0;
 
@@ -233,61 +185,25 @@ class Socket extends aBase
      */
     public function sendMessage(?aMessage $message) : self
     {
-        if ($this->needAliveCheck && $this->isConnected()) {
-            $this->needAliveCheck = false;
-            $this->delayedOutMessage = $message;
-
-            $message = AliveReqMessage::create($this, []);
-        }
-
         if ($message !== null) {
-            $this->outData .= $message->createMessageString();
+            if ($message->getLegate() !== null) {
+                throw new Exception("Bad code - parent object of sended " . $message->getName() . " cannot be SocketLegate");
+            }
+
+            $messageString = $message->createMessageString();
+        } else {
+            $messageString = '';
         }
 
+        return $this->sendMessageString($messageString);
+    }
+
+    public function sendMessageString(string $messageString) : self
+    {
+        $this->outData .= $messageString;
         $this->setSends();
 
         return $this;
-    }
-
-    /**
-     * @return self
-     */
-    public function sendDelayedOutMessage() : self
-    {
-        $message = $this->delayedOutMessage;
-        $this->delayedOutMessage = null;
-
-        return $this->sendMessage($message);
-    }
-
-    public function getMyNodeId() : int
-    {
-        if ($this->task) {
-            return $this->task->getPool()->getMyNodeId();
-        }
-
-        return $this->getApp()->getMyNode()->getId();
-    }
-
-    public function checkNodesCompatiblity() : void
-    {
-        $myNodeId = $this->getMyNodeId();
-
-        if($this->isConnected()) {
-            $myCriteria = NodeClassEnum::getCanConnect($myNodeId);
-            $logTxt = "cannot connect to";
-        } else {
-            $myCriteria = NodeClassEnum::getCanAccept($myNodeId);
-            $logTxt = "cannot accept connection from";
-        }
-
-        $result = $myCriteria & $this->remoteNode->getId();
-
-        $this->areNodesCompatible = ($result !== 0);
-
-        if (!$this->areNodesCompatible) {
-            $this->dbg('Nodes uncompatible: ' . NodeClassEnum::getName($myNodeId) . " $logTxt " . $this->remoteNode->getName());
-        }
     }
 
     /**
@@ -316,14 +232,14 @@ class Socket extends aBase
         }
 
         if (!$this->outData) {
-            if ($this->needCloseAfterSend()) {
+            if ($this->legate->needCloseAfterSend()) {
                 $this->close();
             } else {
                 $this
                     ->unsetSends()
                     ->setRecvs();
 
-                if ($this->needFreeAfterSend()) {
+                if ($this->legate->needFreeAfterSend()) {
                     $this->setFree();
                 }
             }
@@ -342,8 +258,9 @@ class Socket extends aBase
 
         $needRead = -1;
 
-        if ($this->inMessage && $this->inMessage->getDeclaredLen()) {
-            $needRead = $this->inMessage->getBufferSize();
+        if ($bufferSize = $this->legate->getReadBufferSize()) {
+            $needRead = $bufferSize;
+            $this->legate->setReadBufferSize(0);
         }
 
         if (($data = stream_get_contents($this->fd, $needRead)) === false) {
@@ -357,7 +274,47 @@ class Socket extends aBase
 
         $this->dbg('RECV ' . $this->getKey() . ': '. strlen($data) . ' bytes');
 
-        return aMessage::parser($this, $data);
+        $this->legate->setIncomingBuffer($data);
+
+        /** @var App $locator */
+        $locator = $this->getLocator();
+
+        if ($this->threadId === null) {
+            $this->threadId = $locator->getBestThreadId();
+        }
+
+        $locator->incThreadBusy($this->threadId);
+        $channel = $locator->getChannelFromSocket($this->threadId);
+
+        $channel->send([$this->legate->getId(), $this->legate->serializeInSocket()]);
+
+        return false;
+    }
+
+    public function workerResponseHandler($serializedLegate) {
+        /** @var App $locator */
+        $locator = $this->getLocator();
+//        $channel = $locator->getChannelFromWorker($this->threadId);
+
+        $legate = $this->legate = $this->legate->unserializeInSocket($serializedLegate);
+        $result = $this->legate->getWorkerResult();
+
+        if ($result === self::MESSAGE_PARSED || $legate->isBadData() || $legate->needCloseSocket()) {
+            $locator->decThreadBusy($this->threadId);
+            $this->threadId = null;
+        }
+
+        if ($legate->isBadData()) {
+            $this->badData();
+        } else if ($legate->needCloseSocket()) {
+            $this->close();
+        } else {
+            $messageString = $legate->getResponseString();
+            $legate->setResponseString(null);
+            $this->sendMessageString($messageString);
+        }
+
+        return $result;
     }
 
     /**
@@ -388,14 +345,10 @@ class Socket extends aBase
         return $this;
     }
 
-    /**
-     * @return bool
-     */
-    public function badData() : bool
+    public function badData() : void
     {
 // TODO продумать действия при закрытии сокета, на который поступили плохие данные
 // например, закрыть все свободные сокеты, соединенные с этим хостом
         $this->close();
-        return false;
     }
 }

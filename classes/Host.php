@@ -54,13 +54,13 @@ class Host extends aBase
     public function getTarget() : string {return $this->target;}
 
     /**
-     * @param App $app
+     * @param App $locator
      * @param string $transport
      * @param string $pair
      * @return self
      * @throws Exception
      */
-    public static function create(App $app, string $transport, string $pair) : self
+    public static function create(aLocator $locator, string $transport, string $pair) : self
     {
         if (!in_array($transport, self::$transports)) {
             throw new Exception("Host class: Bad transport $transport");
@@ -68,7 +68,7 @@ class Host extends aBase
 
         [$host, $port] = explode(':', trim($pair));
 
-        $me = new self($app);
+        $me = new self($locator);
 
         $me->setTransport(trim($transport));
         $me->setHost(trim($host));

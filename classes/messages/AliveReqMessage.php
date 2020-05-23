@@ -13,21 +13,11 @@ class AliveReqMessage extends aSimpleAddressMessage
      */
     protected function incomingMessageHandler() : bool
     {
-        $socket = $this->getSocket();
+        $legate = $this->getLegate();
 
-        if ($socket->areNodesCompatible() === false) {
-            $socket->sendMessage(BadNodeResMessage::create($socket, []));
-            $socket->setCloseAfterSend();
-        } else if ($this->isBadTime()) {
-            $socket->sendMessage(BadTimeResMessage::create($socket, []));
-            $socket->setCloseAfterSend();
-        } else {
-            $socket->sendMessage(AliveResMessage::create($socket, []));
-            $socket->setAliveChecked();
-            $socket->cleanInMessage();
-        }
+        $legate->setCloseAfterSend();
+        $legate->createResponse(AliveResMessage::create($this->getLocator()));
 
-//        $this->getSocket()->setFreeAfterSend();
-        return false;
+        return self::MESSAGE_PARSED;
     }
 }

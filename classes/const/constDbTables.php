@@ -11,7 +11,7 @@ interface constDbTables
 
     public const BLOCKS_TABLE = 'blocks';               // "blockNumber" => "blockRawData" ; used for master & torrent nodes
 
-    public const TRANSACTIONS_TABLE = 'transactions';  // "transactionId" => '' ; for checking, is transaction ID exists, used for all nodes
+    public const TRANSACTIONS_TABLE = 'transactions';  // "transactionId" => nonce ; for checking, is transaction ID exists, used for all nodes
 
     public const AMOUNTS_TABLE = 'amounts';            // "address" => amount ; used for all nodes
     public const DELEGATE_FROM_TABLE = 'delegate.from';// "addressFrom" => amount ; used for all nodes

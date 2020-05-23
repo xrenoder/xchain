@@ -4,19 +4,23 @@
  */
 class Logger extends aBase
 {
-    public const DBG_SERV =     1;
-    public const DBG_SOCK =     2;
-    public const DBG_MESS =     4;
-    public const DBG_POOL =     8;
-    public const DBG_TASK =     16;
-    public const DBG_NODE =     32;
-    public const DBG_ADDR =     64;
-    public const DBG_DBA =      128;
-    public const DBG_MSG_FLD =  256;
-    public const DBG_ROW =      512;
-    public const DBG_ROW_SET =  1024;
+    public const DBG_LOCATOR  = 1;
+    public const DBG_SERV =     2;
+    public const DBG_SOCK =     4;
+    public const DBG_MESS =     8;
+    public const DBG_POOL =     16;
+    public const DBG_TASK =     32;
+    public const DBG_NODE =     64;
+    public const DBG_ADDR =     128;
+    public const DBG_DBA =      256;
+    public const DBG_MSG_FLD =  512;
+    public const DBG_ROW =      1024;
+    public const DBG_ROW_SET =  2048;
+    public const DBG_TRANS =    4096;
+
 
     private static $flags = array(
+        self::DBG_LOCATOR =>    'Locator',
         self::DBG_SERV =>       'Server ',
         self::DBG_SOCK =>       'Socket ',
         self::DBG_MESS =>       'Message',
@@ -28,6 +32,7 @@ class Logger extends aBase
         self::DBG_MSG_FLD =>    'Msg Fld',
         self::DBG_ROW =>        'DB Row ',
         self::DBG_ROW_SET =>    'DB RSet',
+        self::DBG_TRANS =>      'Trans  ',
     );
 
     /** @var string */
@@ -50,7 +55,7 @@ class Logger extends aBase
     /**
      * Creating Logger object
      *
-     * @param App $app
+     * @param App $locator
      * @param string $logPath
      * @param int $dbgLevels
      * @param string $logName
@@ -58,16 +63,24 @@ class Logger extends aBase
      * @param string $phpErrName
      * @return self
      */
-    public static function create(App $app, string $logPath, int $dbgLevels, string $logName, string $errName, string $phpErrName) : self
+    public static function create(
+        aLocator $locator,
+        int $dbgLevels,
+        string $logPath,
+        string $logExt,
+        string $logName,
+        string $errName,
+        string $phpErrName
+    ) : self
     {
-        $me = new self($app);
+        $me = new self($locator);
 
-        $me->setLogFile($logPath . $logName);
-        $me->setErrFile($logPath . $errName);
-        $me->setPhpErrFile($logPath . $phpErrName);
+        $me->setLogFile($logPath . $logName . $logExt);
+        $me->setErrFile($logPath . $errName . $logExt);
+        $me->setPhpErrFile($logPath . $phpErrName . $logExt);
         $me->setDbgMode($dbgLevels);
 
-        $me->getApp()->setLogger($me);
+        $me->getLocator()->setLogger($me);
 
         return $me;
     }
@@ -81,7 +94,10 @@ class Logger extends aBase
      */
     private function createRecord($message, $isErr  = false, $debug = 0) : string
     {
-        $record = $this->getDate() . "\t" . $this->getApp()->getPid() . "\t\t";
+        $record =
+            $this->getDate() . "\t"
+            . $this->getLocator()->getPid() . "\t"
+            . $this->getLocator()->getName() . "\t";
 
         if ($isErr) {
             $record .= '[error]' . "\t\t";

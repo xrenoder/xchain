@@ -5,6 +5,7 @@ PHP 7.2 or more must be congigured with
 --enable-dba=shared 
 --enable-sockets 
 --enable-pcntl
+--enable-maintainer-zts
 
 ***********************************************
 
@@ -37,20 +38,34 @@ sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install php7.0-dba
 
-# Install PHP
+# Install PHP 7.3.2
+
 cd /tmp
 rm -rf /tmp/php-7.3.2/
 wget -O php-7.3.2.tar.bz2 http://nl1.php.net/get/php-7.3.2.tar.bz2/from/this/mirror
 tar -xvf php-7.3.2.tar.bz2
 cd /tmp/php-7.3.2/
 
-./configure --with-config-file-path=/etc/php --enable-fd-setsize=65536  --enable-dba=shared --with-qdbm --enable-sockets --enable-pcntl --with-curl --with-gmp
+./configure --enable-maintainer-zts --with-config-file-path=/etc/php --enable-fd-setsize=65536  --enable-dba=shared --with-qdbm --enable-sockets --enable-pcntl --with-curl --with-gmp
 
 make
 sudo make install
 
-extension=dba.so
 sudo echo "extension=dba.so" | sudo tee -a /etc/php/php.ini
+
+# Install Parallel for php7
+
+cd /tmp
+rm -rf /tmp/parallel/
+git clone https://github.com/krakjoe/parallel.git
+cd parallel
+phpize
+./configure --enable-parallel  
+[ --enable-parallel-coverage ] [ --enable-parallel-dev ]
+make
+sudo make install
+
+sudo echo "extension=parallel.so" | sudo tee -a /etc/php/php.ini
 
 # Install MHCrypto
 
@@ -64,8 +79,6 @@ make
 sudo make install
 
 sudo echo "extension=mhcrypto.so" | sudo tee -a /etc/php/php.ini
-
-
  
 
 ***********************************************

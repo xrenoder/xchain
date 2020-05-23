@@ -10,15 +10,12 @@ class BadTimeResMessage extends aSimpleMessage
 
     protected function incomingMessageHandler(): bool
     {
-//        $this->getSocket()->setFree();
-
 // TODO продумать действия при получении сообщения о рассинхронизации времени
 // при достижении определенного числа сообщений от разных хостов технично отключиться (с записью в блокчейн)
 // и отправить мыло владельцу ноды
 // либо придумываем механизм автоматической коррекции времени
 
-        $this->getSocket()->close();
-
+        $this->getLegate()->setNeedCloseSocket();
         return true;
     }
 }

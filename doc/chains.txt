@@ -30,7 +30,7 @@
     - capitalisation rules
     - fixed sidechains zero transactions
 
-1   Chain of test sessions (created every X block after previous)
+1   Chain of test legates (created every X block after previous)
 
 2   Chain of BTC/XNC exchange orders
 

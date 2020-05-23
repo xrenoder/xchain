@@ -44,15 +44,15 @@ class DBA extends aBase
     private $dbhTables = array();
 
     /**
-     * @param App $app
+     * @param App $locator
      * @param string $handler
      * @param string $dbExt
      * @param string $lockExt
      * @return self
      */
-    public static function create(App $app, string $handler, string $dbPath, string $dbExt, string $lockFile, string $lockExt) : self
+    public static function create(aLocator $locator, string $handler, string $dbPath, string $dbExt, string $lockFile, string $lockExt) : self
     {
-        $me = new static($app);
+        $me = new static($locator);
 
         $me
             ->setDbaHandler($handler)
@@ -61,7 +61,7 @@ class DBA extends aBase
             ->setLockExt($lockExt)
             ->setLockFile($lockFile)
 
-            ->getApp()->setDba($me);
+            ->getLocator()->setDba($me);
 
         return $me;
     }

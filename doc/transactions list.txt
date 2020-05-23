@@ -1,0 +1,41 @@
+Transfer:
+
+AtAa    transfer
+
+
+Delegation/Undelegation:
+
+AtAa    delegate amount to node
+AtAa    undelegate amount from node (author - delegate)
+AtAa    undelegate amount from node (author - node)
+AtAwa   undelegate all from node (author - delegate)
+AtAwa   undelegate all from node (author - node)
+Gwa     undelegate all from all nodes (author - delegate)
+
+Freeze/Unfreeze:
+
+Ga      freeze amount
+Ga      unfreeze amount
+Gwa     unfreeze all
+
+
+Node status (author - node):
+GwaTd   wanna be F-node (amount - freeze, data - node type) - signer put transaction in block, if aspirant really can be node (but node need have delegations)
+GaTd    wanna be node (amount  - freeze, data - node type) - signer put transaction in block, if aspirant really can be node (but node need have delegations)
+GwaTd   start node (data - node type) - signer put transaction in block, if aspirant really can be node (have delegations)
+GaTd    short stop node (amount - additional freeze, will be pay for every block, data - max time of stopping)
+Gwa     long or forever stop node (automatically unfrozen and undelegation all)
+
+Node status (author - signer):
+
+
+GwaTd   set allower                       allower can set/unset allow modes and allows for nodes
+GwaTd   unsetset allower                  allower can set/unset allow modes and allows for nodes
+
+set/unset allow mode to M-nodes         if set - only allowed addresses can be M-nodes
+set/unset allow mode to S-nodes         if set - only allowed addresses can be S-nodes
+allow/deny address to be node M
+allow/deny address to be node S
+lock/unlock address to transfer              (to, ~amount)
+
+remove transaction from mempool

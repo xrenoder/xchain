@@ -19,7 +19,7 @@ abstract class aDbRowsSet extends aBase implements constDbRowIds
 
         foreach (static::$rows as $property => $className) {
             /** @var aDbRow $className */
-            $this->$property = $className::create($this->getApp());
+            $this->$property = $className::create($this->getLocator());
         }
 
         $this->dbCommit($transKey);

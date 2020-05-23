@@ -10,11 +10,12 @@ class TimeMessageField extends aMessageField
     {
         /* @var aSimpleMessage $message */
         $message = $this->getMessage();
+        $legate = $this->getLegate();
 
-        // Clients (type NodeClassEnum::CLIENT_ID) may have unsynchronized time
+// Clients (type NodeClassEnum::CLIENT_ID) may have unsynchronized time
         if (
             $message->getRemoteNodeId() === NodeClassEnum::CLIENT_ID
-            || $message->getSocket()->getMyNodeId() === NodeClassEnum::CLIENT_ID
+            || $legate->getMyNodeId() === NodeClassEnum::CLIENT_ID
         ) {
             return true;
         }
@@ -27,9 +28,12 @@ class TimeMessageField extends aMessageField
 // возможно, локальное время нужно брать в момент получения запроса
         if ($diff >= 2) {
             $this->dbg("BAD TIME message time $this->value have too big different with local time $time for " . $message->getName());
-            $message->setBadTime();
+            $legate->setCloseAfterSend();
+            $legate->createResponse(BadTimeResMessage::create($this->getLocator()));
             return false;
         }
+
+        $message->setSignedData($message->getSignedData() . $this->raw);
 
         return true;
     }

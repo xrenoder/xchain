@@ -2,26 +2,39 @@
 /**
  * Application class
  */
-class App extends aBase
+class App extends aLocator
 {
-    /** @var string */
-    private $name;
-    public function getName() : string {return $this->name;}
-
     /** @var int */
     private $pid = null;
     public function setPid($val) : self {$this->pid = $val; return $this;}
     public function getPid() : int {return $this->pid;}
 
-    /** @var Logger */
-    private $logger;
-    public function setLogger(Logger $val) : self {$this->logger = $val; return $this;}
-    public function getLogger() : Logger {return $this->logger;}
+    /** @var Runtime[]  */
+    private $threads = array();
+    public function setThread(string $id, Runtime $val) : self {$this->threads[$id] = $val; $this->setThreadBusy($id, 0); return $this;}
+    public function getThread(string $id) : Runtime {return $this->threads[$id];}
 
-    /** @var DBA */
-    private $dba;
-    public function setDba(DBA $val) : self {$this->dba = $val; return $this;}
-    public function getDba() : DBA {return $this->dba;}
+    /** @var int[]  */
+    private $threadsBusy = array();
+    public function setThreadBusy(string $id, int $val) : self {$this->threadsBusy[$id] = $val; return $this;}
+    public function incThreadBusy(string $id) : self {$this->threadsBusy[$id]++; return $this;}
+    public function decThreadBusy(string $id) : self {$this->threadsBusy[$id]--; return $this;}
+    public function getBestThreadId() : string {asort($this->threadsBusy); return array_key_first($this->threadsBusy);}
+
+    /** @var Channel[]  */
+    private $channelsFromSocket = array();
+    public function setChannelFromSocket(string $id, Channel $val) : self {$this->channelsFromSocket[$id] = $val; return $this;}
+    public function getChannelFromSocket(string $id) : Channel {return $this->channelsFromSocket[$id];}
+
+    /** @var Channel[]  */
+    private $channelsFromWorker = array();
+    public function setChannelFromWorker(string $id, Channel $val) : self {$this->channelsFromWorker[$id] = $val; return $this;}
+    public function getChannelFromWorker(string $id) : Channel {return $this->channelsFromWorker[$id];}
+
+    /** @var Events  */
+    private $events = null;
+    public function setEvents(Events $val) : self {$this->events = $val; return $this;}
+    public function getEvents() : Events {return $this->events;}
 
     /** @var Daemon */
     private $daemon;
@@ -33,21 +46,6 @@ class App extends aBase
     public function setServer(Server $val): self {$this->server = $val; return $this;}
     public function getServer() : Server {return $this->server;}
 
-    /** @var aNode */
-    private $myNode;
-    public function setMyNode(aNode $val) : self {$this->myNode = $val; return $this;}
-    public function getMyNode() : aNode {return $this->myNode;}
-
-    /** @var Address */
-    private $myAddr;
-    public function setMyAddr(Address $val) : self {$this->myAddr = $val; return $this;}
-    public function getMyAddr() : Address {return $this->myAddr;}
-
-    /** @var SummaryDataSet */
-    private $summaryDataSet;
-    public function setSummaryDataSet(SummaryDataSet $val) : self {$this->summaryDataSet = $val; return $this;}
-    public function getSummaryDataSet() : SummaryDataSet {return $this->summaryDataSet;}
-
     /**
      * App constructor.
      * @param string $name
@@ -56,7 +54,7 @@ class App extends aBase
     {
         parent::__construct($this);
 
-        $this->name = $name;
+        $this->setName($name);
         $this->pid = posix_getpid();
     }
 }

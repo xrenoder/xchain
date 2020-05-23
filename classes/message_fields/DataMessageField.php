@@ -7,5 +7,9 @@ class DataMessageField extends aMessageField
     protected static $id = MessageFieldClassEnum::DATA;  /* overrided */
 
     public function check(): bool
-    { return true; /* do nothing */ }
+    {
+        $message = $this->getMessage();
+        $message->setSignedData($this->raw . $message->getSignedData());
+        return true;
+    }
 }

@@ -20,7 +20,7 @@ class AliveTask extends aTask
             return false;
         }
 
-        $this->socket->sendMessage(null);      // empty message will be not sended, but Socket before first message always send AliveRequest
+        $this->socket->sendMessage(AliveReqMessage::create($this->getLocator()));
 
         return true;
     }

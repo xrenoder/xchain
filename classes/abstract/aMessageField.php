@@ -10,7 +10,7 @@ abstract class aMessageField extends aBase
     protected static $id;  /* override me */
 
     public function getMessage() : aMessage {return $this->getParent();}
-    public function getSocket() : Socket {return $this->getMessage()->getParent();}
+    public function getLegate() : SocketLegate {return $this->getMessage()->getLegate();}
 
     /** @var string */
     protected $name;
@@ -39,6 +39,7 @@ abstract class aMessageField extends aBase
     public function setIsLast() : self {$this->isLast = FieldFormatEnum::isLast($this->format); return $this;}
     public function isLast() : bool {return $this->isLast;}
 
+    protected $raw = null;
     protected $value = null;
 
     abstract public function check() : bool;
@@ -73,7 +74,7 @@ abstract class aMessageField extends aBase
 
     public function unpackField(string $str) : array
     {
-        [$length, $this->value] = FieldFormatEnum::unpack($str, $this->format, $this->offset);
+        [$length, $this->value, $this->raw] = FieldFormatEnum::unpack($str, $this->format, $this->offset);
 
         return [$length, $this->value];
     }

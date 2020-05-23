@@ -3,6 +3,11 @@ error_reporting (E_ALL ^ E_NOTICE);
 ini_set('display_errors', 'Off');
 set_time_limit(0);
 
+// TODO проверить эффективность ручной сборки мусора
+gc_disable();
+
+use parallel\{Channel,Runtime,Events,Events\Event};
+
 if (!defined('CLASS_PATH')) {
     throw new Exception('CLASS_PATH should be defined');
 }

@@ -1,25 +1,17 @@
 1 bytes         type of message (255)
-4 bytes         length of message body (include this field and type field) (2 Gb)
+4 bytes         length of message body (include this field and type field) (2+ Gb)
 1 byte          sender node type (255)
 4 bytes         time (if "local time" is different from "message time" to 2 sec or more - decline)
-(last field for "BusyRes", "BadNodeRes" and "BadTimeRes")
+                (last field for "SimpleMessage")
 
-25 bytes        sender X-address
-(last field for "AliveReq" and "AliveRes")
+25 bytes        sender address
+                (last field for "SimpleAddressMessage")
 
-var             data
+variable        data
+                (last field for "DataMessage")
 
-1 byte          step on way of message between nodes (255)
-                                        1 - User to F-peer "transaction",
-                                        2 - momental response from F-peer to User "F-peer receive transaction"
-                                        3 - F-peer to S-peer "transaction"
-                                        4 - momental response from S-peer to F-peer "S-peer receive transaction"
-                                        5 - response from F-peer to User "S-peer receive transaction"
-                                        6 - S-peer to M-peer "transaction"
-                                        7 - momental response from M-peer to S-peer "M-peer receive transaction"
-                                        8 - response from S-peer to F-peer "M-peer receive transaction"
-                                        9 - response from F-peer to User "M-peer receive transaction"
-                                        10 - response from M-peer to S-peer "M-peer accept transaction"
-                                        11 - response from S-peer to F-peer "M-peer accept transaction"
-                                        12 - response from F-peer to User "M-peer accept transaction"
-                                        13 - response from M-peer to S-peer "M-peer sign block with transaction"
+248 bytes       author public key
+
+variable 71-73  data signature
+                (last field for "SignMessage")
+

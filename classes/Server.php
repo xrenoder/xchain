@@ -2,18 +2,18 @@
 /**
  * Work with sockets: listen, select, accept, read, write
  */
-class Server extends aBase
+class Server extends aBase implements constMessageParsingResult
 {
     protected static $dbgLvl = Logger::DBG_SERV;
 
     private const MAX_SOCK = MAX_SOCKETS;
     private const RESERVE_SOCK = RESERVE_SOCKETS;
 
-    private const ALIVE_TIMEOUT = 10;
-    private const SELECT_TIMEOUT_SEC = 0;
-    private const SELECT_TIMEOUT_USEC = 50000;
-    private const CONNECT_TIMEOUT = 30;
-    private const GARBAGE_TIMEOUT = 60;
+    private const ALIVE_TIMEOUT = ALIVE_TIMEOUT;
+    private const SELECT_TIMEOUT_SEC = SELECT_TIMEOUT_SEC;
+    private const SELECT_TIMEOUT_USEC = SELECT_TIMEOUT_USEC;
+    private const CONNECT_TIMEOUT = CONNECT_TIMEOUT;
+    private const GARBAGE_TIMEOUT = GARBAGE_TIMEOUT;
 
     private const LISTEN_KEY = 'lst';
     private const KEY_PREFIX = 'sock_';
@@ -63,11 +63,15 @@ class Server extends aBase
     /** @var int[] */
     private $freeAcceptedTime = array(); /* 'key' => 'freeTime' */
 
+    /** @var bool */
+    private $needSleep = false;
+
     /** @var int */
     private $keyCounter = 0;
 
     /** @var int */
     private $nowTime;
+
     /** @var int */
     private $garbTime;
 
@@ -91,7 +95,7 @@ class Server extends aBase
             ->setBindHost($bindHost)
             ->setQueue();
 
-        $me->getApp()->setServer($me);
+        $me->getLocator()->setServer($me);
 
         return $me;
     }
@@ -101,6 +105,8 @@ class Server extends aBase
      */
     public function run() : void
     {
+        $this->dbg('Server started');
+
         $this->nowTime = time();
         $this->garbTime = time();
 
@@ -108,11 +114,16 @@ class Server extends aBase
 
         while (true) {
             pcntl_signal_dispatch();
-            $this->garbageCollect();
 
             $this->getQueue()->runTopPools();
 
-            $this->select();
+            $this->selectAndPoll();
+
+// regular garbage collecting
+            if (($this->nowTime - $this->garbTime) >= self::GARBAGE_TIMEOUT) {
+                $this->getLocator()->garbageCollect();
+                $this->garbTime = $this->nowTime;
+            }
 
 // TODO проверка истечения таймаутов чтения-записи и отключение просроченых сокетов
             /*
@@ -131,6 +142,7 @@ class Server extends aBase
                 $this->dbg('Sends cnt: ' . count($this->sends));
                 $this->dbg('Recvs cnt: ' . count($this->recvs));
 
+// TODO добавить проверку завершения работы всех воркеров
                 if (!count($this->recvs) && !count($this->sends)) {   // and no have active sockets - go out
                     break;
                 }
@@ -143,22 +155,76 @@ class Server extends aBase
         $this->hardFinish();
     }
 
+    private function selectAndPoll() : bool
+    {
+        $this->needSleep  = true;
+        $this->nowTime = time();
+
+        $this->select();
+
+        $result = $this->workerEventsPoll();
+
+// sleep if no events from sockets and workers detected
+        if ($this->needSleep) {
+            sleep(self::SELECT_TIMEOUT_SEC);
+            usleep(self::SELECT_TIMEOUT_USEC);
+        }
+
+        return $result;  // self::MESSAGE_PARSED (daemon is alive) or self::MESSAGE_NOT_PARSED
+    }
+
+    private function workerEventsPoll() : bool
+    {
+        $result = self::MESSAGE_NOT_PARSED;
+
+        /** @var App $app */
+        $app = $this->getLocator();
+        $event = null;
+
+        while ($event = $app->getEvents()->poll()) { // Returns non-null if there is an event
+            $this->needSleep  = false;
+
+            $threadId = $event->source;
+            $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
+
+// TODO добавить отправку и обработку служебных сообщений через канал (закрытие воркера при завершении работы)
+            if ($event->type == Event\Type::Read) {
+                if (is_array($event->value) && count($event->value) === 2) {
+                    [$legateId, $serializedLegate] = $event->value;
+
+                    if (($socket = $this->getSocket($legateId)) === null) {
+                        throw new Exception("Don't know about socket with key $legateId");
+                    }
+
+                    if ($socket->workerResponseHandler($serializedLegate) === self::MESSAGE_PARSED) {
+                        $result = self::MESSAGE_PARSED;
+                    }
+                } else {
+                    throw new Exception("Bad event value from worker: \n" . var_export($event->value, true) . "\n");
+                }
+            } else {
+                throw new Exception("Bad event from worker: \n" . var_export($event, true) . "\n");
+            }
+
+            $event = null;
+        }
+
+        return $result; // self::MESSAGE_PARSED (daemon is alive) or self::MESSAGE_NOT_PARSED
+    }
+
     /**
      * Select sockets
      * return true only if received AliveRes or BusyRes message
      * @return bool
      * @throws Exception
      */
-    private function select() : bool
+    private function select() : void
     {
         if ($rdCnt = count($this->recvs)) $rd = $this->recvs;
         else $rd = array();
 
         if ($wrCnt = count($this->sends)) $wr = $this->sends;
         else $wr = array();
-
-        $tSec = self::SELECT_TIMEOUT_SEC;
-        $tUsec = self::SELECT_TIMEOUT_USEC;
 
         $en = null;
         $rn = null;
@@ -167,31 +233,29 @@ class Server extends aBase
         $fdCnt = 0;
 
         try {	// try нужен для подавления ошибки interrupted system call, возникающей при системном сигнале
-            if ($wrCnt && $rdCnt) $fdCnt = @stream_select($rd, $wr, $en, $tSec, $tUsec);
-            else if ($wrCnt) $fdCnt = @stream_select($rn, $wr, $en, $tSec, $tUsec);
-            else if ($rdCnt) $fdCnt = @stream_select($rd, $wn, $en, $tSec, $tUsec);
+            if ($wrCnt && $rdCnt) $fdCnt = @stream_select($rd, $wr, $en, 0);
+            else if ($wrCnt) $fdCnt = @stream_select($rn, $wr, $en, 0);
+            else if ($rdCnt) $fdCnt = @stream_select($rd, $wn, $en, 0);
             else {
-                sleep($tSec);
-                usleep($tUsec);
-                $this->nowTime = time();
-                return false;
+                return;
             }
         } catch (Exception $e) {
             $this->err('ERROR: select exception ' . $e->getMessage());
+            return;
         }
-
-        $this->nowTime = time();
 
         if ($fdCnt === false ) {
             $e = error_get_last();
-            // ошибка, видимо, выдается только когда приходит сигнал завершения
+// ошибка, видимо, выдается только когда приходит сигнал завершения
             $this->err("ERROR: '" . $e['message'] . "' (line " . $e['line'] . " in '" . $e['file'] . "')");
-            return false;
+            return;
         }
 
         if ($fdCnt === 0) {
-            return false;
+            return;
         }
+
+        $this->needSleep  = false;
 
 // пишем исходящие (делаем это в первую очередь, чтобы внешний сервер не простаивал, пока мы читаем входящие)
         foreach($wr as $fd) {
@@ -226,7 +290,7 @@ class Server extends aBase
                     $acceptedSocket = $this->newReadSocket(
                         $fd,
                         Host::create(
-                            $this->getApp(),
+                            $this->getLocator(),
                             $this->getListenHost()->getTransport(),
                             stream_socket_get_name($fd,true)
                         )
@@ -234,7 +298,7 @@ class Server extends aBase
 
                     if ($isServerBusy) {
                         $this->dbg('Server is busy!');
-                        $acceptedSocket->setServerBusy();
+                        $acceptedSocket->getLegate()->setServerBusy();
                     }
 
                     $this->dbg('Accept connection from ' . $acceptedSocket->getHost()->getTarget());
@@ -243,23 +307,13 @@ class Server extends aBase
         }
 
 // читаем входящие
-        $isAlive = false;
-
         foreach($rd as $fd) {
             if ($fd === $listenFd) continue;
 
             if ($key = array_search($fd, $this->recvs, true)) {
-                if ($this->getSocket($key)->receive()) {
-                    $isAlive = true;
-                }
+                $this->getSocket($key)->receive();
             }
         }
-
-        if ($isAlive) {
-            return true;    // возвращаем true, если получен ответ ALIVE_ANSWER
-        }
-
-        return false;
     }
 
     /**
@@ -276,7 +330,6 @@ class Server extends aBase
 // - отправить в блокчейн транзакцию о перегружености
                 return null;                            // if cannot remove unused socket - not connect
             }
-
         }
 
 // TODO проверить, как влияет на скорость опция TCP_DELAY и другие (so_reuseport, backlog)
@@ -319,7 +372,7 @@ class Server extends aBase
         }
 
         $socket = $this->newWriteSocket($fd, $host);
-        $socket->setConnected();
+        $socket->getLegate()->setConnected();
 
         if ($message) {
             $socket->sendMessage($message);
@@ -424,25 +477,6 @@ class Server extends aBase
     }
 
     /**
-     * Collect garbage for optimal memory usage
-     */
-    private function garbageCollect() : void
-    {
-        if (($this->nowTime - $this->garbTime) < self::GARBAGE_TIMEOUT) return;
-
-//        gc_enable();
-        $gcCycles = gc_collect_cycles();
-        $gcMemCaches = gc_mem_caches();
-//        gc_disable();
-
-        if ($gcCycles || $gcMemCaches) {
-            $this->dbg("Garbage collect: $gcCycles cycles & $gcMemCaches bytes of memory was cleaned");
-        }
-
-        $this->garbTime = $this->nowTime;
-    }
-
-    /**
      * Check, is Daemon alive or not
      * @return bool
      * @throws Exception
@@ -457,7 +491,7 @@ class Server extends aBase
             $beg = time();
 
             while ((time() - $beg) < self::ALIVE_TIMEOUT) {
-                if ($this->select()) {
+                if ($this->selectAndPoll()) {  // self::MESSAGE_PARSED means daemon is alive
                     return true;
                 }
             }
@@ -477,9 +511,9 @@ class Server extends aBase
             $this->closeSocket($key);
         }
 
-        $this->getApp()->getDba()->close();
+        $this->getLocator()->getDba()->close();
 
-        $this->log('******** Daemon ' . $this->getApp()->getPid() . ' close all sockets & finished ********');
+        $this->log('******** Daemon ' . $this->getLocator()->getPid() . ' close all sockets & finished ********');
         $this->log('******** ');
 
         exit(0);

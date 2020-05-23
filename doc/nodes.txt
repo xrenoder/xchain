@@ -5,6 +5,8 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 1st level
                 heart of network, create and keep critical network data
 
+                check transaction amount for enough funds
+
                 create & sign mainchain blocks & all base sidechains blocks
                 store mainchain & all base sidechains
                 manage S-nodes for other sidechains storing
@@ -15,7 +17,8 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 need for tests 2 M-nodes
                 need for start 2 M-nodes
                 optimal 8 M-nodes
-                connected with own pool of S-nodes, with all other M-nodes, if one of M-nodes not worked - connect with their S-nodes
+                max 255 M-nodes
+                connected with own pool of S-nodes, with all other M-nodes
                 must be connected to BTC-network
                 must have own X capital + delegated Y capital
                 must have hi-perf CPU & good channel
@@ -51,6 +54,9 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
 
 4   Proxy node (P-node)
 0011
+                3th level
+
+                check transaction hash for unique (need have saved transaction hashes)
 
                 30% of transaction reward
 
@@ -60,7 +66,10 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
 
 2   front node (F-node)
 0001
-                3rd level
+                4th level
+
+                check transaction signature (need have saved nodes public keys)
+                send test transactions
 
                 10% of transaction reward
 

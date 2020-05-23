@@ -16,6 +16,7 @@ class Address extends aBase
     private const PRIVATE_HEX_LEN = 558;
     public const PUBLIC_BIN_LEN = 248;
     public const ADDRESS_HUM_LEN = 52;
+    public const ADDRESS_BIN_LEN = 25;
 
     private $publicKey = null;      // bin  248 bytes
     private $address = null;        // bin  25 bytes
@@ -30,9 +31,13 @@ class Address extends aBase
     public function getAddressBin() : string {return $this->address;}
     public function getAddressHuman() : string {return $this->addressBase16;}
 
-    public static function createNew(App $app, string $walletPath = null) : self
+    /** @var bool */
+    private $addrOnly = false;
+    public function isAddressOnly() : bool {return $this->addrOnly;}
+
+    public static function createNew(aLocator $locator, string $walletPath = null) : self
     {
-        $me = static::create($app);
+        $me = static::create($locator);
         $me->generate();
 
         if ($walletPath) {
@@ -42,30 +47,30 @@ class Address extends aBase
         return $me;
     }
 
-    public static function createFromWallet(App $app, string $addressHuman, string $walletPath) : self
+    public static function createFromWallet(aLocator $locator, string $addressHuman, string $walletPath) : self
     {
-        $me = static::create($app);
+        $me = static::create($locator);
 
         return $me->loadPrivateKey($addressHuman, $walletPath);
     }
 
-    public static function createFromPublic(App $app, string $publicKeyBin) : self
+    public static function createFromPublic(aLocator $locator, string $publicKeyBin) : self
     {
-        $me = static::create($app);
+        $me = static::create($locator);
 
         return $me->loadPublicKey($publicKeyBin);
     }
 
-    public static function createFromAddress(App $app, string $addressBin) : self
+    public static function createFromAddress(aLocator $locator, string $addressBin) : self
     {
-        $me = static::create($app);
+        $me = static::create($locator);
 
         return $me->setAddress($addressBin);
     }
 
-    protected static function create(App $app) : self
+    protected static function create(aLocator $locator) : self
     {
-        return new self($app);
+        return new self($locator);
     }
 
     public function setAddress(string $addressBin) : self
@@ -77,6 +82,7 @@ class Address extends aBase
         $this->address = $addressBin;
         $this->addressHex = bin2hex($addressBin);
         $this->addressBase16 = static::hexToBase16($this->addressHex);
+        $this->addrOnly = true;
 
         return $this;
     }

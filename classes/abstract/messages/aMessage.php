@@ -2,9 +2,9 @@
 /**
  * Base class for classes of messages between nodes
  */
-abstract class aMessage extends aBase
+abstract class aMessage extends aBase implements constMessageParsingResult
 {
-    protected static $dbgLvl = Logger::DBG_MESS;
+    protected static $dbgLvl = Logger::DBG_MESS;  /* overrided */
 
     /** @var int  */
     protected static $id;  /* override me */
@@ -31,7 +31,6 @@ abstract class aMessage extends aBase
 
     protected $fields = array();
 
-    public function getSocket() : Socket {return $this->getParent();}
 
     /** @var string */
     protected $name;
@@ -57,12 +56,26 @@ abstract class aMessage extends aBase
     /** @var int  */
     private $fieldOffset = null;
 
+    /** @var string  */
+    protected $signedData = null;
+    public function setSignedData(string $val) : self {$this->signedData = $val; return $this;}
+    public function getSignedData() : string {return $this->signedData;}
+
     /** @var int  */
     protected $declaredLen = null;
     public function getDeclaredLen() : ?int {return $this->declaredLen;}
 
-    abstract public function createMessageString(string $data = null) : string;
+    abstract public function createMessageString() : string;
     abstract protected function incomingMessageHandler() : bool;
+
+    public function getLegate() : SocketLegate
+    {
+        if ($this->getParent() instanceof SocketLegate) {
+            return $this->getParent();
+        }
+
+        throw new Exception("Bad code - legate cannot be used in outgoing message");
+    }
 
     protected function __construct(aBase $parent)
     {
@@ -72,110 +85,83 @@ abstract class aMessage extends aBase
         $this->name = MessageClassEnum::getItem(static::$id);
     }
 
-    /**
-     * @param Socket $socket
-     * @return aMessage|null
-     */
-    public static function create(Socket $socket, ?array $outData = null) : ?self
+    public static function create(aBase $parent, array $outData = []) : self
     {
-        if ($outData === null && static::$needAliveCheck && !$socket->isAliveChecked()) {
-            $socket->dbg(MessageClassEnum::getItem(static::$id) . ' cannot explored before Alive checking');
-            return null;
-        }
+        $me = new static($parent);
 
-        if ($outData === null) {
-            $socket->dbg(MessageClassEnum::getItem(static::$id) .  ' detected');
+        if ($parent instanceof SocketLegate) {
+// if parent object is "SocketLegate" - this is incoming message,
+            $me->dbg(MessageClassEnum::getItem(static::$id) .  ' detected');
+            $parent->setInMessage($me);
         } else {
-            $socket->dbg(MessageClassEnum::getItem(static::$id) .  ' created');
-        }
-
-        $me = new static($socket);
-
-        if ($outData === null) {
-            $socket->setInMessage($me);
-        } else {
+// else - outgoing (usually used aLocator object as parent)
+            $me->dbg(MessageClassEnum::getItem(static::$id) .  ' created');
             $me->setOutData($outData);
         }
 
         return $me;
     }
 
+    public static function debugForBadMessageType(aBase $parent, string $errMessage)
+    {
+// TODO remove this method after debug
+        $me = new static($parent);
+        $me->dbg($errMessage);
+        unset($me);
+    }
+
     /**
-     * @param Socket $socket
+     * @param Socket $legate
      * @param int $id
      * @return aMessage|null
      * @throws Exception
      */
-    public static function spawn(Socket $socket, int $id) : ?self
+    public static function spawn(SocketLegate $legate, int $id) : ?self
     {
         /** @var aMessage $className */
 
         if ($className = MessageClassEnum::getClassName($id)) {
-            return $className::create($socket, null);
+            return $className::create($legate, null);
         }
 
         return null;
     }
 
     /**
-     * @param Socket $socket
-     * @param string $packet
-     * @return bool
-     * @throws Exception
-     */
-    public static function parser(Socket $socket, string $packet) : bool
-    {
-        if (!$socket->getInMessage()) {
-            $messageType = FieldFormatEnum::unpack($packet,MessageFieldClassEnum::getFormat(MessageFieldClassEnum::TYPE), 0)[1];
-
-            if (!($message = self::spawn($socket, $messageType))) {
-// if cannot create class of request by declared type - incoming data is bad
-                $socket->dbg("BAD DATA cannot create class of request by declared type: '$messageType'");
-//                $socket->dbg(static::$dbgLvl, 'RequestEnum list: ' . var_export(MessageClassEnum::getItemsList(), true));
-                return $socket->badData();
-            }
-        }
-
-        return $socket->getInMessage()->addPacket($packet);
-    }
-
-    /**
-     * @return int
-     */
-    public function getBufferSize() : int
-    {
-        return $this->declaredLen - $this->len + 1;
-    }
-
-    /**
      * @param string $packet
      * @return bool
      */
-    private function addPacket(string $packet) : bool
+    public function addPacket(string $packet) : bool
     {
-        $socket = $this->getSocket();
+        $legate = $this->getLegate();
 
 // if server is busy - not check incoming fields, quick answer 'busy' and disconnect
-        if ($socket->isServerBusy()) {
-            $socket->sendMessage(BusyResMessage::create($socket,[]));
-            $socket->setCloseAfterSend();
-
-            return false;
+        if ($legate->isServerBusy()) {
+            $legate->setCloseAfterSend();
+            $legate->createResponse(BusyResMessage::create($this->getLocator()));
+            return self::MESSAGE_PARSED;
         }
 
         $this->str .= $packet;
         $this->len = strlen($this->str);
 
+        if ($this->declaredLen) {
+            $legate->setReadBufferSize($this->declaredLen - $this->len + 1);
+        }
+
+
 // check message len for maximum len
         if ($this->maxLen && $this->len > $this->maxLen) {
             $this->dbg("BAD DATA length $this->len more than maximum $this->maxLen for $this->name");
-            return $socket->badData();
+            $legate->setBadData();
+            return self::MESSAGE_PARSED;
         }
 
 // check message len for declared len
         if ($this->declaredLen !== null && $this->len > $this->declaredLen) {
             $this->dbg("BAD DATA length $this->len more than declared length " . $this->declaredLen . "for $this->name (1)");
-            return $socket->badData();
+            $legate->setBadData();
+            return self::MESSAGE_PARSED;
         }
 
 // prepare fields
@@ -190,8 +176,12 @@ abstract class aMessage extends aBase
             }
         }
 
+        if ($legate->isBadData() || $legate->getResponseString() !== null) {
+            return self::MESSAGE_PARSED;
+        }
+
         if ($this->declaredLen === null || $this->len < $this->declaredLen) {
-            return false;
+            return self::MESSAGE_NOT_PARSED;
         }
 
         return $this->incomingMessageHandler();

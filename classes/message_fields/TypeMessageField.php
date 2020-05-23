@@ -7,5 +7,7 @@ class TypeMessageField extends aMessageField
     protected static $id = MessageFieldClassEnum::TYPE;  /* overrided */
 
     public function check(): bool
-    {/* do nothing */ return true;}
+    {
+        return true;
+    }
 }

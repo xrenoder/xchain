@@ -34,7 +34,7 @@ class SummaryDataSet extends aDbRowsSet
 
         $me
             ->fillRows()
-            ->getApp()->setSummaryDataSet($me);
+            ->getLocator()->setSummaryDataSet($me);
 
         return $me;
     }

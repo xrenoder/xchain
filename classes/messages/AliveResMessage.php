@@ -13,14 +13,7 @@ class AliveResMessage extends aSimpleAddressMessage
      */
     protected function incomingMessageHandler() : bool
     {
-        $socket = $this->getSocket();
-
-//        $socket->setFree();
-
-        $socket->setAliveChecked();
-        $socket->cleanInMessage();
-        $socket->sendDelayedOutMessage();
-
-        return true;
+        $this->getLegate()->setNeedCloseSocket();
+        return self::MESSAGE_PARSED;
     }
 }

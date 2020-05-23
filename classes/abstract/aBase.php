@@ -2,19 +2,21 @@
 /**
  * Base class for other application classes, uses App class (with Logger, Daemon, Server, Node etc)
  */
-abstract class aBase
+abstract class aBase implements constMessageDataIds
 {
     protected static $dbgLvl = 0;   /* override me */
 
-    /** @var App */
-    private $app;
-    protected function getApp() : App {return $this->app;}
+    /** @var aLocator */
+    private $locator = null;
+    public function setLocator(?aLocator $val) : self {$this->locator = $val; return $this;}
+    protected function getLocator() : aLocator {return $this->locator;}
 
     /** @var aBase */
-    private $parent;
+    private $parent = null;
+    public function setParent(?aBase $val) : self {$this->parent = $val; return $this;}
     protected function getParent() : aBase {return $this->parent;}
 
-    public function getMyNodeId() : ?int {return $this->app->getMyNode()->getId();}
+    public function getMyNodeId() : ?int {return $this->locator->getMyNode()->getId();}
 
     /**
      * AppBase constructor.
@@ -23,13 +25,13 @@ abstract class aBase
     protected function __construct(aBase $parent)
     {
         $this->parent = $parent;
-        $app = $parent;
+        $locator = $parent;
 
-        while (!is_a($app, 'App')) {
-            $app = $app->getParent();
+        while (!$locator instanceof aLocator) {
+            $locator = $locator->getParent();
         }
 
-        $this->app = $app;
+        $this->locator = $locator;
     }
 
     /**
@@ -38,7 +40,7 @@ abstract class aBase
      */
     public function log(string $message) : void
     {
-        $this->getApp()->getLogger()->simpleLog($message);
+        $this->getLocator()->getLogger()->simpleLog($message);
     }
 
     /**
@@ -47,7 +49,7 @@ abstract class aBase
      */
     public function err(string $message) : void
     {
-        $this->getApp()->getLogger()->errorLog($message);
+        $this->getLocator()->getLogger()->errorLog($message);
     }
 
     /**
@@ -57,16 +59,16 @@ abstract class aBase
      */
     public function dbg(string $message) : void
     {
-        $this->getApp()->getLogger()->debugLog(static::$dbgLvl, $message);
+        $this->getLocator()->getLogger()->debugLog(static::$dbgLvl, $message);
     }
 
     protected function dbTrans() : string
     {
-        return $this->getApp()->getDba()->transactionBegin();
+        return $this->getLocator()->getDba()->transactionBegin();
     }
 
     protected function dbCommit(string $transactionKey)
     {
-        $this->getApp()->getDba()->transactionCommit($transactionKey);
+        $this->getLocator()->getDba()->transactionCommit($transactionKey);
     }
 }

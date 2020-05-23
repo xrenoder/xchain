@@ -18,6 +18,11 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
     protected $remoteAddrBin = null;
     public function getRemoteAddrBin() : string {return $this->remoteAddrBin;}
 
+    /** @var Address  */
+    protected $remoteAddress = null;
+    public function setRemoteAddress(?Address $val) : self {$this->remoteAddress = $val; return $this;}
+    public function getRemoteAddress() : ?Address {return $this->remoteAddress;}
+
     protected function __construct(aBase $parent)
     {
         parent::__construct($parent);
@@ -27,14 +32,21 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
     /**
      * @return string
      */
-    public function createMessageString(string $data = null) : string
+    public function createMessageString() : string
     {
-        $nodeField = NodeMessageField::packField($this->getSocket()->getMyNodeId());
-        $timeField = TimeMessageField::packField(time());
-        $addrField = AddrMessageField::packField($this->getApp()->getMyAddr()->getAddressBin());
-
-        $body = $nodeField . $timeField . $addrField;
+        $body = $this->bodySimpleAddress();
 
         return $this->compileMessage($body);
+    }
+
+    protected function bodySimpleAddress() : string
+    {
+        $bodyParent = $this->bodySimple();
+
+        $addrField = AddrMessageField::packField($this->getLocator()->getMyAddress()->getAddressBin());
+
+        $this->signedData .= $addrField;
+
+        return  $bodyParent . $addrField;
     }
 }

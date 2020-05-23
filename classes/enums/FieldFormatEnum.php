@@ -26,8 +26,8 @@ class FieldFormatEnum extends aEnum
         self::BINHEX =>     0,  // 'Bin converted from/to Hex without declared length (variable bytes). Can be only last field in row.',
         self::BINHEX_LBE => 4,  // 'Bin converted from/to Hex with declared length as first 4 bytes ULONG_BE (variable bytes)',
 
-        self::ADDR =>       25, // 'Not packed with 25 bytes length',
-        self::PUBKEY =>     248,// 'Not packed with 248 bytes length',
+        self::ADDR =>       Address::ADDRESS_BIN_LEN, // 'Not packed with 25 bytes length',
+        self::PUBKEY =>     Address::PUBLIC_BIN_LEN,// 'Not packed with 248 bytes length',
         self::SIGN_LC =>    1,  // 'Not packed with declared length as first 1 bytes UCHAR (variable bytes)',
 
         self::UCHAR =>      1, // 'Unsigned char (1 byte)',
@@ -53,6 +53,8 @@ class FieldFormatEnum extends aEnum
 
         return false;
     }
+
+// TODO весь этот кошмар, что я нахуевертил ниже, перенести в классы форматов полей, а данный класс преобразовать в aClassEnum
 
     public static function pack(string $data, string $id) : string
     {
@@ -102,33 +104,36 @@ class FieldFormatEnum extends aEnum
     {
         $length = null;
         $result = null;
+        $raw = null;
 
         switch ($id) {
             case self::NOPACK:
+                $raw = $data;
                 $length = strlen($data);
                 $result = $data;
                 break;
 
             case self::BINHEX:
+                $raw = $data;
                 $length = strlen($data);
                 $result = bin2hex($data);
                 break;
 
             case self::NOPACK_LBE:
-                [$length, $fullLength, $realData] = static::unpackVariableLength(self::ULONG_BE, $data, $offset);
+                [$length, $fullLength, $raw] = static::unpackVariableLength(self::ULONG_BE, $data, $offset);
 
-                if (strlen($realData) >= $length) {
-                    $result = $realData;
+                if (strlen($raw) >= $length) {
+                    $result = $raw;
                 }
 
                 $length = $fullLength;
                 break;
 
             case self::BINHEX_LBE:
-                [$length, $fullLength, $realData] = static::unpackVariableLength(self::ULONG_BE, $data, $offset);
+                [$length, $fullLength, $raw] = static::unpackVariableLength(self::ULONG_BE, $data, $offset);
 
-                if (strlen($realData) >= $length) {
-                    $result = bin2hex($realData);
+                if (strlen($raw) >= $length) {
+                    $result = bin2hex($raw);
                 }
 
                 $length = $fullLength;
@@ -139,26 +144,28 @@ class FieldFormatEnum extends aEnum
                 $length = self::$items[$id];
 
                 if (strlen(substr($data, $offset)) >= $length) {
-                    $result = substr($data, $offset, $length);
+                    $raw = substr($data, $offset, $length);
+                    $result = $raw;
                 }
 
                 break;
 
             case self::SIGN_LC:
-                [$length, $fullLength, $realData] = static::unpackVariableLength(self::UCHAR, $data, $offset);
+                [$length, $fullLength, $raw] = static::unpackVariableLength(self::UCHAR, $data, $offset);
 
-                if (strlen($realData) >= $length) {
-                    $result = $realData;
+                if (strlen($raw) >= $length) {
+                    $result = $raw;
                 }
 
                 $length = $fullLength;
                 break;
             default:
                 $length = self::$items[$id];
-                $result = unpack($id, substr($data, $offset, $length))[1];
+                $raw = substr($data, $offset, $length);
+                $result = unpack($id, $raw)[1];
         }
 
-        return [$length, $result];
+        return [$length, $result, $raw];
     }
 
     private static function unpackVariableLength($lengthFormat, $data, $offset) : array
@@ -166,10 +173,10 @@ class FieldFormatEnum extends aEnum
         $lengthFormatLen = self::$items[$lengthFormat];
         $length = unpack($lengthFormat, substr($data, $offset, $lengthFormatLen))[1];
 
-        $realData = substr($data, $offset + $lengthFormatLen, $length);
+        $raw = substr($data, $offset + $lengthFormatLen, $length);
 
         $fullLength = $length + $lengthFormatLen;
 
-        return [$length, $fullLength, $realData];
+        return [$length, $fullLength, $raw];
     }
 }

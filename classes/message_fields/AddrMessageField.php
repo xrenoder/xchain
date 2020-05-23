@@ -10,52 +10,42 @@ class AddrMessageField extends aMessageField
     {
         /* @var aSimpleAddressMessage $message */
         $message = $this->getMessage();
-        $socket = $this->getSocket();
-        $addrBin = $message->getRemoteAddrBin();
-        $app = $this->getApp();
+        $legate = $this->getLegate();
+        $remoteAddrBin = $message->getRemoteAddrBin();
+        $locator = $this->getLocator();
 
-        if (!Address::checkAddressBin($addrBin)) {
-            $this->dbg("BAD DATA address is bad " . Address::binToBase16($addrBin));
-            return $socket->badData();
+        if (!Address::checkAddressBin($remoteAddrBin)) {
+            $this->dbg("BAD DATA remote address is bad " . Address::binToBase16($remoteAddrBin));
+            $legate->setBadData();
+            return false;
         }
 
-        $socketAddress = $socket->getRemoteAddress();
+        $myNodeId = $legate->getMyNodeId();
+        $remoteNodeId = $message->getRemoteNodeId();
 
-        if ($socketAddress !== null) {
-            if ($socketAddress->getAddressBin() !== $addrBin) {
-                $this->dbg("BAD DATA received address " . Address::binToBase16($addrBin) . " is different than recieved before " . Address::binToBase16($socketAddress->getAddressHuman()));
-                return $socket->badData();
-            }
-        } else {
-            $pubKeyAndNode = PubKeyNodeByAddr::create($app, $addrBin);
+        if ($remoteNodeId !== NodeClassEnum::CLIENT_ID && $myNodeId !== NodeClassEnum::CLIENT_ID) {
+            $pubKeyAndNode = PubKeyNodeByAddr::create($locator, $remoteAddrBin);
             $savedNodeId = $pubKeyAndNode->getNodeId();
-            $savedPubKey = $pubKeyAndNode->getPublicKey();
 
-            $remoteNodeId = $message->getRemoteNodeId();
-            $myNodeId = $socket->getMyNodeId();
-
-            if ($remoteNodeId !== NodeClassEnum::CLIENT_ID && $myNodeId !== NodeClassEnum::CLIENT_ID) {
-                if ($savedNodeId === null) {
-                    $this->dbg("BAD DATA don't know node with address " . Address::binToBase16($addrBin));
-                    return $socket->badData();
-                }
-
-                if ($savedNodeId !== $remoteNodeId) {
-                    $this->dbg("BAD DATA address " . Address::binToBase16($addrBin) . " cannot be node " . NodeClassEnum::getName($remoteNodeId) . " (is node " . NodeClassEnum::getName($savedNodeId) . ")");
-                    return $socket->badData();
-                }
+            if ($savedNodeId === null) {
+                $this->dbg("BAD DATA don't know node with address " . Address::binToBase16($remoteAddrBin));
+                $legate->setBadData();
+                return false;
             }
 
-            if ($savedPubKey !== null) {
-                $remoteAddress = Address::createFromPublic($app, $savedPubKey);
-            } else {
-                $remoteAddress = Address::createFromAddress($app, $addrBin);
+            if ($savedNodeId !== $remoteNodeId) {
+                $this->dbg("BAD DATA address " . Address::binToBase16($remoteAddrBin) . " cannot be node " . NodeClassEnum::getName($remoteNodeId) . " (is node " . NodeClassEnum::getName($savedNodeId) . ")");
+                $legate->setBadData();
+                return false;
             }
 
-            $socket->setRemoteAddress($remoteAddress);
+            $message->setRemoteAddress(Address::createFromPublic($locator, $pubKeyAndNode->getPublicKey()));
+// TODO при сохранении публичного ключа в базу проверять соответствие ключа и адреса
         }
 
-        $this->dbg("Message received from address " . Address::binToBase16($addrBin));
+        $this->dbg("Message received from address " . Address::binToBase16($remoteAddrBin));
+
+        $message->setSignedData($message->getSignedData() . $this->raw);
 
         return true;
     }

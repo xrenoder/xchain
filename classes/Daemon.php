@@ -4,6 +4,8 @@
  */
 class Daemon extends aBase
 {
+    public function getApp() : App {return $this->getParent();}
+
     /** @var string */
     private $pidFile;
     public function setPidFile($val) : self {$this->pidFile = $val; return $this;}
@@ -12,11 +14,10 @@ class Daemon extends aBase
     private $runPath;
     public function setRunPath($val) : self {$this->runPath = $val; return $this;}
 
-    private const READ_BUFFER = 8192;
     private const CMD_RESTART = 'restart';				// command to force daemon restart
     private const CMD_STOP = 'stop';					// command to force daemon stop
     private const PS_COMMAND = 'ps fuwww -p';
-    private const KILL_TIMEOUT = 10;
+    private const KILL_TIMEOUT = KILL_TIMEOUT;
 
     /** @var string[] */
     private static $signals = array (
@@ -45,7 +46,7 @@ class Daemon extends aBase
         $me->setRunPath($runPath);
         $me->setPidFile($runPath . $pidName);
 
-        $me->getApp()->setDaemon($me);
+        $app->setDaemon($me);
 
         return $me;
     }
@@ -61,11 +62,11 @@ class Daemon extends aBase
 
         $fd = fopen($this->pidFile, 'c+b');
         flock($fd, LOCK_EX);			// lock file to daemon will be started or exit
-        $oldPid = fread($fd, static::READ_BUFFER);
+        $oldPid = fread($fd, filesize($this->pidFile));
         fseek($fd, 0);
 
         if ($oldPid) {
-            // exit if daemon is alive
+// exit if daemon is alive
             if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP) {
                 if ($this->getApp()->getServer()->isDaemonAlive()) {
                     flock($fd, LOCK_UN);

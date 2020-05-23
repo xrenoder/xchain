@@ -4,7 +4,8 @@ require_once 'local.inc';
 
 ///*
 $debugMode
-    = Logger::DBG_SERV
+    = Logger::DBG_LOCATOR
+    | Logger::DBG_SERV
     | Logger::DBG_SOCK
     | Logger::DBG_MESS
     | Logger::DBG_POOL
@@ -14,7 +15,9 @@ $debugMode
     | Logger::DBG_DBA
     | Logger::DBG_MSG_FLD
     | Logger::DBG_ROW
-    | Logger::DBG_ROW_SET;
+    | Logger::DBG_ROW_SET
+    | Logger::DBG_TRANS
+;
 //*/
 /*
 $debugMode = 0;
@@ -29,16 +32,24 @@ if ($_SERVER['argc'] >= 2) {
 $app = new App(SCRIPT_NAME);
 
 // get logger-object
-Logger::create($app,LOG_PATH, $debugMode, 'xchain.log', 'error.log', 'php.err');
+Logger::create(
+    $app,
+    $debugMode,
+    LOG_PATH,
+    LOCK_EXT,
+    LOG_FILE,
+    SCRIPT_ERROR_LOG_FILE,
+    PHP_ERROR_LOG_FILE
+);
 
 try {
-    // set DBA
+// set DBA
     DBA::create($app, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
 
-    // set current node as Client (always, before full syncronization)
+// set current node as Client (always, before full syncronization)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 
-    // get server-object
+// get server-object
     $listenTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_HOST);
     $bindTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_HOST);
     $firstRemoteHost = Host::create($app, Host::TRANSPORT_TCP, FIRST_NODE_HOST);
@@ -46,10 +57,62 @@ try {
     Server::create($app,$listenTCPHost, $bindTCPHost);
 
     // load node private key
-    $app->setMyAddr(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
+    $app->setMyAddress(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
 
     // get daemon-object
     Daemon::create($app, RUN_PATH,  'pid');
+
+// start worker threads
+    $workerThread = function (string $threadId, Channel $channelRecv, Channel $channelSend, int $debugMode)
+    {
+        $worker = new Worker($threadId);
+// create logger-object
+        Logger::create(
+            $worker,
+            $debugMode,
+            LOG_PATH,
+            LOCK_EXT,
+            LOG_FILE,
+            SCRIPT_ERROR_LOG_FILE,
+            PHP_ERROR_LOG_FILE
+        );
+
+        try {
+// set DBA
+            DBA::create($worker, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
+
+// load node private key
+            $worker->setMyAddress(Address::createFromWallet($worker, MY_ADDRESS, WALLET_PATH));
+
+            $worker->run($channelRecv, $channelSend);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    };
+
+    $app->setEvents(new Events());
+    $app->getEvents()->setBlocking(false); // Comment to block on Events::poll()
+//    $app->getEvents()->setTimeout(1000000); // Uncomment when blocking
+
+    for($i = 1; $i <= THREADS_COUNT; $i++) {
+        $threadId = "thrd_" . $i;
+
+        $app->setChannelFromSocket($threadId, new Channel(Channel::Infinite));
+        $app->setChannelFromWorker($threadId, Channel::make($threadId, Channel::Infinite));
+        $app->setThread($threadId,new Runtime("local.inc"));
+
+        $app->getThread($threadId)->run(
+            $workerThread,
+            [
+                $threadId,
+                $app->getChannelFromSocket($threadId),
+                $app->getChannelFromWorker($threadId),
+                $debugMode
+            ]
+        );
+
+        $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
+    }
 
     // run daemon
     if (!$app->getDaemon()->run($command)) {
@@ -57,14 +120,16 @@ try {
     }
 
 // TODO перенести в точку определения собственной ноды, для клиентов не применяется
+/*
     // load chain state data
     SummaryDataSet::create($app);
+*/
 
 //    $startPool = TaskPool::create($app->getServer()->getQueue(), "Start Operations");
 //    GetFnodesTask::create($app->getServer(), $startPool, $firstRemoteHost);
 //    $startPool->toQueue();
 
-    // run server
+// run server
     $app->getServer()->run();
 } catch (Exception $e) {
     throw new Exception($e->getMessage());

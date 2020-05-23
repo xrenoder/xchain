@@ -19,14 +19,14 @@ abstract class aSimpleMessage extends aMessage
     protected $remoteNodeId = null;
     public function getRemoteNodeId() : int {return $this->remoteNodeId;}
 
+    /** @var aNode  */
+    private $remoteNode = null;
+    public function setRemoteNode(?aNode $val) : self {$this->remoteNode = $val; return $this;}
+    public function getRemoteNode() : ?aNode {return $this->remoteNode;}
+
     /** @var int  */
     protected $sendingTime = null;
     public function getSendingTime() : int {return $this->sendingTime;}
-
-    /** @var bool  */
-    protected $isBadTime = false;
-    public function setBadTime() : self {$this->isBadTime = true; return $this;}
-    public function isBadTime() : bool {return $this->isBadTime;}
 
     protected function __construct(aBase $parent)
     {
@@ -37,13 +37,23 @@ abstract class aSimpleMessage extends aMessage
     /**
      * @return string
      */
-    public function createMessageString(string $data = null) : string
+    public function createMessageString() : string
     {
-        $nodeField = NodeMessageField::packField($this->getSocket()->getMyNodeId());
-        $timeField = TimeMessageField::packField(time());
-
-        $body = $nodeField . $timeField;
+        $body = $this->bodySimple();
 
         return $this->compileMessage($body);
+    }
+
+    protected function bodySimple() : string
+    {
+        $myNodeId = $this->getLocator()->getMyNodeId();
+        $time = time();
+
+        $nodeField = NodeMessageField::packField($myNodeId);
+        $timeField = TimeMessageField::packField($time);
+
+        $this->signedData = $nodeField . $timeField;
+
+        return $nodeField . $timeField;
     }
 }

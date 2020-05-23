@@ -43,9 +43,9 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
         return $this;
     }
 
-    public static function create(App $app, $id = null)
+    public static function create(aLocator $locator, $id = null)
     {
-        $me = new static($app);
+        $me = new static($locator);
 
         if ($id !== null) {
             $me->setId($id);
@@ -75,14 +75,14 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
     public function check() : bool
     {
         if ($this->internalId === null) $this->packId();
-        return $this->getApp()->getDba()->check(static::$table, $this->internalId);
+        return $this->getLocator()->getDba()->check(static::$table, $this->internalId);
     }
 
     public function load() : self
     {
         if ($this->internalId === null) $this->packId();
 
-        $this->data = $this->getApp()->getDba()->fetch(static::$table, $this->internalId);
+        $this->data = $this->getLocator()->getDba()->fetch(static::$table, $this->internalId);
         $this->unpackFields();
 
         if ($this->data !== null) {
@@ -109,9 +109,9 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
         if ($this->internalId === null) $this->packId();
 
         if ($replace && $this->check()) {
-            $this->getApp()->getDba()->update(static::$table, $this->internalId, $this->data);
+            $this->getLocator()->getDba()->update(static::$table, $this->internalId, $this->data);
         } else {
-            $this->getApp()->getDba()->insert(static::$table, $this->internalId, $this->data);
+            $this->getLocator()->getDba()->insert(static::$table, $this->internalId, $this->data);
         }
 
         $this->dbg(get_class($this) . " saved");

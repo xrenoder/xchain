@@ -13,11 +13,9 @@ class BusyResMessage extends aSimpleMessage
      */
     protected function incomingMessageHandler() : bool
     {
-//        $this->getSocket()->setFree();
-// TODO добавить обработку ответа Busy! от ноды (информация в блокчейн?)
+// TODO добавить обработку ответа Busy! от ноды (например, не стучаться в эту ноду в течение определенного времени)
 
-        $this->getSocket()->close();
-
+        $this->getLegate()->setNeedCloseSocket();
         return true;
     }
 }
