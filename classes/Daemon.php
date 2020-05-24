@@ -173,8 +173,6 @@ class Daemon extends aBase
             } catch (Exception $e) {
                 throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
             }
-
-            return true;
         };
 
         $app = $this->getApp();

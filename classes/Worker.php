@@ -19,11 +19,6 @@ class Worker extends aLocator implements constMessageParsingResult
         $this->log("Worker " . $this->getName() . " started");
 
         while(true) {
-            sleep(5);
-            $this->dbg("Worker step");
-        }
-
-        while(true) {
             [$legateId, $serializedLegate] = $channelRecv->recv();
 
             if (!isset($this->legates[$legateId])) {
