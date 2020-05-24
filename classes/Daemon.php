@@ -147,96 +147,6 @@ class Daemon extends aBase
         return true;
     }
 
-    /**
-     * Daemon start or stop or restart
-     * @param string $command
-     * @return bool
-     */
-    public function runOld(string $command = null) : bool
-    {
-        $fd = fopen($this->pidFile, 'c+b');
-        flock($fd, LOCK_EX);			// lock file to daemon will be started or exit
-        $oldPid = fread($fd, 32);
-        fseek($fd, 0);
-
-        if ($oldPid) {
-// exit if daemon is alive
-            if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP) {
-                if ($this->getApp()->getServer()->isDaemonAlive()) {
-                    flock($fd, LOCK_UN);
-                    fclose($fd);
-                    echo "Daemon alive ($oldPid) \n";
-                    exit(0);
-                }
-            }
-
-            $this->log("Daemon will be killed (pid $oldPid)");
-            $this->kill($oldPid);
-        }
-
-        if ($command === static::CMD_STOP) {
-            ftruncate($fd, 0);
-            flock($fd, LOCK_UN);
-            fclose($fd);
-            exit(0);
-        }
-
-// daemonization
-        $pid = pcntl_fork();
-
-        if ($pid) {
-            $this->log("Daemon will be started (pid $pid)");
-
-// write new daemon pid to file and exit
-            ftruncate($fd, 0);
-            fwrite($fd, $pid);
-            flock($fd, LOCK_UN);
-            fclose($fd);
-
-            exit(0);
-        }
-
-// read pid of new daemon from file
-        $fd = fopen($this->pidFile, "rb");
-        flock($fd, LOCK_SH);
-        $pid = fread($fd, 32);
-        flock($fd, LOCK_UN);
-        fclose($fd);
-
-        $this->getApp()->setPid(posix_getpid());
-
-        if ($this->getApp()->getPid() == $pid) {
-            $this->log("Daemon started (pid $pid)");
-        } else {
-            $this->err('Daemon cannot started: (pid ' . $this->getApp()->getPid() . " is not equal pid $pid from pid-file)");
-            exit(0);
-        }
-
-// unmount console and standard IO channels, set new PHP error log
-        posix_setsid();
-        chdir('/');
-
-        fclose(STDIN);
-        fopen('/dev/null', 'rb');
-        fclose(STDOUT);
-        fopen('/dev/null', 'ab');
-        fclose(STDERR);
-        fopen('/dev/null', 'ab');
-
-        $this->startWorkers();
-
-// set signal handlers
-        foreach(static::$signals as $signal => $handler) {
-            pcntl_signal($signal, array($this, $handler));
-        }
-
-        pcntl_async_signals(true);
-
-// TODO сделать обработку сигналов в воркерах
-
-        return true;
-    }
-
     private function startWorkers()
     {
         $workerThread = function (string $threadId, parallel\Channel $channelRecv, parallel\Channel $channelSend, int $debugMode)
@@ -298,7 +208,7 @@ class Daemon extends aBase
 
         sleep(1);
 
-        $this->dbg("Workers are started");
+        $this->dbg("All " . THREADS_COUNT . " workers are started");
     }
 
     /**
