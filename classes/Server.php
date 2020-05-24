@@ -502,6 +502,10 @@ class Server extends aBase implements constMessageParsingResult
                     return true;
                 }
             }
+
+            foreach ($this->sockets as $key => $val) {
+                $this->getSocket($key)->close();
+            }
         }
 
         return false;
