@@ -19,7 +19,8 @@ class Worker extends aLocator implements constMessageParsingResult
         $this->log("Worker " . $this->getName() . " started");
 
         while(true) {
-            sleep(1);
+            sleep(5);
+            $this->dbg("Worker step");
         }
 
         while(true) {
