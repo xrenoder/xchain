@@ -1,4 +1,5 @@
 <?php
+use parallel\{Channel,Runtime,Events,Events\Event,Events\Event\Type};
 /**
  * Daemonization
  */
