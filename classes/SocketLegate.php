@@ -17,7 +17,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
     /** @var string  */
     private $responseString = null;
-    public function setResponseString(string $val) : self {$this->responseString = $val; return $this;}
+    public function setResponseString(?string $val) : self {$this->responseString = $val; return $this;}
     public function getResponseString() : ?string {return $this->responseString;}
 
     /* is this socket create by 'connect' */
