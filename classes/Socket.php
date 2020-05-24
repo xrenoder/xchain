@@ -200,8 +200,11 @@ class Socket extends aBase implements constMessageParsingResult
         return $this->sendMessageString($messageString);
     }
 
-    public function sendMessageString(string $messageString) : self
+    public function sendMessageString(?string $messageString) : self
     {
+        if ($messageString === null) {
+            $messageString = '';
+        }
         $this->outData .= $messageString;
         $this->setSends();
 
