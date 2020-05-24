@@ -185,15 +185,19 @@ class Server extends aBase implements constMessageParsingResult
         $event = null;
 
         while ($event = $app->getEvents()->poll()) { // Returns non-null if there is an event
+            $this->dbg("Event detected");
             $this->needSleep  = false;
 
             $threadId = $event->source;
             $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
 
-// TODO добавить отправку и обработку служебных сообщений через канал (закрытие воркера при завершении работы)
-            if ($event->type == parallel\Events\Event\Type::Read) {
+// TODO добавить отправку и обработку служебных сообщений через канал (закрытие воркера при завершении работы, cмена ноды)
+            if ($event->type === parallel\Events\Event\Type::Read) {
+                $this->dbg("Read event");
                 if (is_array($event->value) && count($event->value) === 2) {
                     [$legateId, $serializedLegate] = $event->value;
+
+                    $this->dbg("Event for socket $legateId detected");
 
                     if (($socket = $this->getSocket($legateId)) === null) {
                         throw new Exception("Don't know about socket with key $legateId");

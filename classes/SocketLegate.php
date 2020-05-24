@@ -82,7 +82,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
     {
         $packet = $this->incomingBuffer;
         $this->incomingBuffer = null;
-        $message= $this->getInMessage();
+        $message = $this->getInMessage();
 
         if ($message === null) {
             $messageType = FieldFormatEnum::unpack($packet,MessageFieldClassEnum::getFormat(MessageFieldClassEnum::TYPE), 0)[1];
@@ -100,6 +100,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
         $this->workerResult = $message->addPacket($packet);
 
+        $this->getLocator()->dbg("Response sending from worker");
         $channel->send([$this->id, $this->serializeInWorker()]);
     }
 
