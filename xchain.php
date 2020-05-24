@@ -2,7 +2,7 @@
 <?php
 require_once 'local.inc';
 
-use parallel\{Channel,Runtime,Events,Events\Event,Events\Type};
+use parallel\{Channel,Runtime,Events,Events\Event,Events\Event\Type};
 
 ///*
 $debugMode =
