@@ -292,19 +292,27 @@ class Socket extends aBase implements constMessageParsingResult
         $locator = $this->getLocator();
 //        $channel = $locator->getChannelFromWorker($this->threadId);
 
+        $this->dbg("Socket legate from worker:\n $serializedLegate\n");
+
         $legate = $this->legate = $this->legate->unserializeInSocket($serializedLegate);
         $result = $this->legate->getWorkerResult();
 
+        $this->dbg("Worker result " . $result);
+
         if ($result === self::MESSAGE_PARSED || $legate->isBadData() || $legate->needCloseSocket()) {
+            $this->dbg("Free worker " . $this->threadId);
             $locator->decThreadBusy($this->threadId);
             $this->threadId = null;
         }
 
         if ($legate->isBadData()) {
+            $this->dbg("Worker command: bad data");
             $this->badData();
         } else if ($legate->needCloseSocket()) {
+            $this->dbg("Worker command: close socket");
             $this->close();
         } else {
+            $this->dbg("Worker command: send response");
             $messageString = $legate->getResponseString();
             $legate->setResponseString(null);
             $this->sendMessageString($messageString);
