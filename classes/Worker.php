@@ -24,7 +24,7 @@ class Worker extends aLocator implements constMessageParsingResult
 
             if (!isset($this->legates[$legateId])) {
                 $this->legates[$legateId] = SocketLegate::create($this, $legateId);
-                $this->log("Worker " . $this->getName() . " attach legate from $legateId");
+                $this->dbg("Worker " . $this->getName() . " attach legate from $legateId");
             }
 
             $this->legates[$legateId] = $this->legates[$legateId]->unserializeInWorker($serializedLegate);
@@ -37,7 +37,7 @@ class Worker extends aLocator implements constMessageParsingResult
                 || $this->legates[$legateId]->needCloseSocket()
             ) {
                 $this->unsetLegate($legateId);
-                $this->log("Worker " . $this->getName() . " unattach legate from $legateId");
+                $this->dbg("Worker " . $this->getName() . " unattach legate from $legateId");
 // TODO продумать более тщательно сборку мусора в воркерах
                 $this->garbageCollect();
             }
