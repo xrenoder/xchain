@@ -274,6 +274,9 @@ class Socket extends aBase implements constMessageParsingResult
 
             if ($this->legateInWorker) {
                 $this->needCloseAfterLegateReturn = true;
+                $this
+                    ->unsetRecvs()
+                    ->unsetSends();
             } else {
                 $this->close(" from remote side");
             }
