@@ -227,14 +227,14 @@ class Daemon extends aBase
         foreach(static::$kills as $sig) {
             $checkCmd = self::PS_COMMAND . ' ' . $pid;
             $check = shell_exec($checkCmd);
-            $this->dbg("PS $checkCmd => \n" . $check);
+//            $this->dbg("PS $checkCmd => \n" . $check);
 
             if (strpos($check, $this->getApp()->getName()) !== false) {
                 if (!posix_kill($pid, $sig)) {
                     $this->err("ERROR by sending signal " . $sig);
                     continue;
                 } else {
-                    $this->err("Sending signal " . $sig . " to $pid");
+                    $this->log("Sending signal " . $sig . " to $pid");
                 }
             } else {
                 $this->log("Old daemon process $pid is dead");

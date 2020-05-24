@@ -39,7 +39,7 @@ define('DATA_PATH', XCHAIN_PATH . 'data' . DS);
 define('WALLET_PATH', XCHAIN_PATH . 'wallet' . DS);
 
 define('ALIVE_TIMEOUT', 3);
-define('KILL_TIMEOUT', 5);
+define('KILL_TIMEOUT', 10);
 define('SELECT_TIMEOUT_SEC', 0);
 define('SELECT_TIMEOUT_USEC', 50000);
 define('CONNECT_TIMEOUT', 30);
