@@ -19,6 +19,8 @@ class Worker extends aLocator implements constMessageParsingResult
         $this->log("Worker " . $this->getName() . " started");
 
         while(true) {
+// TODO добавить команду о смене ноды в aLocator
+// TODO добавить команду остановки воркера
             [$legateId, $serializedLegate] = $channelRecv->recv();
 
             if (!isset($this->legates[$legateId])) {

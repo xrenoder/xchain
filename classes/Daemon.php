@@ -167,6 +167,8 @@ class Daemon extends aBase
             try {
 // set DBA
                 DBA::create($worker, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
+// set current node as Client (always, before full syncronization)
+                $worker->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 // load node private key
                 $worker->setMyAddress(Address::createFromWallet($worker, MY_ADDRESS, WALLET_PATH));
                 $worker->run($channelRecv, $channelSend);
