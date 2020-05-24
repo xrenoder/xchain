@@ -42,7 +42,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
     public function needCloseAfterSend() : bool {return $this->closeAfterSend;}
 
     /** @var bool  */
-    private $needCloseSocket = true;
+    private $needCloseSocket = false;
     public function setNeedCloseSocket() : self {$this->needCloseSocket = true; return $this;}
     public function needCloseSocket() : bool {return $this->needCloseSocket;}
 
@@ -100,7 +100,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
         $this->workerResult = $message->addPacket($packet);
 
-        $this->getLocator()->dbg("Response sending from worker");
+        $this->getLocator()->dbg("SocketLegate sending from worker");
         $channel->send([$this->id, $this->serializeInWorker()]);
     }
 
