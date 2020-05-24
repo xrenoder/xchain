@@ -1,5 +1,5 @@
 <?php
-use parallel\{Channel,Runtime,Events,Events\Event};
+use parallel\{Channel,Runtime,Events,Events\Event,Events\Type};
 /**
  * Daemonization
  */
@@ -30,9 +30,14 @@ class Daemon extends aBase
 
     /** @var string[] */
     private static $kills = array (		// последовательность сигналов при убивании зависшего демона
+        SIGHUP,
+        SIGTERM,
+        SIGKILL
+/*
         'HUP',
         'TERM',
         'KILL'
+*/
     );
 
     /**
@@ -220,21 +225,21 @@ class Daemon extends aBase
     private function kill(int $pid) : void
     {
         foreach(static::$kills as $sig) {
-            $nokill = 1;
-
             $checkCmd = self::PS_COMMAND . ' ' . $pid;
             $check = shell_exec($checkCmd);
+            $this->dbg("PS: " . $check);
 
             if (strpos($check, $this->getApp()->getName()) !== false) {
-                $killCmd = "kill -$sig " . $pid;
-                $this->log("Old daemon process $pid will be killed by SIG$sig  : " . $killCmd);
-                $nokill = $this->commandExec($killCmd, 0);
+                if (!posix_kill($pid, $sig)) {
+                    $this->err("ERROR by sending signal " . $sig);
+                    continue;
+                }
             } else {
                 $this->log("Old daemon process $pid is dead");
                 break;
             }
 
-            if (!$nokill && $sig !== 'KILL') {
+            if ($sig !== SIGKILL) {
                 sleep(self::KILL_TIMEOUT);
             }
         }

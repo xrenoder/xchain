@@ -1,6 +1,5 @@
 <?php
 
-
 class Worker extends aLocator implements constMessageParsingResult
 {
     /** @var SummaryDataSet */
