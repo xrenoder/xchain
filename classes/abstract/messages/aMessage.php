@@ -111,17 +111,17 @@ abstract class aMessage extends aBase implements constMessageParsingResult
     }
 
     /**
-     * @param Socket $legate
+     * @param Socket $parent
      * @param int $id
      * @return aMessage|null
      * @throws Exception
      */
-    public static function spawn(SocketLegate $legate, int $id) : ?self
+    public static function spawn(aBase $parent, int $id) : ?self
     {
         /** @var aMessage $className */
 
         if ($className = MessageClassEnum::getClassName($id)) {
-            return $className::create($legate, null);
+            return $className::create($parent);
         }
 
         return null;
