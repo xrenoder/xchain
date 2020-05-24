@@ -313,7 +313,7 @@ class Socket extends aBase implements constMessageParsingResult
         /** @var App $locator */
         $locator = $this->getLocator();
 
-//        $this->dbg("Socket legate from worker:\n $serializedLegate\n");
+        $this->dbg("Socket legate from worker:\n $serializedLegate\n");
 
         $legate = $this->legate = $this->legate->unserializeInSocket($serializedLegate);
         $this->legateInWorker = false;
