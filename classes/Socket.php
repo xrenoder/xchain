@@ -324,11 +324,17 @@ class Socket extends aBase implements constMessageParsingResult
         if ($legate->isBadData()) {
             $this->dbg("Worker command: bad data");
             $this->badData();
-        } else if ($legate->needCloseSocket()) {
-            $this->dbg("Worker command: close socket");
-            $this->close();
-        } else if ($this->needCloseAfterLegateReturn) {
-            $this->close(" from remote side");
+        } else if ($this->needCloseAfterLegateReturn || $legate->needCloseSocket()) {
+            if ($this->needCloseAfterLegateReturn) {
+                if ($legate->needCloseSocket()) {
+                    $this->dbg("Worker command: close socket");
+                }
+
+                $this->close(" from remote side");
+            } else {
+                $this->dbg("Worker command: close socket");
+                $this->close();
+            }
         } else {
             $this->dbg("Worker command: send response");
             $messageString = $legate->getResponseString();
@@ -371,6 +377,6 @@ class Socket extends aBase implements constMessageParsingResult
     {
 // TODO продумать действия при закрытии сокета, на который поступили плохие данные
 // например, закрыть все свободные сокеты, соединенные с этим хостом
-        $this->close();
+        $this->close(" cause bad data");
     }
 }
