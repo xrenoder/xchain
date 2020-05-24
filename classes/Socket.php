@@ -341,7 +341,7 @@ class Socket extends aBase implements constMessageParsingResult
                 $this->dbg("Worker command: close socket");
                 $this->close();
             }
-        } else {
+        } else if ($legate->getResponseString() !== null) {
             $this->dbg("Worker command: send response");
             $messageString = $legate->getResponseString();
             $legate->setResponseString(null);
