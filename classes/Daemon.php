@@ -130,6 +130,7 @@ class Daemon extends aBase
             flock($fd, LOCK_UN);
             fclose($fd);
             $this->dbg("New daemon finished by STOP-command");
+            posix_kill($pid, SIGKILL);
             exit(0);
         }
 
@@ -233,9 +234,9 @@ class Daemon extends aBase
                 if (!posix_kill($pid, $sig)) {
                     $this->err("ERROR by sending signal " . $sig);
                     continue;
-                } else {
-                    $this->log("Sending signal " . $sig . " to $pid");
                 }
+
+                $this->log("Sending signal " . $sig . " to $pid");
             } else {
                 $this->log("Old daemon process $pid is dead");
                 break;
