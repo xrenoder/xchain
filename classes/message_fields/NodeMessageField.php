@@ -28,7 +28,7 @@ class NodeMessageField extends aMessageField
         if ($myCriteria & $message->getRemoteNodeId() === 0)  {
             $this->dbg('Nodes uncompatible: ' . NodeClassEnum::getName($myNodeId) . " $logTxt " . NodeClassEnum::getName($message->getRemoteNodeId()));
             $legate->setCloseAfterSend();
-            $legate->createResponse(BadNodeResMessage::create($this->getLocator()));
+            $legate->createResponseString(BadNodeResMessage::create($this->getLocator()));
             return false;
         }
 

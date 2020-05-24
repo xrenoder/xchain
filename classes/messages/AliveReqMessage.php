@@ -6,7 +6,6 @@ class AliveReqMessage extends aSimpleAddressMessage
 {
     /** @var int  */
     protected static $id = MessageClassEnum::ALIVE_REQ; /* overrided */
-    protected static $needAliveCheck = false;           /* overrided */
 
     /**
      * @return bool
@@ -16,7 +15,7 @@ class AliveReqMessage extends aSimpleAddressMessage
         $legate = $this->getLegate();
 
         $legate->setCloseAfterSend();
-        $legate->createResponse(AliveResMessage::create($this->getLocator()));
+        $legate->createResponseString(AliveResMessage::create($this->getLocator()));
 
         return self::MESSAGE_PARSED;
     }

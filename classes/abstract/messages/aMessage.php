@@ -14,12 +14,6 @@ abstract class aMessage extends aBase implements constMessageParsingResult
     public function getMaxLen() : int {return $this->maxLen;}
 
     /**
-     * If false - this message can be first sended or received after socket creation
-     * @var bool
-     */
-    protected static $needAliveCheck = true; /** can be overrided or not */
-
-    /**
      * override me
      * fieldId => 'propertyName'
      * @var string[]
@@ -138,7 +132,7 @@ abstract class aMessage extends aBase implements constMessageParsingResult
 // if server is busy - not check incoming fields, quick answer 'busy' and disconnect
         if ($legate->isServerBusy()) {
             $legate->setCloseAfterSend();
-            $legate->createResponse(BusyResMessage::create($this->getLocator()));
+            $legate->createResponseString(BusyResMessage::create($this->getLocator()));
             return self::MESSAGE_PARSED;
         }
 

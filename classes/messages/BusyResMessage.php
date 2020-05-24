@@ -16,6 +16,6 @@ class BusyResMessage extends aSimpleMessage
 // TODO добавить обработку ответа Busy! от ноды (например, не стучаться в эту ноду в течение определенного времени)
 
         $this->getLegate()->setNeedCloseSocket();
-        return true;
+        return self::MESSAGE_PARSED;
     }
 }

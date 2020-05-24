@@ -16,6 +16,6 @@ class BadTimeResMessage extends aSimpleMessage
 // либо придумываем механизм автоматической коррекции времени
 
         $this->getLegate()->setNeedCloseSocket();
-        return true;
+        return self::MESSAGE_PARSED;
     }
 }

@@ -29,7 +29,7 @@ class TimeMessageField extends aMessageField
         if ($diff >= 2) {
             $this->dbg("BAD TIME message time $this->value have too big different with local time $time for " . $message->getName());
             $legate->setCloseAfterSend();
-            $legate->createResponse(BadTimeResMessage::create($this->getLocator()));
+            $legate->createResponseString(BadTimeResMessage::create($this->getLocator()));
             return false;
         }
 

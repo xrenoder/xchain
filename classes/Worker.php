@@ -23,17 +23,21 @@ class Worker extends aLocator implements constMessageParsingResult
             [$legateId, $serializedLegate] = $channelRecv->recv();
 
             if (!isset($this->legates[$legateId])) {
-                $this->setLegate($legateId,  SocketLegate::create($this, $legateId));
+                $this->legates[$legateId] = SocketLegate::create($this, $legateId);
+                $this->log("Worker " . $this->getName() . " attach legate from $legateId");
             }
 
-            $this->setLegate($legateId, $this->getLegate($legateId)->unserializeInWorker($serializedLegate));
+            $this->legates[$legateId] = $this->legates[$legateId]->unserializeInWorker($serializedLegate);
 
-            $legate = $this->legates[$legateId];
+            $this->legates[$legateId]->messageHandler($channelSend);
 
-            $legate->messageHandler($channelSend);
-
-            if ($legate->getWorkerResult() === self::MESSAGE_PARSED || $legate->isBadData() || $legate->needCloseSocket()) {
+            if (
+                $this->legates[$legateId]->getWorkerResult() === self::MESSAGE_PARSED
+                || $this->legates[$legateId]->isBadData()
+                || $this->legates[$legateId]->needCloseSocket()
+            ) {
                 $this->unsetLegate($legateId);
+                $this->log("Worker " . $this->getName() . " unattach legate from $legateId");
 // TODO продумать более тщательно сборку мусора в воркерах
                 $this->garbageCollect();
             }

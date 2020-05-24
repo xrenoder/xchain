@@ -106,7 +106,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
         $this->getLocator()->dbg("SocketLegate sended from worker to socket");
     }
 
-    public function createResponse(aMessage $message) : void
+    public function createResponseString(aMessage $message) : void
     {
         $this->responseString = $message->createMessageString();
     }
