@@ -100,6 +100,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
         $this->workerResult = $message->addPacket($packet);
 
+        $this->dbg("Socket legate to socket:\n $this->serializedLegate\n");
         $channel->send([$this->id, $this->serializeInWorker()]);
         $this->getLocator()->dbg("SocketLegate sended from worker to socket");
     }
