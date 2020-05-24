@@ -30,6 +30,12 @@ class Socket extends aBase implements constMessageParsingResult
     public function setLegate(SocketLegate $val) : self {$this->legate = $val; return $this;}
     public function getLegate() : SocketLegate {return $this->legate;}
 
+    /** @var bool  */
+    private $legateInWorker = false;
+
+    /** @var bool  */
+    private $needCloseAfterLegateReturn = false;
+
     /** @var int */
     private $threadId = null;
 
@@ -264,7 +270,14 @@ class Socket extends aBase implements constMessageParsingResult
         }
 
         if (!$data)	{	// удаленный сервер разорвал соединение
-            $this->close(" from remote side");
+            $this->dbg("Socket " . $this->getKey(). " will be closed: remote side shutdown connection");
+
+            if ($this->legateInWorker) {
+                $this->needCloseAfterLegateReturn = true;
+            } else {
+                $this->close(" from remote side");
+            }
+
             return false;
         }
 
@@ -284,17 +297,20 @@ class Socket extends aBase implements constMessageParsingResult
 
         $channel->send([$this->legate->getId(), $this->legate->serializeInSocket()]);
 
+        $this->legateInWorker = true;
+
         return false;
     }
 
     public function workerResponseHandler($serializedLegate) {
         /** @var App $locator */
         $locator = $this->getLocator();
-//        $channel = $locator->getChannelFromWorker($this->threadId);
 
         $this->dbg("Socket legate from worker:\n $serializedLegate\n");
 
         $legate = $this->legate = $this->legate->unserializeInSocket($serializedLegate);
+        $this->legateInWorker = false;
+
         $result = $this->legate->getWorkerResult();
 
         $this->dbg("Worker result " . $result);
@@ -311,6 +327,8 @@ class Socket extends aBase implements constMessageParsingResult
         } else if ($legate->needCloseSocket()) {
             $this->dbg("Worker command: close socket");
             $this->close();
+        } else if ($this->needCloseAfterLegateReturn) {
+            $this->close(" from remote side");
         } else {
             $this->dbg("Worker command: send response");
             $messageString = $legate->getResponseString();
