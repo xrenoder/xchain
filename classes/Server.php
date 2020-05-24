@@ -519,6 +519,7 @@ class Server extends aBase implements constMessageParsingResult
         $this->log('******** Daemon ' . $this->getLocator()->getPid() . ' close all sockets & finished ********');
         $this->log('******** ');
 
+        posix_kill($this->getLocator()->getPid(), SIGKILL);
         exit(0);
     }
 

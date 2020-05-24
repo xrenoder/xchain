@@ -112,6 +112,7 @@ class Daemon extends aBase
                     fclose($fd);
                     $this->dbg("Old daemon is alive ($oldPid)");
                     $this->dbg("New daemon finished");
+                    posix_kill($pid, SIGKILL);
                     exit(0);
                 }
 
