@@ -22,6 +22,7 @@ class Logger extends aBase
 
     private static $flags = array(
         self::DBG_LOCATOR =>    'Locator',
+        self::DBG_DAEMON =>     'Daemon ',
         self::DBG_SERV =>       'Server ',
         self::DBG_SOCK =>       'Socket ',
         self::DBG_MESS =>       'Message',

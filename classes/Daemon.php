@@ -87,6 +87,8 @@ class Daemon extends aBase
 // start workers threads
         $this->startWorkers();
 
+        $this->dbg("Continue after workers starting");
+
 // check pid-file
         $fd = fopen($this->pidFile, 'c+b');
         flock($fd, LOCK_EX);			// lock file for prevent concurrency
@@ -97,6 +99,8 @@ class Daemon extends aBase
         if ($oldPid) {
 // ... and no have STOP- or RESTART-command - check, is old daemon still alive
             if ($command !== static::CMD_RESTART && $command !== static::CMD_STOP) {
+                $this->dbg("Check old daemon");
+
                 if ($this->getApp()->getServer()->isDaemonAlive()) {
 // exit, if old daemon is alive
                     flock($fd, LOCK_UN);
@@ -105,12 +109,16 @@ class Daemon extends aBase
                     $this->dbg("New daemon finished");
                     exit(0);
                 }
+
+                $this->dbg("Continue after checking old daemon");
             }
 
 // kill old daemon, if have STOP- or RESTART-command
             $this->log("Old daemon will be killed (pid $oldPid)");
             $this->kill($oldPid);
         }
+
+        $this->dbg("Continue after pid checking");
 
         if ($command === static::CMD_STOP) {
             ftruncate($fd, 0);
