@@ -189,7 +189,7 @@ class Daemon extends aBase
             $app->setChannelFromWorker($threadId, parallel\Channel::make($threadId, parallel\Channel::Infinite));
             $app->setThread($threadId,new parallel\Runtime(XCHAIN_PATH . "local.inc"));
 
-            $future[] = $app->getThread($threadId)->run(
+            $app->getThread($threadId)->run(
                 $workerThread,
                 [
                     $threadId,
