@@ -268,7 +268,7 @@ class Server extends aBase implements constMessageParsingResult
         foreach($wr as $fd) {
             if ($key = array_search($fd, $this->sends, true)) {
                 $this->getSocket($key)->send();
-//                usleep(50000);
+                usleep(50000);  // отладочное для побайтовой отправки пакетов
             }
         }
 

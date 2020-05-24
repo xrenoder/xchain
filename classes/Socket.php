@@ -217,8 +217,8 @@ class Socket extends aBase implements constMessageParsingResult
         $this->setTime();
 
         if ($this->outData) {
-            $buff = $this->outData;
-//            $buff = $this->outData[0];
+//            $buff = $this->outData;
+            $buff = $this->outData[0];   // отладочное для побайтовой отправки пакетов
 
             if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
                 $this->err('ERROR: write to socket error');
@@ -309,7 +309,7 @@ class Socket extends aBase implements constMessageParsingResult
         /** @var App $locator */
         $locator = $this->getLocator();
 
-        $this->dbg("Socket legate from worker:\n $serializedLegate\n");
+//        $this->dbg("Socket legate from worker:\n $serializedLegate\n");
 
         $legate = $this->legate = $this->legate->unserializeInSocket($serializedLegate);
         $this->legateInWorker = false;
@@ -331,9 +331,12 @@ class Socket extends aBase implements constMessageParsingResult
             if ($this->needCloseAfterLegateReturn) {
                 if ($legate->needCloseSocket()) {
                     $this->dbg("Worker command: close socket");
+                    $addLogStr = " and by worker command";
+                } else {
+                    $addLogStr = "";
                 }
 
-                $this->close(" from remote side");
+                $this->close(" from remote side$addLogStr");
             } else {
                 $this->dbg("Worker command: close socket");
                 $this->close();
