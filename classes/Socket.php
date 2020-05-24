@@ -302,6 +302,7 @@ class Socket extends aBase implements constMessageParsingResult
         $channel = $locator->getChannelFromSocket($this->threadId);
 
         $channel->send([$this->legate->getId(), $this->legate->serializeInSocket()]);
+        $this->getLocator()->dbg("SocketLegate sended from socket to worker");
 
         $this->legateInWorker = true;
 
