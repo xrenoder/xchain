@@ -27,7 +27,8 @@ class Worker extends aLocator implements constMessageParsingResult
                 $this->dbg("Worker " . $this->getName() . " attach legate from $legateId");
             }
 
-            $this->legates[$legateId] = $this->legates[$legateId]->unserializeInWorker($serializedLegate);
+            $newLegate = $this->legates[$legateId]->unserializeInWorker($serializedLegate);
+            $this->legates[$legateId] = $newLegate;
 
             $this->legates[$legateId]->messageHandler($channelSend);
 
@@ -36,7 +37,7 @@ class Worker extends aLocator implements constMessageParsingResult
                 || $this->legates[$legateId]->isBadData()
                 || $this->legates[$legateId]->needCloseSocket()
             ) {
-//                $this->dbg("SocketLegate-object is:\n" . var_export($this->legates[$legateId], true) . "\n");
+                $this->dbg("SocketLegate-object is:\n" . var_export($this->legates[$legateId], true) . "\n");
 
                 $this->unsetLegate($legateId);
                 $this->dbg("Worker " . $this->getName() . " unattach legate from $legateId");
