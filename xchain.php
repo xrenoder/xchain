@@ -82,5 +82,6 @@ try {
 // run server
     $app->getServer()->run();
 } catch (Exception $e) {
+// TODO здесь должно быть выключение потоков воркеров
     throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
 }

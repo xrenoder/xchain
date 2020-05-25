@@ -180,6 +180,7 @@ class Daemon extends aBase
                 $worker->setMyAddress(Address::createFromWallet($worker, MY_ADDRESS, WALLET_PATH));
                 $worker->run($channelRecv, $channelSend);
             } catch (Exception $e) {
+// TODO здесь должна быть отправка сообщения в основной поток о завершении работы с выключеним всех потоков воркеров
                 $worker->err($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
 
 //                throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));

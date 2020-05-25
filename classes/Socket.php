@@ -30,11 +30,14 @@ class Socket extends aBase implements constMessageParsingResult
     public function setLegate(SocketLegate $val) : self {$this->legate = $val; return $this;}
     public function getLegate() : SocketLegate {return $this->legate;}
 
-    /** @var bool  */
-    private $legateInWorker = false;
+    /** @var int  */
+    private $legatesInWorker = 0;
 
     /** @var bool  */
-    private $needCloseAfterLegateReturn = false;
+    private $needCloseAfterAllLegatesReturn = false;
+
+    /** @var bool  */
+    private $readyForCloseAllLegatesReturn = false;
 
     /** @var int */
     private $threadId = null;
@@ -238,6 +241,7 @@ class Socket extends aBase implements constMessageParsingResult
 
         if (!$this->outData) {
             if ($this->legate->needCloseAfterSend()) {
+                $this->dbg("Worker command: close socket after send");
                 $this->close();
             } else {
                 $this
@@ -275,8 +279,8 @@ class Socket extends aBase implements constMessageParsingResult
         if (!$data)	{	// удаленный сервер разорвал соединение
             $this->dbg("Socket " . $this->getKey(). " will be closed: remote side shutdown connection");
 
-            if ($this->legateInWorker) {
-                $this->needCloseAfterLegateReturn = true;
+            if ($this->legatesInWorker !== 0) {
+                $this->needCloseAfterAllLegatesReturn = true;
                 $this
                     ->unsetRecvs()
                     ->unsetSends();
@@ -304,7 +308,7 @@ class Socket extends aBase implements constMessageParsingResult
         $channel->send([$this->legate->getId(), $this->legate->serializeInSocket()]);
         $this->getLocator()->dbg("SocketLegate sended from socket to worker");
 
-        $this->legateInWorker = true;
+        $this->legatesInWorker++;
 
         return false;
     }
@@ -316,7 +320,11 @@ class Socket extends aBase implements constMessageParsingResult
 //        $this->dbg("Socket legate from worker:\n $serializedLegate\n");
 
         $legate = $this->legate = $this->legate->unserializeInSocket($serializedLegate);
-        $this->legateInWorker = false;
+        $this->legatesInWorker--;
+
+        if ($this->needCloseAfterAllLegatesReturn && $this->legatesInWorker === 0) {
+            $this->readyForCloseAllLegatesReturn = true;
+        }
 
         $result = $this->legate->getWorkerResult();
 
@@ -331,8 +339,8 @@ class Socket extends aBase implements constMessageParsingResult
         if ($legate->isBadData()) {
             $this->dbg("Worker command: bad data");
             $this->badData();
-        } else if ($this->needCloseAfterLegateReturn || $legate->needCloseSocket()) {
-            if ($this->needCloseAfterLegateReturn) {
+        } else if ($this->readyForCloseAllLegatesReturn || $legate->needCloseSocket()) {
+            if ($this->readyForCloseAllLegatesReturn) {
                 if ($legate->needCloseSocket()) {
                     $this->dbg("Worker command: close socket");
                     $addLogStr = " and by worker command";
