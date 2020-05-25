@@ -101,7 +101,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
         $this->workerResult = $message->addPacket($packet);
 
         $serializedLegate = $this->serializeInWorker();
-        $this->dbg("Socket legate to socket:\n $serializedLegate\n");
+//        $this->dbg("Socket legate to socket:\n $serializedLegate\n");
         $channel->send([$this->id, $serializedLegate]);
         $this->getLocator()->dbg("SocketLegate sended from worker to socket");
     }
@@ -135,20 +135,20 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
         $message = $this->getInMessage();
 
-        $this->getLocator()->dbg("parent will be setted");
+//        $this->getLocator()->dbg("parent will be setted");
 
         if ($message !== null) {
             $message->setParent($legate); // important!!!!!
         }
 
-        $this->getLocator()->dbg("parent setted");
+//        $this->getLocator()->dbg("parent setted");
 
         $legate
             ->setLocator($this->getLocator())
             ->setParent($this->getParent())
             ->setInMessage($message);
 
-        $this->getLocator()->dbg("legate unserialized");
+//        $this->getLocator()->dbg("legate unserialized");
 
 
         return $legate;
