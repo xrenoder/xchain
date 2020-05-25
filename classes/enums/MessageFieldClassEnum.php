@@ -17,6 +17,7 @@ class MessageFieldClassEnum extends aClassEnum
 
 
     public const UNKNOWN_LEN  = 0;
+    public const BASE_MAX_LEN  = 1 + 4; // type + length
     public const SIMPLE_MAX_LEN  = 1 + 4 + 1 + 4; // type + length + node + time
     public const SIMPLE_ADDR_MAX_LEN  = 1 + 4 + 1 + 4 + 25; // type + length + node + time + addr
 

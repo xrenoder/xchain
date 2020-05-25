@@ -14,9 +14,9 @@ class Socket extends aBase implements constMessageParsingResult
     public function getFd() {return $this->fd;}
 
     /** @var string */
-    private $key;
-    public function setKey(string $val) : self {$this->key = $val; return $this;}
-    public function getKey() : string {return $this->key;}
+    private $id;
+    public function setId(string $val) : self {$this->id = $val; return $this;}
+    public function getId() : string {return $this->id;}
 
     /** @var bool  */
     private $blockMode = true;
@@ -64,23 +64,23 @@ class Socket extends aBase implements constMessageParsingResult
     /**
      * @param Server $server
      * @param $fd
-     * @param string $key
+     * @param string $id
      * @param Host $host
      * @return self
      */
-    public static function create(Server $server, Host $host, $fd, string $key) : self
+    public static function create(Server $server, Host $host, $fd, string $id) : self
     {
         $me = new self($server);
 
-        $me->setLegate(SocketLegate::create($me, $key));
+        $me->setLegate(SocketLegate::create($me, $id));
         $me->getLegate()->setMyNodeId($me->getLocator()->getMyNode()->getId());
 
         $me
             ->setHost($host)
             ->setFd($fd)
-            ->setKey($key)
+            ->setId($id)
             ->setTime()
-            ->getServer()->setSocket($me, $key);
+            ->getServer()->setSocket($me, $id);
 
         return $me;
     }
@@ -111,7 +111,7 @@ class Socket extends aBase implements constMessageParsingResult
      */
     public function setRecvs() : self
     {
-        $this->getServer()->setRecvs($this->fd,$this->key);
+        $this->getServer()->setRecvs($this->fd,$this->id);
         return $this;
     }
 
@@ -121,7 +121,7 @@ class Socket extends aBase implements constMessageParsingResult
      */
     public function unsetRecvs() : self
     {
-        $this->getServer()->unsetRecvs($this->key);
+        $this->getServer()->unsetRecvs($this->id);
         return $this;
     }
 
@@ -131,7 +131,7 @@ class Socket extends aBase implements constMessageParsingResult
      */
     public function setSends() : self
     {
-        $this->getServer()->setSends($this->fd,$this->key);
+        $this->getServer()->setSends($this->fd,$this->id);
         return $this;
     }
 
@@ -141,7 +141,7 @@ class Socket extends aBase implements constMessageParsingResult
      */
     public function unsetSends() : self
     {
-        $this->getServer()->unsetSends($this->key);
+        $this->getServer()->unsetSends($this->id);
         return $this;
     }
 
@@ -152,9 +152,9 @@ class Socket extends aBase implements constMessageParsingResult
     public function setBusy() : self
     {
         if ($this->legate->isConnected()) {
-            $this->getServer()->busyConnected($this->host, $this->key);
+            $this->getServer()->busyConnected($this->host, $this->id);
         } else {
-            $this->getServer()->busyAccepted($this->host, $this->key);
+            $this->getServer()->busyAccepted($this->host, $this->id);
         }
 
         $this->freeTime = 0;
@@ -173,9 +173,9 @@ class Socket extends aBase implements constMessageParsingResult
         $this->legate->setFreeAfterSend(false);
 
         if ($this->legate->isConnected()) {
-            $this->getServer()->freeConnected($this, $this->host, $this->key);
+            $this->getServer()->freeConnected($this, $this->host, $this->id);
         } else {
-            $this->getServer()->freeAccepted($this, $this->host, $this->key);
+            $this->getServer()->freeAccepted($this, $this->host, $this->id);
         }
 
         if ($this->task) {
@@ -234,9 +234,9 @@ class Socket extends aBase implements constMessageParsingResult
                 $this->outData = (substr($this->outData, $realLength));
             }
 
-            $this->dbg('SEND ' . $this->key . ": $realLength bytes");
+            $this->dbg('SEND ' . $this->id . ": $realLength bytes");
         } else {
-            $this->dbg('SEND ' . $this->key . ": ZERO bytes, switch to received mode");
+            $this->dbg('SEND ' . $this->id . ": ZERO bytes, switch to received mode");
         }
 
         if (!$this->outData) {
@@ -277,7 +277,7 @@ class Socket extends aBase implements constMessageParsingResult
         }
 
         if (!$data)	{	// удаленный сервер разорвал соединение
-            $this->dbg("Socket " . $this->getKey(). " will be closed: remote side shutdown connection");
+            $this->dbg("Socket " . $this->getId(). " will be closed: remote side shutdown connection");
 
             if ($this->legatesInWorker !== 0) {
                 $this->needCloseAfterAllLegatesReturn = true;
@@ -291,7 +291,7 @@ class Socket extends aBase implements constMessageParsingResult
             return false;
         }
 
-        $this->dbg('RECV ' . $this->getKey() . ': '. strlen($data) . ' bytes');
+        $this->dbg('RECV ' . $this->getId() . ': '. strlen($data) . ' bytes');
 
         $this->legate->setIncomingStringTime($this->getServer()->getNowTime());
         $this->legate->setIncomingString($data);
@@ -307,7 +307,7 @@ class Socket extends aBase implements constMessageParsingResult
         $channel = $locator->getChannelFromSocket($this->threadId);
 
         $serializedLegate = $this->legate->serializeInSocket();
-        $this->getLocator()->dbg("Send legate from socket $this->key to worker $this->threadId");
+        $this->getLocator()->dbg("Send legate from socket $this->id to worker $this->threadId");
 //        $this->dbg("\n $serializedLegate\n");
         $channel->send([$this->legate->getId(), $serializedLegate]);
 
@@ -353,7 +353,7 @@ class Socket extends aBase implements constMessageParsingResult
                     $addLogStr = "";
                 }
 
-                $this->close(" from remote side$addLogStr");
+                $this->close(" from remote side" . $addLogStr);
             } else {
                 $this->dbg("Worker command: close socket");
                 $this->close();
@@ -384,16 +384,16 @@ class Socket extends aBase implements constMessageParsingResult
             ->unsetSends();
 
         $host = $this->getHost();
-        $key = $this->getKey();
+        $id = $this->getId();
 
         $this->getServer()
-             ->unsetSocket($key)
-             ->busyAccepted($host, $key)
-             ->busyConnected($host, $key);
+             ->unsetSocket($id)
+             ->busyAccepted($host, $id)
+             ->busyConnected($host, $id);
 
         unset($this->task);
 
-        $this->dbg("Socket $key closed" . $logStr);
+        $this->dbg("Socket $id closed" . $logStr);
 
         return $this;
     }

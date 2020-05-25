@@ -10,7 +10,7 @@ abstract class aMessage extends aBase implements constMessageParsingResult
     protected static $id;  /* override me */
 
     /** @var int  */
-    protected $maxLen = null;   /* override me */
+    protected $maxLen = MessageFieldClassEnum::BASE_MAX_LEN;   /* override me */
     public function getMaxLen() : int {return $this->maxLen;}
 
     /**
