@@ -25,7 +25,6 @@ abstract class aMessage extends aBase implements constMessageParsingResult
 
     protected $fields = array();
 
-
     /** @var string */
     protected $name;
     public function getName() : string {return $this->name;}

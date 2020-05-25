@@ -13,6 +13,12 @@ class Worker extends aLocator implements constMessageParsingResult
     public function unsetLegate(string $id) : self {unset($this->legates[$id]); return $this;}
     public function getLegate(string $id) : ?SocketLegate {return ($this->legates[$id] ?? null);}
 
+    /** @var aMessage[]  */
+    private $messages = array();
+    public function setMessage(string $id, aMessage $val) : self {$this->messages[$id] = $val; return $this;}
+    public function unsetMessage(string $id) : self {unset($this->messages[$id]); return $this;}
+    public function getMessage(string $id) : ?aMessage {return ($this->messages[$id] ?? null);}
+
     public function run(parallel\Channel $channelRecv, parallel\Channel $channelSend) : void
     {
         $this->log("Worker " . $this->getName() . " started");
@@ -27,8 +33,7 @@ class Worker extends aLocator implements constMessageParsingResult
                 $this->dbg("Worker " . $this->getName() . " attach legate from $legateId");
             }
 
-            $newLegate = $this->legates[$legateId]->unserializeInWorker($serializedLegate);
-            $this->legates[$legateId] = $newLegate;
+            $this->legates[$legateId] = $this->legates[$legateId]->unserializeInWorker($serializedLegate);
 
             $this->legates[$legateId]->messageHandler($channelSend);
 
