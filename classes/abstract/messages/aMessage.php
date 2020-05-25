@@ -34,7 +34,7 @@ abstract class aMessage extends aBase implements constMessageParsingResult
 
     /** @var int  */
     protected $incomingStringLen = null;
-    public function getIncomingStringLen() : ?int {return $this->incomingMessageTime;}
+    public function getIncomingStringLen() : ?int {return $this->incomingStringLen;}
 
     /** @var int  */
     protected $incomingMessageTime = null;
@@ -156,7 +156,7 @@ abstract class aMessage extends aBase implements constMessageParsingResult
 
 // check message len for declared len
         if ($this->declaredLen !== null && $this->incomingStringLen > $this->declaredLen) {
-            $this->dbg("BAD DATA length $this->incomingStringLen more than declared length " . $this->declaredLen . "for $this->name (1)");
+            $this->dbg("BAD DATA length $this->incomingStringLen more than declared length " . $this->declaredLen . " for $this->name (1)");
             $legate->setBadData();
             return self::MESSAGE_PARSED;
         }
