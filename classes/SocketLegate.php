@@ -153,6 +153,10 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
     public function serializeInWorker() : string
     {
+        if ($this->workerResult) {
+            $this->dbg("SocketLegate-object is:\n" . var_export($this, true) . "\n");
+        }
+
         $copy = clone $this;
 
         $copy->setLocator(null);

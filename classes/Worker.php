@@ -37,8 +37,6 @@ class Worker extends aLocator implements constMessageParsingResult
                 || $this->legates[$legateId]->isBadData()
                 || $this->legates[$legateId]->needCloseSocket()
             ) {
-                $this->dbg("SocketLegate-object is:\n" . var_export($this->legates[$legateId], true) . "\n");
-
                 $this->unsetLegate($legateId);
                 $this->dbg("Worker " . $this->getName() . " unattach legate from $legateId");
 // TODO продумать более тщательно сборку мусора в воркерах
