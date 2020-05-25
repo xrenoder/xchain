@@ -2,7 +2,7 @@
 /**
  * Response "Daemon is alive, but busy, cannot accept connections, socket will be closed"
  */
-class BusyResMessage extends aSimpleMessage
+class BusyResMessage extends aMessage
 {
     /** @var int  */
     protected static $id = MessageClassEnum::BUSY_RES;  /* overrided */

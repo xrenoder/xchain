@@ -293,7 +293,8 @@ class Socket extends aBase implements constMessageParsingResult
 
         $this->dbg('RECV ' . $this->getKey() . ': '. strlen($data) . ' bytes');
 
-        $this->legate->setIncomingBuffer($data);
+        $this->legate->setIncomingStringTime($this->getServer()->getNowTime());
+        $this->legate->setIncomingString($data);
 
         /** @var App $locator */
         $locator = $this->getLocator();
@@ -305,8 +306,10 @@ class Socket extends aBase implements constMessageParsingResult
         $locator->incThreadBusy($this->threadId);
         $channel = $locator->getChannelFromSocket($this->threadId);
 
-        $channel->send([$this->legate->getId(), $this->legate->serializeInSocket()]);
-        $this->getLocator()->dbg("SocketLegate sended from socket to worker");
+        $serializedLegate = $this->legate->serializeInSocket();
+        $this->getLocator()->dbg("Send legate from socket $this->key to worker $this->threadId");
+//        $this->dbg("\n $serializedLegate\n");
+        $channel->send([$this->legate->getId(), $$serializedLegate]);
 
         $this->legatesInWorker++;
 
@@ -328,7 +331,9 @@ class Socket extends aBase implements constMessageParsingResult
 
         $result = $this->legate->getWorkerResult();
 
-        $this->dbg("Worker result " . $result);
+        if ($result === self::MESSAGE_PARSED) {
+            $this->dbg("Worker result: MESSAGE_PARSED");
+        }
 
         if ($result === self::MESSAGE_PARSED || $legate->isBadData() || $legate->needCloseSocket()) {
             $this->dbg("Free worker " . $this->threadId);
@@ -358,6 +363,8 @@ class Socket extends aBase implements constMessageParsingResult
             $messageString = $legate->getResponseString();
             $legate->setResponseString(null);
             $this->sendMessageString($messageString);
+        } else {
+            $this->dbg("Worker command: nothing to do");
         }
 
         return $result;

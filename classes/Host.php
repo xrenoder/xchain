@@ -21,7 +21,7 @@ class Host extends aBase
         self::TRANSPORT_UDG,
     );
 
-    public function getKey() : string {return $this->host;}
+    public function getId() : string {return $this->host;}
 
     /** @var string */
     private $transport;

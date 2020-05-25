@@ -30,15 +30,20 @@ abstract class aMessage extends aBase implements constMessageParsingResult
     public function getName() : string {return $this->name;}
 
     /** @var string */
-    private $str;
+    private $incomingString;
 
     /** @var int  */
-    protected $len = null;
-    public function getLen() : ?int {return $this->len;}
+    protected $incomingStringLen = null;
+    public function getIncomingStringLen() : ?int {return $this->incomingMessageTime;}
+
+    /** @var int  */
+    protected $incomingMessageTime = null;
+    public function setIncomingMessageTime(int $val) : self {$this->incomingMessageTime = $val; return $this;}
+    public function getIncomingMessageTime() : int {return $this->incomingMessageTime;}
 
     /** @var array  */
-    protected $outData = null;
-    public function setOutData(array $val) : self {$this->outData = $val; return $this;}
+    protected $outgoingString = null;
+    public function setOutgoingString(array $val) : self {$this->outgoingString = $val; return $this;}
 
     /** @var int  */
     private $fieldPointer = MessageFieldClassEnum::LENGTH;      // first fieldId prepared inside message-object (field 'Message Length')
@@ -58,7 +63,6 @@ abstract class aMessage extends aBase implements constMessageParsingResult
     protected $declaredLen = null;
     public function getDeclaredLen() : ?int {return $this->declaredLen;}
 
-    abstract public function createMessageString() : string;
     abstract protected function incomingMessageHandler() : bool;
 
     public function getLegate() : SocketLegate
@@ -87,9 +91,9 @@ abstract class aMessage extends aBase implements constMessageParsingResult
             $me->dbg(MessageClassEnum::getItem(static::$id) .  ' detected');
             $parent->setInMessage($me);
         } else {
-// else - outgoing (usually used aLocator object as parent)
+// else - outgoing message (usually used aLocator-object as parent)
             $me->dbg(MessageClassEnum::getItem(static::$id) .  ' created');
-            $me->setOutData($outData);
+            $me->setOutgoingString($outData);
         }
 
         return $me;
@@ -135,24 +139,24 @@ abstract class aMessage extends aBase implements constMessageParsingResult
             return self::MESSAGE_PARSED;
         }
 
-        $this->str .= $packet;
-        $this->len = strlen($this->str);
+        $this->incomingString .= $packet;
+        $this->incomingStringLen = strlen($this->incomingString);
 
         if ($this->declaredLen) {
-            $legate->setReadBufferSize($this->declaredLen - $this->len + 1);
+            $legate->setReadBufferSize($this->declaredLen - $this->incomingStringLen + 1);
         }
 
 
 // check message len for maximum len
-        if ($this->maxLen && $this->len > $this->maxLen) {
-            $this->dbg("BAD DATA length $this->len more than maximum $this->maxLen for $this->name");
+        if ($this->maxLen && $this->incomingStringLen > $this->maxLen) {
+            $this->dbg("BAD DATA length $this->incomingStringLen more than maximum $this->maxLen for $this->name");
             $legate->setBadData();
             return self::MESSAGE_PARSED;
         }
 
 // check message len for declared len
-        if ($this->declaredLen !== null && $this->len > $this->declaredLen) {
-            $this->dbg("BAD DATA length $this->len more than declared length " . $this->declaredLen . "for $this->name (1)");
+        if ($this->declaredLen !== null && $this->incomingStringLen > $this->declaredLen) {
+            $this->dbg("BAD DATA length $this->incomingStringLen more than declared length " . $this->declaredLen . "for $this->name (1)");
             $legate->setBadData();
             return self::MESSAGE_PARSED;
         }
@@ -173,7 +177,7 @@ abstract class aMessage extends aBase implements constMessageParsingResult
             return self::MESSAGE_PARSED;
         }
 
-        if ($this->declaredLen === null || $this->len < $this->declaredLen) {
+        if ($this->declaredLen === null || $this->incomingStringLen < $this->declaredLen) {
             return self::MESSAGE_NOT_PARSED;
         }
 
@@ -194,8 +198,8 @@ abstract class aMessage extends aBase implements constMessageParsingResult
             }
         }
 
-        if ($this->len >= $this->fieldObject->getPoint()) {
-            [$length, $this->$property] = $this->fieldObject->unpackField($this->str);
+        if ($this->incomingStringLen >= $this->fieldObject->getPoint()) {
+            [$length, $this->$property] = $this->fieldObject->unpackField($this->incomingString);
 
             if ($this->$property === null) {
                 $this->dbg("Prepare field " . $this->fieldObject->getName() . ": field length = " . $length);
@@ -225,5 +229,13 @@ abstract class aMessage extends aBase implements constMessageParsingResult
         $lenField = LengthMessageField::packField($messageStringLength);
 
         return $typeField . $lenField . $body;
+    }
+
+    /**
+     * @return string
+     */
+    public function createMessageString() : string
+    {
+        return $this->compileMessage('');
     }
 }

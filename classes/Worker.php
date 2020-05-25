@@ -9,15 +9,6 @@ class Worker extends aLocator implements constMessageParsingResult
 
     /** @var SocketLegate[]  */
     private $legates = array();
-    public function setLegate(string $id, SocketLegate $val) : self {$this->legates[$id] = $val; return $this;}
-    public function unsetLegate(string $id) : self {unset($this->legates[$id]); return $this;}
-    public function getLegate(string $id) : ?SocketLegate {return ($this->legates[$id] ?? null);}
-
-    /** @var aMessage[]  */
-    private $messages = array();
-    public function setMessage(string $id, aMessage $val) : self {$this->messages[$id] = $val; return $this;}
-    public function unsetMessage(string $id) : self {unset($this->messages[$id]); return $this;}
-    public function getMessage(string $id) : ?aMessage {return ($this->messages[$id] ?? null);}
 
     public function run(parallel\Channel $channelRecv, parallel\Channel $channelSend) : void
     {
@@ -26,24 +17,24 @@ class Worker extends aLocator implements constMessageParsingResult
         while(true) {
 // TODO добавить команду о смене ноды в aLocator
 // TODO добавить команду остановки воркера
-            [$legateId, $serializedLegate] = $channelRecv->recv();
+            [$socketId, $serializedLegate] = $channelRecv->recv();
 
-            if (!isset($this->legates[$legateId])) {
-                $this->legates[$legateId] = SocketLegate::create($this, $legateId);
-                $this->dbg("Worker " . $this->getName() . " attach legate from $legateId");
+            if (!isset($this->legates[$socketId])) {
+                $this->legates[$socketId] = SocketLegate::create($this, $socketId);
+                $this->dbg("Worker " . $this->getName() . " attach legate from $socketId");
             }
 
-            $this->legates[$legateId] = $this->legates[$legateId]->unserializeInWorker($serializedLegate);
+            $this->legates[$socketId] = $this->legates[$socketId]->unserializeInWorker($serializedLegate);
 
-            $this->legates[$legateId]->messageHandler($channelSend);
+            $this->legates[$socketId]->messageHandler($channelSend);
 
             if (
-                $this->legates[$legateId]->getWorkerResult() === self::MESSAGE_PARSED
-                || $this->legates[$legateId]->isBadData()
-                || $this->legates[$legateId]->needCloseSocket()
+                $this->legates[$socketId]->getWorkerResult() === self::MESSAGE_PARSED
+                || $this->legates[$socketId]->isBadData()
+                || $this->legates[$socketId]->needCloseSocket()
             ) {
-                $this->unsetLegate($legateId);
-                $this->dbg("Worker " . $this->getName() . " unattach legate from $legateId");
+                unset($this->legates[$socketId]);
+                $this->dbg("Worker " . $this->getName() . " unattach legate from $socketId");
 // TODO продумать более тщательно сборку мусора в воркерах
                 $this->garbageCollect();
             }

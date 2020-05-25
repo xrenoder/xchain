@@ -2,7 +2,7 @@
 /**
  * Response "Daemon is alive"
  */
-class AliveResMessage extends aSimpleAddressMessage
+class AliveResMessage extends aMessage
 {
     /** @var int  */
     protected static $id = MessageClassEnum::ALIVE_RES; /* overrided */

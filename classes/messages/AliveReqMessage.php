@@ -2,7 +2,7 @@
 /**
  * Request "Is daemon alive?"
  */
-class AliveReqMessage extends aSimpleAddressMessage
+class AliveReqMessage extends aMessage
 {
     /** @var int  */
     protected static $id = MessageClassEnum::ALIVE_REQ; /* overrided */

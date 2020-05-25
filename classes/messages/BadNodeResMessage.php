@@ -2,7 +2,7 @@
 /**
  * Response "Daemon is alive, but your node cannot connect to me, socket will be closed"
  */
-class BadNodeResMessage extends aSimpleMessage
+class BadNodeResMessage extends aMessage
 {
     /** @var int  */
     protected static $id = MessageClassEnum::BAD_NODE_RES;  /* overrided */

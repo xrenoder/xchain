@@ -1,5 +1,7 @@
 1 bytes         type of message (255)
 4 bytes         length of message body (include this field and type field) (2+ Gb)
+                (last field for "aMessage": "AliveReqMessage" and "AliveReqMessage")
+
 1 byte          sender node type (255)
 4 bytes         time (if "local time" is different from "message time" to 2 sec or more - decline)
                 (last field for "SimpleMessage")

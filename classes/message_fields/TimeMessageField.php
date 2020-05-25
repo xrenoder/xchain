@@ -21,13 +21,11 @@ class TimeMessageField extends aMessageField
         }
 
 // TODO проверить ошибку времени при обмене сообщениями между неклиентскими нодами
-        $time = time();
-        $diff = abs($this->value - $time);
+        $diff = abs($this->value - $message->getIncomingMessageTime());
 
 // TODO заменить 2 секунды разницы во времени между созданием запроса и приемом на константу или полученое из блокчейна правило
-// возможно, локальное время нужно брать в момент получения запроса
         if ($diff >= 2) {
-            $this->dbg("BAD TIME message time $this->value have too big different with local time $time for " . $message->getName());
+            $this->dbg("BAD TIME message time $this->value have too big different with local incoming message time " . $message->getIncomingMessageTime() . " for " . $message->getName());
             $legate->setCloseAfterSend();
             $legate->createResponseString(BadTimeResMessage::create($this->getLocator()));
             return false;

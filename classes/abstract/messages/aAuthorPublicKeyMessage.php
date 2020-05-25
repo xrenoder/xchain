@@ -36,11 +36,11 @@ abstract class aAuthorPublicKeyMessage extends aDataMessage
 
     protected function bodyAuthorPublicKey() : string
     {
-        if (empty($this->outData) || !isset($this->outData[static::AUTHKEY])) {
+        if (empty($this->outgoingString) || !isset($this->outgoingString[static::AUTHKEY])) {
             throw new Exception("Bad coding: author public key must be here!!!");
         }
 
-        $pubKey = $this->outData[static::AUTHKEY];
+        $pubKey = $this->outgoingString[static::AUTHKEY];
 
         if (strlen($pubKey) !== Address::PUBLIC_BIN_LEN) {
             throw new Exception("Bad coding: author public key bad length!!!");

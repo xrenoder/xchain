@@ -11,7 +11,7 @@ class LengthMessageField extends aMessageField
         $message = $this->getMessage();
         $legate = $this->getLegate();
         $maxLen = $message->getMaxLen();
-        $messageLen = $message->getLen();
+        $messageLen = $message->getIncomingStringLen();
 
         if ($maxLen && $this->value > $maxLen) {
             $this->dbg("BAD DATA declared length $this->value more than maximum $maxLen for " . $message->getName());

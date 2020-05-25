@@ -2,7 +2,7 @@
 /**
  * Response "Daemon is alive, but node times are unsynchronized, socket will be closed"
  */
-class BadTimeResMessage extends aSimpleMessage
+class BadTimeResMessage extends aMessage
 {
     /** @var int  */
     protected static $id = MessageClassEnum::BAD_TIME_RES;  /* overrided */

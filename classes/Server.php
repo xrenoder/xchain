@@ -16,8 +16,8 @@ class Server extends aBase implements constMessageParsingResult
     private const CONNECT_TIMEOUT = CONNECT_TIMEOUT;
     private const GARBAGE_TIMEOUT = GARBAGE_TIMEOUT;
 
-    private const LISTEN_KEY = 'lst';
-    private const KEY_PREFIX = 'sock_';
+    private const LISTEN_SOCKET_ID = 'lst';
+    private const SOCKET_ID_PREFIX = 'sock_';
 
     /** @var Host */
     private $listenHost;
@@ -36,42 +36,43 @@ class Server extends aBase implements constMessageParsingResult
 
     /** @var Socket[] */
     private $sockets = array();
-    public function setSocket(Socket $val, string $key) : self {$this->sockets[$key] = $val; return $this;}
-    public function unsetSocket(string $key) : self {unset($this->sockets[$key]); return $this;}
-    public function getSocket(string $key) : ?Socket {return ($this->sockets[$key] ?? null);}
+    public function setSocket(Socket $val, string $id) : self {$this->sockets[$id] = $val; return $this;}
+    public function unsetSocket(string $id) : self {unset($this->sockets[$id]); return $this;}
+    public function getSocket(string $id) : ?Socket {return ($this->sockets[$id] ?? null);}
 
     /** @var Socket[] */
     private $sends = array();
-    public function setSends($val, string $key) : self {$this->sends[$key] = $val; return $this;}
-    public function unsetSends(string $key) : self {unset($this->sends[$key]); return $this;}
+    public function setSends($val, string $id) : self {$this->sends[$id] = $val; return $this;}
+    public function unsetSends(string $id) : self {unset($this->sends[$id]); return $this;}
 
     /** @var Socket[] */
     private $recvs = array();
-    public function setRecvs($val, string $key) : self {$this->recvs[$key] = $val; return $this;}
-    public function unsetRecvs(string $key) : self {unset($this->recvs[$key]); return $this;}
+    public function setRecvs($val, string $id) : self {$this->recvs[$id] = $val; return $this;}
+    public function unsetRecvs(string $id) : self {unset($this->recvs[$id]); return $this;}
 
     /* unused connected socket (not include accepted)) */
-    private $freeConnected = array(); /* 'host' => array('key' => socket) */
-    public function getFreeConnected(Host $host) : ?Socket {$ip = $host->getKey(); return (isset($this->freeConnected[$ip]) && !empty($this->freeConnected[$ip])) ? $this->freeConnected[$ip][0] : null;}
+    private $freeConnected = array(); /* 'host' => array('id' => socket) */
+    public function getFreeConnected(Host $host) : ?Socket {$ip = $host->getId(); return (isset($this->freeConnected[$ip]) && !empty($this->freeConnected[$ip])) ? $this->freeConnected[$ip][0] : null;}
 
     /** @var int[] */
-    private $freeConnectedTime = array(); /* 'key' => 'freeTime' */
+    private $freeConnectedTime = array(); /* 'id' => 'freeTime' */
 
     /* unused accepted socket (not include connected)) */
-    private $freeAccepted = array(); /* 'host' => array('key' => socket) */
-    public function getFreeAccepted(Host $host) : ?Socket {$ip = $host->getKey(); return (isset($this->freeAccepted[$ip]) && !empty($this->freeAccepted[$ip])) ? $this->freeAccepted[$ip][0] : null;}
+    private $freeAccepted = array(); /* 'host' => array('id' => socket) */
+    public function getFreeAccepted(Host $host) : ?Socket {$ip = $host->getId(); return (isset($this->freeAccepted[$ip]) && !empty($this->freeAccepted[$ip])) ? $this->freeAccepted[$ip][0] : null;}
+
+    /** @var int */
+    private $nowTime;
+    public function getNowTime() : int {return $this->nowTime;}
 
     /** @var int[] */
-    private $freeAcceptedTime = array(); /* 'key' => 'freeTime' */
+    private $freeAcceptedTime = array(); /* 'id' => 'freeTime' */
 
     /** @var bool */
     private $needSleep = false;
 
     /** @var int */
-    private $keyCounter = 0;
-
-    /** @var int */
-    private $nowTime;
+    private $idCounter = 0;
 
     /** @var int */
     private $garbTime;
@@ -195,21 +196,24 @@ class Server extends aBase implements constMessageParsingResult
             if ($event->type === parallel\Events\Event\Type::Read) {
 //                $this->dbg("Read event");
                 if (is_array($event->value) && count($event->value) === 2) {
-                    [$legateId, $serializedLegate] = $event->value;
+                    [$socketId, $serializedLegate] = $event->value;
 
-                    $this->dbg("Event for socket $legateId detected from worker $threadId");
+                    $this->dbg("Event for socket $socketId detected from worker $threadId");
 
-                    if (($socket = $this->getSocket($legateId)) === null) {
-                        throw new Exception("Don't know about socket with key $legateId");
+                    if (($socket = $this->getSocket($socketId)) === null) {
+                        $this->err("EXCEPTION: " . "Don't know about socket $socketId");
+                        throw new Exception("Don't know about socket $socketId");
                     }
 
                     if ($socket->workerResponseHandler($serializedLegate) === self::MESSAGE_PARSED) {
                         $result = self::MESSAGE_PARSED;
                     }
                 } else {
+                    $this->err("EXCEPTION: " . "Bad event value from worker: \n" . var_export($event->value, true) . "\n");
                     throw new Exception("Bad event value from worker: \n" . var_export($event->value, true) . "\n");
                 }
             } else {
+                $this->err("EXCEPTION: " . "Bad event from worker: \n" . var_export($event, true) . "\n");
                 throw new Exception("Bad event from worker: \n" . var_export($event, true) . "\n");
             }
 
@@ -266,8 +270,8 @@ class Server extends aBase implements constMessageParsingResult
 
 // пишем исходящие (делаем это в первую очередь, чтобы внешний сервер не простаивал, пока мы читаем входящие)
         foreach($wr as $fd) {
-            if ($key = array_search($fd, $this->sends, true)) {
-                $this->getSocket($key)->send();
+            if ($socketId = array_search($fd, $this->sends, true)) {
+                $this->getSocket($socketId)->send();
                 usleep(50000);  // отладочное для побайтовой отправки пакетов
             }
         }
@@ -276,7 +280,7 @@ class Server extends aBase implements constMessageParsingResult
         $listenFd = null;
         $isServerBusy = false;
 
-        if ($listenSocket = $this->getSocket(self::LISTEN_KEY)) {
+        if ($listenSocket = $this->getSocket(self::LISTEN_SOCKET_ID)) {
             $listenFd = $listenSocket->getFd();
 
             if (in_array($listenFd, $rd, true)) {
@@ -317,8 +321,8 @@ class Server extends aBase implements constMessageParsingResult
         foreach($rd as $fd) {
             if ($fd === $listenFd) continue;
 
-            if ($key = array_search($fd, $this->recvs, true)) {
-                $this->getSocket($key)->receive();
+            if ($socketId = array_search($fd, $this->recvs, true)) {
+                $this->getSocket($socketId)->receive();
             }
         }
     }
@@ -393,7 +397,7 @@ class Server extends aBase implements constMessageParsingResult
      */
     private function listen() : void
     {
-        if ($this->getSocket(self::LISTEN_KEY)) return;
+        if ($this->getSocket(self::LISTEN_SOCKET_ID)) return;
 
         if (count($this->sockets) >= self::MAX_SOCK) {
             throw new Exception('Cannot listening: reach maximal sockets count');
@@ -405,37 +409,37 @@ class Server extends aBase implements constMessageParsingResult
             throw new Exception("ERROR: cannot create server socket ($errStr)");
         }
 
-        $socket = $this->newReadSocket($fd, $this->getListenHost(), self::LISTEN_KEY);
+        $socket = $this->newReadSocket($fd, $this->getListenHost(), self::LISTEN_SOCKET_ID);
 
         $this->dbg('Server listening at ' . $this->getListenHost()->getTarget());
     }
 
-    private function newReadSocket($fd, Host $host, string $key = null) : Socket
+    private function newReadSocket($fd, Host $host, string $id = null) : Socket
     {
-        return $this->newSocket($fd, $host, $key, true);
+        return $this->newSocket($fd, $host, $id, true);
     }
 
-    private function newWriteSocket($fd, Host $host, string $key = null) : Socket
+    private function newWriteSocket($fd, Host $host, string $id = null) : Socket
     {
-        return $this->newSocket($fd, $host, $key, false);
+        return $this->newSocket($fd, $host, $id, false);
     }
 
     /**
      * Create new socket, add it to reading select array ($toRead = true) or to writing select array ($toRead = false)
      * @param $fd
      * @param Host $host
-     * @param string|null $key
+     * @param string|null $id
      * @param bool $toRead
      * @return Socket
      * @throws Exception
      */
-    private function newSocket($fd, Host $host, ?string $key, bool $toRead ) : Socket
+    private function newSocket($fd, Host $host, ?string $id, bool $toRead ) : Socket
     {
-        if ($key === null) {
-            $key = $this->getSocketKey();
+        if ($id === null) {
+            $id = $this->getSocketId();
         }
 
-        $socket = Socket::create($this, $host,$fd, $key);
+        $socket = Socket::create($this, $host,$fd, $id);
         $socket
             ->setBlockMode(false);
 
@@ -450,37 +454,37 @@ class Server extends aBase implements constMessageParsingResult
 
     /**
      * Close socket if exists
-     * @param string $key
+     * @param string $id
      */
-    private function closeSocket(string $key) : void
+    private function closeSocket(string $id) : void
     {
-        if (!$socket = $this->getSocket($key)) return;
+        if (!$socket = $this->getSocket($id)) return;
 
         $socket->close();
         unset($socket);
     }
 
     /**
-     * Create new key for socket
+     * Create new id for socket
      * @return string
      * @throws Exception
      */
-    private function getSocketKey() : string
+    private function getSocketId() : string
     {
 // need checking before socket creating
         if (count($this->sockets) >= self::MAX_SOCK) {
-            throw new Exception('Cannot get socket key: reach maximal sockets count');
+            throw new Exception('Cannot get socket id: reach maximal sockets count');
         }
 
         while(true) {
-            $this->keyCounter++;
-            if ($this->keyCounter === self::MAX_SOCK) $this->keyCounter = 1;
+            $this->idCounter++;
+            if ($this->idCounter === self::MAX_SOCK) $this->idCounter = 1;
 
-            $key = self::KEY_PREFIX . $this->keyCounter;
-            if (!isset($this->sockets[$key])) break;
+            $id = self::SOCKET_ID_PREFIX . $this->idCounter;
+            if (!isset($this->sockets[$id])) break;
         }
 
-        return $key;
+        return $id;
     }
 
     /**
@@ -503,8 +507,8 @@ class Server extends aBase implements constMessageParsingResult
                 }
             }
 
-            foreach ($this->sockets as $key => $val) {
-                $this->getSocket($key)->close();
+            foreach ($this->sockets as $id => $socket) {
+                $this->getSocket($id)->close();
             }
         }
 
@@ -516,10 +520,10 @@ class Server extends aBase implements constMessageParsingResult
      */
     public function hardFinish() : void
     {
-        $this->closeSocket(self::LISTEN_KEY);       // close first for not accepting new clients
+        $this->closeSocket(self::LISTEN_SOCKET_ID);       // close first for not accepting new clients
 
-        foreach ($this->sockets as $key => $socket) {
-            $this->closeSocket($key);
+        foreach ($this->sockets as $id => $socket) {
+            $this->closeSocket($id);
         }
 
         $this->getLocator()->getDba()->close();
@@ -537,45 +541,45 @@ class Server extends aBase implements constMessageParsingResult
     public function softFinish() : void
     {
         $this->finishFlag = true;
-        $this->closeSocket(self::LISTEN_KEY);
+        $this->closeSocket(self::LISTEN_SOCKET_ID);
     }
 
-    public function freeConnected(Socket $socket, Host $host, string $key) : self
+    public function freeConnected(Socket $socket, Host $host, string $id) : self
     {
-        $hostKey = $host->getKey();
+        $hostId = $host->getId();
 
-        $this->freeConnected[$hostKey][$key] = $socket;
-        $this->freeConnectedTime[$key] = $socket->getFreeTime();
+        $this->freeConnected[$hostId][$id] = $socket;
+        $this->freeConnectedTime[$id] = $socket->getFreeTime();
 
         return $this;
     }
 
-    public function busyConnected(Host $host, string $key) : self
+    public function busyConnected(Host $host, string $id) : self
     {
-        $hostKey = $host->getKey();
+        $hostId = $host->getId();
 
-        unset($this->freeConnected[$hostKey][$key]);
-        unset($this->freeConnectedTime[$key]);
+        unset($this->freeConnected[$hostId][$id]);
+        unset($this->freeConnectedTime[$id]);
 
         return $this;
     }
 
-    public function freeAccepted(Socket $socket, Host $host, string $key) : self
+    public function freeAccepted(Socket $socket, Host $host, string $id) : self
     {
-        $hostKey = $host->getKey();
+        $hostId = $host->getId();
 
-        $this->freeAccepted[$hostKey][$key] = $socket;
-        $this->freeAcceptedTime[$key] = $socket->getFreeTime();
+        $this->freeAccepted[$hostId][$id] = $socket;
+        $this->freeAcceptedTime[$id] = $socket->getFreeTime();
 
         return $this;
     }
 
-    public function busyAccepted(Host $host, string $key) : self
+    public function busyAccepted(Host $host, string $id) : self
     {
-        $hostKey = $host->getKey();
+        $hostId = $host->getId();
 
-        unset($this->freeAccepted[$hostKey][$key]);
-        unset($this->freeAcceptedTime[$key]);
+        unset($this->freeAccepted[$hostId][$id]);
+        unset($this->freeAcceptedTime[$id]);
 
         return $this;
     }
@@ -588,9 +592,9 @@ class Server extends aBase implements constMessageParsingResult
 
         $this->freeConnectedTime = asort($this->freeConnectedTime);
 
-        $key = array_key_first($this->freeConnectedTime);
+        $id = array_key_first($this->freeConnectedTime);
 
-        $this->getSocket($key)->close();
+        $this->getSocket($id)->close();
 
         return true;
     }
@@ -604,9 +608,9 @@ class Server extends aBase implements constMessageParsingResult
 
         $this->freeAcceptedTime = asort($this->freeAcceptedTime);
 
-        $key = array_key_first($this->freeAcceptedTime[0]);
+        $id = array_key_first($this->freeAcceptedTime[0]);
 
-        $this->getSocket($key)->close();
+        $this->getSocket($id)->close();
 
         return true;
     }

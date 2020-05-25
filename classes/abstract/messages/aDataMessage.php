@@ -36,10 +36,10 @@ abstract class aDataMessage extends aSimpleAddressMessage
 
     protected function bodyData() : string
     {
-        if (empty($this->outData) || !isset($this->outData[self::DATA])) {
+        if (empty($this->outgoingString) || !isset($this->outgoingString[self::DATA])) {
             $data = '';
         } else {
-            $data = $this->outData[static::DATA];
+            $data = $this->outgoingString[static::DATA];
         }
 
         $bodyParent = $this->bodySimpleAddress();
