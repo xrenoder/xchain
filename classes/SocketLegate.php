@@ -132,16 +132,24 @@ class SocketLegate extends aBase implements constMessageParsingResult
     {
         /** @var SocketLegate $legate */
         $legate = unserialize($serializedLegate, ['allowed_classes' => true]);
+
         $message = $this->getInMessage();
+
+        $this->getLocator()->dbg("parent will be setted");
+
+        if ($message !== null) {
+            $message->setParent($legate); // important!!!!!
+        }
+
+        $this->getLocator()->dbg("parent setted");
 
         $legate
             ->setLocator($this->getLocator())
             ->setParent($this->getParent())
             ->setInMessage($message);
 
-        if ($message !== null) {
-            $message->setParent($legate); // important!!!!!
-        }
+        $this->getLocator()->dbg("legate unserialized");
+
 
         return $legate;
     }
