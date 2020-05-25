@@ -114,6 +114,16 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
     public function serializeInSocket() : string
     {
+        $copy = clone $this;
+
+        $copy->setLocator(null);
+        $copy->setParent(null);
+
+        $string = serialize($copy);
+
+        unset($copy);
+
+        /*
         $locator = $this->getLocator();
         $this->setLocator(null);
 
@@ -124,6 +134,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
         $this->setLocator($locator);
         $this->setParent($parent);
+        */
 
         return $string;
     }
@@ -142,6 +153,17 @@ class SocketLegate extends aBase implements constMessageParsingResult
 
     public function serializeInWorker() : string
     {
+        $copy = clone $this;
+
+        $copy->setLocator(null);
+        $copy->setParent(null);
+        $copy->setInMessage(null);
+
+        $string = serialize($copy);
+
+        unset($copy);
+
+        /*
         $locator = $this->getLocator();
         $this->setLocator(null);
 
@@ -156,6 +178,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
         $this->setLocator($locator);
         $this->setParent($parent);
         $this->setInMessage($inMessage);
+        */
 
         return $string;
     }
