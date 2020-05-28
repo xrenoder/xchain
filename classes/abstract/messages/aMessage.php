@@ -72,7 +72,7 @@ abstract class aMessage extends aFieldSet implements constMessageParsingResult
             $parent->setInMessage($me);
         } else {
 // else - outgoing message (usually used aLocator-object as parent)
-            $me->dbg(MessageClassEnum::getItem(static::$id) .  ' created');
+            $me->dbg(MessageClassEnum::getItem(static::$id) .  " created\n" . var_export($me->getFields(), true) . "\n");
             $me->setOutgoingString($outData);
         }
 

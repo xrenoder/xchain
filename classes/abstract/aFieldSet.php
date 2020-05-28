@@ -21,6 +21,7 @@ abstract class aFieldSet extends aBase
     protected static $fieldSet = array(); /* override me */
 
     protected $fields = array();
+    public function getFields() : array {return $this->fields;}
 
     /** @var aField  */
     protected $field = null;
