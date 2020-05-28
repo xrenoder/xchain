@@ -6,7 +6,7 @@ abstract class aField extends aBase
     /** @var int  */
     protected $id = null; /* override me */
     public function setId(int $val) : self {if ($this->id === null) $this->id = $val; return $this;}
-    public function getId() : int {return $this->id;}
+    public function getId() : ?int {return $this->id;}
 
     /** @var string */
     protected $name;
