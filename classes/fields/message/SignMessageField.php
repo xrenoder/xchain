@@ -4,7 +4,7 @@
 class SignMessageField extends aMessageField
 {
     /** @var int  */
-    protected static $id = MessageFieldClassEnum::SIGN;  /* overrided */
+    protected $id = MessageFieldClassEnum::SIGN;  /* overrided */
 
     public function check(): bool
     {

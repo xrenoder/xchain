@@ -4,6 +4,8 @@
  */
 class App extends aLocator
 {
+    public function isWorker() : bool {return false;}
+
     /** @var parallel\Runtime[]  */
     private $threads = array();
     public function setThread(string $id, parallel\Runtime $val) : self {$this->threads[$id] = $val; $this->setThreadBusy($id, 0); return $this;}
@@ -40,5 +42,4 @@ class App extends aLocator
     private $server;
     public function setServer(Server $val): self {$this->server = $val; return $this;}
     public function getServer() : Server {return $this->server;}
-
 }

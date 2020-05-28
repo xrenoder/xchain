@@ -4,7 +4,7 @@
 class NodeMessageField extends aMessageField
 {
     /** @var int  */
-    protected static $id = MessageFieldClassEnum::NODE;  /* overrided */
+    protected $id = MessageFieldClassEnum::NODE;  /* overrided */
 
     public function check(): bool
     {
@@ -32,7 +32,7 @@ class NodeMessageField extends aMessageField
             return false;
         }
 
-        $message->setSignedData($this->raw);
+        $message->setSignedData($this->getRaw());
 
         return true;
     }

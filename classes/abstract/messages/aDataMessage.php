@@ -31,7 +31,7 @@ abstract class aDataMessage extends aSimpleAddressMessage
     {
         $body = $this->bodyData();
 
-        return $this->compileMessage($body);
+        return $this->compositeMessage($body);
     }
 
     protected function bodyData() : string
@@ -44,7 +44,7 @@ abstract class aDataMessage extends aSimpleAddressMessage
 
         $bodyParent = $this->bodySimpleAddress();
 
-        $dataField = DataMessageField::packField($data);
+        $dataField = DataMessageField::pack($this,$data);
 
         $this->signedData = $dataField . $this->signedData;
 

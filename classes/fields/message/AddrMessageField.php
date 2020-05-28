@@ -4,7 +4,7 @@
 class AddrMessageField extends aMessageField
 {
     /** @var int  */
-    protected static $id = MessageFieldClassEnum::ADDR;  /* overrided */
+    protected $id = MessageFieldClassEnum::ADDR;  /* overrided */
 
     public function check(): bool
     {
@@ -45,7 +45,7 @@ class AddrMessageField extends aMessageField
 
         $this->dbg("Message received from address " . Address::binToBase16($remoteAddrBin));
 
-        $message->setSignedData($message->getSignedData() . $this->raw);
+        $message->setSignedData($message->getSignedData() . $this->getRaw());
 
         return true;
     }

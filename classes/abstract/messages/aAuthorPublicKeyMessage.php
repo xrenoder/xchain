@@ -31,7 +31,7 @@ abstract class aAuthorPublicKeyMessage extends aDataMessage
     {
         $body = $this->bodyAuthorPublicKey();
 
-        return $this->compileMessage($body);
+        return $this->compositeMessage($body);
     }
 
     protected function bodyAuthorPublicKey() : string
@@ -48,7 +48,7 @@ abstract class aAuthorPublicKeyMessage extends aDataMessage
 
         $bodyParent = $this->bodyData();
 
-        $pubkeyField = AuthorPublicKeyMessageField::packField($pubKey);
+        $pubkeyField = AuthorPublicKeyMessageField::pack($this,$pubKey);
 
         $this->signedData = $pubkeyField . $this->signedData;
 

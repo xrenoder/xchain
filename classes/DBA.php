@@ -52,6 +52,8 @@ class DBA extends aBase
      */
     public static function create(aLocator $locator, string $handler, string $dbPath, string $dbExt, string $lockFile, string $lockExt) : self
     {
+// TODO добавить проверку целостности базы данных (хэш последней записи транзакции, имя таблицы и ключ строки)
+
         $me = new static($locator);
 
         $me

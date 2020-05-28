@@ -1,5 +1,5 @@
 <?php
-use parallel\{Channel,Runtime,Events,Events\Event,Events\Event\Type};
+// use parallel\{Channel,Runtime,Events,Events\Event,Events\Event\Type};
 /**
  * Daemonization
  */
@@ -178,6 +178,10 @@ class Daemon extends aBase
                 $worker->setMyNode(aNode::spawn($worker, NodeClassEnum::CLIENT_ID));
 // load node private key
                 $worker->setMyAddress(Address::createFromWallet($worker, MY_ADDRESS, WALLET_PATH));
+// load chain state data
+                SummaryDataSet::create($worker);
+
+// start worker loop
                 $worker->run($channelRecv, $channelSend);
             } catch (Exception $e) {
 // TODO здесь должна быть отправка сообщения в основной поток о завершении работы с выключеним всех потоков воркеров
@@ -192,12 +196,10 @@ class Daemon extends aBase
         $app->getEvents()->setBlocking(false); // Comment to block on Events::poll()
 //    $app->getEvents()->setTimeout(1000000); // Uncomment when blocking
 
-        $future = array();
-
         for($i = 1; $i <= THREADS_COUNT; $i++) {
             $threadId = "thread_" . $i;
 
-            $app->setChannelFromSocket($threadId, new parallel\Channel(Channel::Infinite));
+            $app->setChannelFromSocket($threadId, new parallel\Channel(parallel\Channel::Infinite));
             $app->setChannelFromWorker($threadId, parallel\Channel::make($threadId, parallel\Channel::Infinite));
             $app->setThread($threadId,new parallel\Runtime(XCHAIN_PATH . "local.inc"));
 
@@ -248,28 +250,6 @@ class Daemon extends aBase
                 sleep(self::KILL_TIMEOUT);
             }
         }
-    }
-
-    /**
-     * Execute command in *nix command line
-     * @param string $command
-     * @param int $normalExitStatus
-     * @return string
-     */
-    private function commandExec(string $command, int $normalExitStatus) : string
-    {
-        $output = array();
-        $answer = '';
-
-        exec($command, $output, $status);
-
-        if ($normalExitStatus >= 0 && $status !== $normalExitStatus) {    //ошибка
-            $answer = implode("\n", $output);
-        } else if ($normalExitStatus < 0) {                             //ошибка если есть ответ
-            $answer = @implode("\n", $output);
-        }
-
-        return $answer;
     }
 
     /**

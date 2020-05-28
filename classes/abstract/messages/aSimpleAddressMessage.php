@@ -36,14 +36,14 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
     {
         $body = $this->bodySimpleAddress();
 
-        return $this->compileMessage($body);
+        return $this->compositeMessage($body);
     }
 
     protected function bodySimpleAddress() : string
     {
         $bodyParent = $this->bodySimple();
 
-        $addrField = AddrMessageField::packField($this->getLocator()->getMyAddress()->getAddressBin());
+        $addrField = AddrMessageField::pack($this,$this->getLocator()->getMyAddress()->getAddressBin());
 
         $this->signedData .= $addrField;
 

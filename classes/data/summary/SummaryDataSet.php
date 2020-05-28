@@ -5,11 +5,15 @@
 
 class SummaryDataSet extends aDbRowsSet
 {
+    /**
+     * 'propertyName' => 'rowClassName'
+     * @var string[]
+     */
     protected static $rows = array(
-        'lastKnownBlock' => 'LastKnownBlockRow',
-        'lastPreparedBlock' => 'LastPreparedBlockRow',
-        'transactionEmissionRule' => 'TransactionEmissionRuleRow',
-        'transactionRewardsRule' => 'TransactionRewardsRuleRow',
+        self::LAST_KNOWN_BLOCK => 'LastKnownBlockRow',
+        self::LAST_PREPARED_BLOCK => 'LastPreparedBlockRow',
+        self::TRANSACTION_EMISSION_RULE => 'TransactionEmissionRuleRow',
+        self::TRANSACTION_REWARDS_RULE => 'TransactionRewardsRuleRow',
     );
 
     /** @var LastKnownBlockRow */
@@ -28,14 +32,15 @@ class SummaryDataSet extends aDbRowsSet
     protected $transactionRewardsRule;
     public function getTransactionRewardsRule() : ?TransactionRewardsRuleRow {return $this->transactionRewardsRule;}
 
-    public static function create(App $app)
+    public static function create(aLocator $locator)
     {
-        $me = new static($app);
+        $me = new static($locator);
 
         $me
             ->fillRows()
             ->getLocator()->setSummaryDataSet($me);
 
+// TODO точно ли ее нужно вызывать в воркерах - как будут синхронизироваться между собой
         return $me;
     }
 }

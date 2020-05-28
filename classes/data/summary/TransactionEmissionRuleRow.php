@@ -8,7 +8,6 @@ class TransactionEmissionRuleRow extends aDbRow
 
     /** @var string  */
     protected $id = self::TRANSACTION_EMISSION_RULE; /* overrided */
-    protected $idFormat = FieldFormatEnum::NOPACK; /* overrided */
 
     protected static $canBeReplaced = true;     /* overrided */
 
@@ -16,34 +15,17 @@ class TransactionEmissionRuleRow extends aDbRow
      * 'propertyName' => fieldFormat
      * @var array
      */
-    protected static $fields = array(
-        'bottomLimit' =>        FieldFormatEnum::NOPACK,
-        'emissionPercent' =>    FieldFormatEnum::NOPACK,
+    protected static $fieldSet = array(
+        'bottomLimit' =>        DbFieldClassEnum::ASIS,
+        'emissionPercent' =>    DbFieldClassEnum::ASIS,
     );
 
     protected $bottomLimit = null;
+    public function setBottomLimit($val, $needSave = true) : self {return $this->setNewValue($this->bottomLimit, $val, $needSave);}
     public function getBottomLimit() {return $this->bottomLimit;}
 
-    public function setBottomLimit($val, $needSave = true) : self
-    {
-        if ($val !== $this->bottomLimit) {
-            $this->bottomLimit = $val;
-            $this->saveIfNeed($needSave);
-        }
-
-        return $this;
-    }
 
     protected $emissionPercent = null;
+    public function setEmissionPercent($val, $needSave = true) : self {return $this->setNewValue($this->emissionPercent, $val, $needSave);}
     public function getEmissionPercent() {return $this->emissionPercent;}
-
-    public function setEmissionPercent($val, $needSave = true) : self
-    {
-        if ($val !== $this->emissionPercent) {
-            $this->emissionPercent = $val;
-            $this->saveIfNeed($needSave);
-        }
-
-        return $this;
-    }
 }

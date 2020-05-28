@@ -4,7 +4,7 @@
 class TimeMessageField extends aMessageField
 {
     /** @var int  */
-    protected static $id = MessageFieldClassEnum::TIME;  /* overrided */
+    protected $id = MessageFieldClassEnum::TIME;  /* overrided */
 
     public function check(): bool
     {
@@ -21,17 +21,17 @@ class TimeMessageField extends aMessageField
         }
 
 // TODO проверить ошибку времени при обмене сообщениями между неклиентскими нодами
-        $diff = abs($this->value - $message->getIncomingMessageTime());
+        $diff = abs($this->getValue() - $message->getIncomingMessageTime());
 
 // TODO заменить 2 секунды разницы во времени между созданием запроса и приемом на константу или полученое из блокчейна правило
         if ($diff >= 2) {
-            $this->dbg("BAD TIME message time $this->value have too big different with local incoming message time " . $message->getIncomingMessageTime() . " for " . $message->getName());
+            $this->dbg("BAD TIME message time " . $this->getValue() . " have too big different with local incoming message time " . $message->getIncomingMessageTime() . " for " . $message->getName());
             $legate->setCloseAfterSend();
             $legate->createResponseString(BadTimeResMessage::create($this->getLocator()));
             return false;
         }
 
-        $message->setSignedData($message->getSignedData() . $this->raw);
+        $message->setSignedData($message->getSignedData() . $this->getRaw());
 
         return true;
     }

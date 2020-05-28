@@ -31,14 +31,14 @@ abstract class aSignMessage extends aAuthorPublicKeyMessage
     {
         $body = $this->bodySign();
 
-        return $this->compileMessage($body);
+        return $this->compositeMessage($body);
     }
 
     protected function bodySign() : string
     {
         $bodyParent = $this->bodyAuthorPublicKey();
 
-        $signField = SignMessageField::packField($this->getLocator()->getMyAddress()->signBin($this->signedData));
+        $signField = SignMessageField::pack($this,$this->getLocator()->getMyAddress()->signBin($this->signedData));
 
         return $bodyParent . $signField;
     }

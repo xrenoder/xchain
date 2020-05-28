@@ -2,7 +2,7 @@
 /**
  * Base class for classes of messages between nodes
  */
-abstract class aMessage extends aBase implements constMessageParsingResult
+abstract class aMessage extends aFieldSet implements constMessageParsingResult
 {
     protected static $dbgLvl = Logger::DBG_MESS;  /* overrided */
 
@@ -14,27 +14,16 @@ abstract class aMessage extends aBase implements constMessageParsingResult
     public function getMaxLen() : int {return $this->maxLen;}
 
     /**
-     * override me
      * fieldId => 'propertyName'
      * @var string[]
      */
-    protected static $fieldSet = array(
+    protected static $fieldSet = array(      /* overrided */
         MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
         MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
     );
 
-    protected $fields = array();
-
-    /** @var string */
-    protected $name;
-    public function getName() : string {return $this->name;}
-
-    /** @var string */
-    private $incomingString;
-
     /** @var int  */
-    protected $incomingStringLen = null;
-    public function getIncomingStringLen() : ?int {return $this->incomingStringLen;}
+    protected $fieldPointer = MessageFieldClassEnum::LENGTH;  /* overrided */    // first fieldId prepared inside Message-object (field 'Message Length')
 
     /** @var int  */
     protected $incomingMessageTime = null;
@@ -44,15 +33,6 @@ abstract class aMessage extends aBase implements constMessageParsingResult
     /** @var array  */
     protected $outgoingString = null;
     public function setOutgoingString(array $val) : self {$this->outgoingString = $val; return $this;}
-
-    /** @var int  */
-    private $fieldPointer = MessageFieldClassEnum::LENGTH;      // first fieldId prepared inside message-object (field 'Message Length')
-
-    /** @var aMessageField  */
-    private $fieldObject = null;
-
-    /** @var int  */
-    private $fieldOffset = null;
 
     /** @var string  */
     protected $signedData = null;
@@ -113,7 +93,7 @@ abstract class aMessage extends aBase implements constMessageParsingResult
      * @return aMessage|null
      * @throws Exception
      */
-    public static function spawn(aBase $parent, int $id) : ?self
+    public static function spawn(aBase $parent, int $id) : self
     {
         /** @var aMessage $className */
 
@@ -121,7 +101,7 @@ abstract class aMessage extends aBase implements constMessageParsingResult
             return $className::create($parent);
         }
 
-        return null;
+        throw new Exception("Bad code - unknown message class for ID " . $id);
     }
 
     /**
@@ -132,101 +112,63 @@ abstract class aMessage extends aBase implements constMessageParsingResult
     {
         $legate = $this->getLegate();
 
-// if server is busy - not check incoming fields, quick answer 'busy' and disconnect
+// if server is busy - not check incoming formats, quick answer 'busy' and disconnect
         if ($legate->isServerBusy()) {
             $legate->setCloseAfterSend();
             $legate->createResponseString(BusyResMessage::create($this->getLocator()));
             return self::MESSAGE_PARSED;
         }
 
-        $this->incomingString .= $packet;
-        $this->incomingStringLen = strlen($this->incomingString);
+        $this->rawString .= $packet;
+        $this->rawStringLen = strlen($this->rawString);
 
         if ($this->declaredLen) {
-            $legate->setReadBufferSize($this->declaredLen - $this->incomingStringLen + 1);
+            $legate->setReadBufferSize($this->declaredLen - $this->rawStringLen + 1);
         }
 
-
 // check message len for maximum len
-        if ($this->maxLen && $this->incomingStringLen > $this->maxLen) {
-            $this->dbg("BAD DATA length $this->incomingStringLen more than maximum $this->maxLen for $this->name");
+        if ($this->maxLen && $this->rawStringLen > $this->maxLen) {
+            $this->dbg("BAD DATA length $this->rawStringLen more than maximum $this->maxLen for $this->name");
             $legate->setBadData();
             return self::MESSAGE_PARSED;
         }
 
 // check message len for declared len
-        if ($this->declaredLen !== null && $this->incomingStringLen > $this->declaredLen) {
-            $this->dbg("BAD DATA length $this->incomingStringLen more than declared length " . $this->declaredLen . " for $this->name (1)");
+        if ($this->declaredLen !== null && $this->rawStringLen > $this->declaredLen) {
+            $this->dbg("BAD DATA length $this->rawStringLen more than declared length " . $this->declaredLen . " for $this->name (1)");
             $legate->setBadData();
             return self::MESSAGE_PARSED;
         }
 
-// prepare fields
-        foreach ($this->fields as $fieldId => $property) {
-            if ($this->fieldPointer > $fieldId) {
-                continue;
-            }
-
-            if (!$this->prepareField($fieldId, $property)) {
-// if field cannot be prepared - break  (not 'return false'), may be all fields was prepared
-                break;
-            }
-        }
+// parse raw string and prepare formats
+        $this->parseRawString();
 
         if ($legate->isBadData() || $legate->getResponseString() !== null) {
             return self::MESSAGE_PARSED;
         }
 
-        if ($this->declaredLen === null || $this->incomingStringLen < $this->declaredLen) {
+        if ($this->declaredLen === null || $this->rawStringLen < $this->declaredLen) {
             return self::MESSAGE_NOT_PARSED;
         }
 
         return $this->incomingMessageHandler();
     }
 
-    protected function prepareField(int $fieldId, string $property) : bool
+    protected function spawnField(int $fieldId) : aField
     {
-        if ($this->$property !== null) return true;
-
-        if ($this->fieldObject === null) {
-            $this->fieldObject = aMessageField::spawn($this, $fieldId, $this->fieldOffset);
-
-            if ($this->fieldObject->isLast()) {
-                $this->fieldObject
-                    ->setLength($this->declaredLen - $this->fieldOffset)
-                    ->setPoint();
-            }
-        }
-
-        if ($this->incomingStringLen >= $this->fieldObject->getPoint()) {
-            [$length, $this->$property] = $this->fieldObject->unpackField($this->incomingString);
-
-            if ($this->$property === null) {
-                $this->dbg("Prepare field " . $this->fieldObject->getName() . ": field length = " . $length);
-                $this->fieldObject->setLength($length);
-                $this->fieldObject->setPoint();
-
-                return $this->prepareField($fieldId, $property);
-            }
-
-            $this->dbg("Prepare field " . $this->fieldObject->getName() . ": $property = " . $this->$property);
-            $result = $this->fieldObject->check();
-
-            $this->fieldObject = null;
-            $this->fieldOffset += $length;
-            $this->fieldPointer = $fieldId + 1;
-
-            return $result;
-        }
-
-        return false;
+        return aMessageField::spawn($this, $fieldId, $this->fieldOffset);
     }
 
-    protected function compileMessage(string $body) : string
+    protected function getLengthForLast() : int
     {
-        $typeField = TypeMessageField::packField(static::$id);
-        $messageStringLength = strlen($typeField) + LengthMessageField::getLength() + strlen($body);
-        $lenField = LengthMessageField::packField($messageStringLength);
+        return $this->declaredLen - $this->fieldOffset;
+    }
+
+    protected function compositeMessage(string $body) : string
+    {
+        $typeField = TypeMessageField::pack($this,static::$id);
+        $messageStringLength = strlen($typeField) + aMessageField::getStatLength(MessageFieldClassEnum::LENGTH) + strlen($body);
+        $lenField = LengthMessageField::pack($this,$messageStringLength);
 
         return $typeField . $lenField . $body;
     }
@@ -236,6 +178,6 @@ abstract class aMessage extends aBase implements constMessageParsingResult
      */
     public function createMessageString() : string
     {
-        return $this->compileMessage('');
+        return $this->compositeMessage('');
     }
 }

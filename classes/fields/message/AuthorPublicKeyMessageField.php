@@ -4,7 +4,7 @@
 class AuthorPublicKeyMessageField extends aMessageField
 {
     /** @var int  */
-    protected static $id = MessageFieldClassEnum::PUBKEY;  /* overrided */
+    protected $id = MessageFieldClassEnum::PUBKEY;  /* overrided */
 
     public function check(): bool
     {
@@ -32,7 +32,7 @@ class AuthorPublicKeyMessageField extends aMessageField
             $message->setRemoteAddress($remoteAddress);
         }
 
-        $message->setSignedData($this->raw . $message->getSignedData());
+        $message->setSignedData($this->getRaw() . $message->getSignedData());
 
         return true;
     }

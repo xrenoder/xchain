@@ -89,7 +89,9 @@ class SocketLegate extends aBase implements constMessageParsingResult
         $message = $this->getInMessage();
 
         if ($message === null) {
-            $messageType = FieldFormatEnum::unpack($packet,MessageFieldClassEnum::getFormat(MessageFieldClassEnum::TYPE), 0)[1];
+            $typeField = aMessageField::spawn($this, MessageFieldClassEnum::TYPE);
+            $messageType = $typeField->unpack($packet);
+            unset($typeField);
 
             if (!($message = aMessage::spawn($this, $messageType))) {
 // if cannot create class of request by declared type - incoming data is bad
@@ -99,9 +101,9 @@ class SocketLegate extends aBase implements constMessageParsingResult
                 $this->badData = true;
                 $this->workerResult = self::MESSAGE_PARSED;
                 return;
-            } else {
-                $message->setIncomingMessageTime($this->incomingStringTime);
             }
+
+            $message->setIncomingMessageTime($this->incomingStringTime);
         }
 
         $this->workerResult = $message->addPacket($packet);

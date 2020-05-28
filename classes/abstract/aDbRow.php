@@ -2,7 +2,7 @@
 /**
  * Base for storable objects classes (transactions, blocks, settings etc)
  */
-abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
+abstract class aDbRow extends aFieldSet implements constDbTables, constDbRowIds
 {
     protected static $dbgLvl = Logger::DBG_ROW;
 
@@ -10,37 +10,41 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
     protected static $table = null;     /* override me */
 
     protected $id = null; /* can be overrided */
-    protected $idFormat = null; /* override me */
 
+    protected $idFormat = DbFieldClassEnum::ASIS; /* can be overrided */
+
+    /** @var aField  */
     private $internalId = null;
-
 
     protected static $canBeReplaced = null;     /* override me */
 
-    protected $data = null;
-    public function getData() : ?string {return $this->data;}
+    protected $rawString = null;
+    public function getRawString() : ?string {return $this->rawString;}
 
     /**
-     * 'propertyName' => fieldFormat
+     * fieldId => 'propertyName'
      * @var array
      */
-    protected static $fields = array(
-        'value' =>    FieldFormatEnum::NOPACK,
+    protected static $fieldSet = array(
+        DbFieldClassEnum::ASIS => 'value',
     );
 
     protected $isChanged = false;
 
     protected $value = null;   /* override me with default value or null */
+    public function setValue($val, $needSave = true) : self {return $this->setNewValue($this->value, $val, $needSave);}
     public function getValue() {return $this->value;}
 
-    public function setValue($val, $needSave = true) : self
+    protected function spawnField(int $fieldId) : aField
     {
-        if ($val !== $this->value) {
-            $this->value = $val;
-            $this->saveIfNeed($needSave);
-        }
+        return DbField::spawn($this, $fieldId, $this->fieldOffset);
+    }
 
-        return $this;
+    protected function __construct(aBase $parent)
+    {
+        parent::__construct($parent);
+        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->name = get_class($this);
     }
 
     public static function create(aLocator $locator, $id = null)
@@ -49,6 +53,8 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
 
         if ($id !== null) {
             $me->setId($id);
+        } else {
+            $me->setInternalId();
         }
 
         $me->load();
@@ -60,7 +66,7 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
     {
         if ($this->id === null) {
             $this->id = $val;
-            $this->packId();
+            $this->setInternalId();
         } else {
             throw new Exception( get_class($this) .  ": cannot change id $this->id to $val");
         }
@@ -68,24 +74,27 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
         return $this;
     }
 
-    private function packId() {
-        $this->internalId = FieldFormatEnum::pack($this->id, $this->idFormat);
+    public function setInternalId() : self
+    {
+        /** @var DbField $fieldClassName */
+        $fieldClassName = DbFieldClassEnum::getItem($this->idFormat);
+        $this->internalId = $fieldClassName::pack($this, $this->id);
+
+        return $this;
     }
 
     public function check() : bool
     {
-        if ($this->internalId === null) $this->packId();
         return $this->getLocator()->getDba()->check(static::$table, $this->internalId);
     }
 
     public function load() : self
     {
-        if ($this->internalId === null) $this->packId();
+        $this->rawString = $this->getLocator()->getDba()->fetch(static::$table, $this->internalId);
+        $this->rawStringLen = strlen($this->rawString);
 
-        $this->data = $this->getLocator()->getDba()->fetch(static::$table, $this->internalId);
-        $this->unpackFields();
-
-        if ($this->data !== null) {
+        if ($this->rawString !== null) {
+            $this->parseRawString();
             $this->dbg(get_class($this) . " loaded");
         } else {
             $this->dbg(get_class($this) . " loaded: NULL");
@@ -102,21 +111,29 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
 
         $this->packFields();
 
-        if ($this->data === null) {
+        if ($this->rawString === null) {
             return $this;
         }
 
-        if ($this->internalId === null) $this->packId();
-
         if ($replace && $this->check()) {
-            $this->getLocator()->getDba()->update(static::$table, $this->internalId, $this->data);
+            $this->getLocator()->getDba()->update(static::$table, $this->internalId, $this->rawString);
         } else {
-            $this->getLocator()->getDba()->insert(static::$table, $this->internalId, $this->data);
+            $this->getLocator()->getDba()->insert(static::$table, $this->internalId, $this->rawString);
         }
 
         $this->dbg(get_class($this) . " saved");
 
         $this->isChanged = false;
+
+        return $this;
+    }
+
+    protected function setNewValue(&$oldVal, $newVal, $needSave) : self
+    {
+        if ($newVal !== $oldVal) {
+            $oldVal = $newVal;
+            $this->saveIfNeed($needSave);
+        }
 
         return $this;
     }
@@ -132,38 +149,19 @@ abstract class aDbRow extends aBase implements constDbTables, constDbRowIds
         return $this;
     }
 
-    private function unpackFields() : self
-    {
-        if ($this->data === null) {
-            return $this;
-        }
-
-        $offset = 0;
-
-        foreach(static::$fields as $property => $formatId) {
-            [$length, $this->$property] = FieldFormatEnum::unpack($this->data, $formatId, $offset);
-
-            if ($length === null || $this->$property === null) {
-                break;
-            }
-
-            $offset += $length;
-        }
-
-        return $this;
-    }
-
     private function packFields() : self
     {
-        $this->data = '';
+        $this->rawString = '';
 
-        foreach(static::$fields as $property => $formatId) {
+        foreach($this->fields as $fieldId => $property) {
             if ($this->$property === null) {
-                $this->data = null;
+                $this->rawString = null;
                 return $this;
             }
 
-            $this->data .= FieldFormatEnum::pack($this->$property, $formatId);
+            /** @var DbField $fieldClassName */
+            $fieldClassName = DbFieldClassEnum::getItem($fieldId);
+            $this->rawString .= $fieldClassName::pack($this, $this->$property);
         }
 
         return $this;

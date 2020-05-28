@@ -8,6 +8,7 @@ class Logger extends aBase
     public const DBG_DAEMON =   2;
     public const DBG_SERV =     4;
     public const DBG_SOCK =     8;
+    public const DBG_FLD_FMT =  16384;
     public const DBG_MESS =     16;
     public const DBG_POOL =     32;
     public const DBG_TASK =     64;
@@ -15,6 +16,7 @@ class Logger extends aBase
     public const DBG_ADDR =     256;
     public const DBG_DBA =      512;
     public const DBG_MSG_FLD =  1024;
+    public const DBG_DB_FLD =   32768;
     public const DBG_ROW =      2048;
     public const DBG_ROW_SET =  4096;
     public const DBG_TRANS =    8192;
@@ -25,6 +27,7 @@ class Logger extends aBase
         self::DBG_DAEMON =>     'Daemon ',
         self::DBG_SERV =>       'Server ',
         self::DBG_SOCK =>       'Socket ',
+        self::DBG_FLD_FMT =>    'Fld Fmt',
         self::DBG_MESS =>       'Message',
         self::DBG_POOL =>       'Pool   ',
         self::DBG_TASK =>       'Task   ',
@@ -32,6 +35,7 @@ class Logger extends aBase
         self::DBG_ADDR =>       'Address',
         self::DBG_DBA =>        'DBA    ',
         self::DBG_MSG_FLD =>    'Msg Fld',
+        self::DBG_DB_FLD =>     'DB Fld ',
         self::DBG_ROW =>        'DB Row ',
         self::DBG_ROW_SET =>    'DB RSet',
         self::DBG_TRANS =>      'Trans  ',

@@ -1,8 +1,10 @@
 <?php
 
 
-class aLocator extends aBase
+abstract class aLocator extends aBase
 {
+    abstract public function isWorker() : bool;
+
     /** @var string */
     private $name;
     public function setName(string $val) : self {$this->name = $val; return $this;}
@@ -32,6 +34,11 @@ class aLocator extends aBase
     private $myAddress;
     public function setMyAddress(Address $val) : self {$this->myAddress = $val; return $this;}
     public function getMyAddress() : Address {return $this->myAddress;}
+
+    /** @var SummaryDataSet */
+    private $summaryDataSet;
+    public function setSummaryDataSet(SummaryDataSet $val) : self {$this->summaryDataSet = $val; return $this;}
+    public function getSummaryDataSet() : SummaryDataSet {return $this->summaryDataSet;}
 
     /**
      * App constructor.

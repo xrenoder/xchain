@@ -11,18 +11,18 @@ abstract class aDbRowsSet extends aBase implements constDbRowIds
      */
     protected static $rows = array();   /* override me */
 
-    abstract public static function create(App $app);
+    abstract public static function create(aLocator $locator);
 
     public function fillRows() : self
     {
-        $transKey = $this->dbTrans();
+        $dbTransactionKey = $this->dbTrans();
 
         foreach (static::$rows as $property => $className) {
             /** @var aDbRow $className */
             $this->$property = $className::create($this->getLocator());
         }
 
-        $this->dbCommit($transKey);
+        $this->dbCommit($dbTransactionKey);
 
         $this->dbg(get_class($this) . " loaded");
 

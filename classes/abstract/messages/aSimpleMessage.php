@@ -41,7 +41,7 @@ abstract class aSimpleMessage extends aMessage
     {
         $body = $this->bodySimple();
 
-        return $this->compileMessage($body);
+        return $this->compositeMessage($body);
     }
 
     protected function bodySimple() : string
@@ -49,8 +49,8 @@ abstract class aSimpleMessage extends aMessage
         $myNodeId = $this->getLocator()->getMyNodeId();
         $time = time();
 
-        $nodeField = NodeMessageField::packField($myNodeId);
-        $timeField = TimeMessageField::packField($time);
+        $nodeField = NodeMessageField::pack($this,$myNodeId);
+        $timeField = TimeMessageField::pack($this,$time);
 
         $this->signedData = $nodeField . $timeField;
 

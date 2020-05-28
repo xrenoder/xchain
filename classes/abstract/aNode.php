@@ -45,7 +45,7 @@ abstract class aNode extends aBase
         return $me;
     }
 
-    public static function spawn(aLocator $locator, int $id) : ?aNode
+    public static function spawn(aLocator $locator, int $id) : aNode
     {
         /** @var aNode $className */
 
@@ -53,6 +53,6 @@ abstract class aNode extends aBase
             return $className::create($locator);
         }
 
-        return null;
+        throw new Exception("Bad code - unknown node class for ID " . $id);
     }
 }
