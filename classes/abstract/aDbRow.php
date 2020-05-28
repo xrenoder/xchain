@@ -78,7 +78,7 @@ abstract class aDbRow extends aFieldSet implements constDbTables, constDbRowIds
     {
         /** @var DbField $fieldClassName */
         $fieldClassName = DbFieldClassEnum::getItem($this->idFormat);
-        $this->internalId = $fieldClassName::pack($this, $this->id);
+        $this->internalId = $fieldClassName::pack($this, $this->id, $this->idFormat);
 
         return $this;
     }

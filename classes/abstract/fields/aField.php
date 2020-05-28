@@ -6,6 +6,7 @@ abstract class aField extends aBase
     /** @var int  */
     protected $id = null; /* override me */
     public function setId(int $val) : self {if ($this->id === null) $this->id = $val; return $this;}
+    public function getId() : int {return $this->id;}
 
     /** @var string */
     protected $name;
@@ -35,7 +36,7 @@ abstract class aField extends aBase
         return $me->fillMe($offset);
     }
 
-    public function fillMe(int $offset) : self
+    public function fillMe(int $offset = 0) : self
     {
         if ($this->id === null || $this->format !== null) {
             return $this;
@@ -55,9 +56,24 @@ abstract class aField extends aBase
         return $this->format->unpackField($data);
     }
 
-    public static function pack($parent, $val) : string
+    public static function pack($parent, $val, int $fieldId = null) : string
     {
-        return static::create($parent)->getFormat()->packField($val);
+        $field = static::create($parent);
+
+        if ($field->getId() === null) {
+            if ($fieldId !== null) {
+                $field->setId($fieldId);
+                $field->fillMe();
+            } else {
+                throw new Exception( get_class($field) .  ": cannot create without field ID");
+            }
+        }
+
+        $result = $field->getFormat()->packField($val);
+
+        unset($field);
+
+        return $result;
     }
 
     public function check(): bool
