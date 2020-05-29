@@ -64,7 +64,7 @@ abstract class aFieldFormat extends aBase
         return $me;
     }
 
-    public static function spawn(aBase $parent, int $id, int $offset = 0) : self
+    public static function spawn(aBase $parent, string $id, int $offset = 0) : self
     {
         /** @var aFieldFormat $className */
 
