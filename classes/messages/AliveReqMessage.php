@@ -4,9 +4,6 @@
  */
 class AliveReqMessage extends aMessage
 {
-    /** @var int  */
-    protected static $id = MessageClassEnum::ALIVE_REQ; /* overrided */
-
     /**
      * @return bool
      */

@@ -3,9 +3,10 @@
 
 interface constDbTables
 {
-    public const SUMMARY_TABLE = 'summary';               // actual summary blockchain data (last prepared block, last known block, rules, etc); used for all non-client nodes
+    public const SUMMARY_TABLE = 'summary';               // actual fixed blockchain data (last prepared block, last known block, rules, etc); used for all non-client nodes
 
-    public const PUBLIC_KEYS_NODES_TABLE = 'public.keys.nodes';    // "address" => "nodeType, publicKey"; used for all non-client nodes
+    public const ADDR_PUBKEYS_TABLE = 'addr.pubkeys';    // "address" => "publicKey"; used for all non-client nodes
+    public const ADDR_NODES_TABLE = 'addr.nodes';    // "address" => "nodeType"; used for all non-client nodes
 
     public const NODE_PINGS_TABLE = 'node.pings';      // "address" => "ping" ; used for all nodes; data from tests, not in chain
 

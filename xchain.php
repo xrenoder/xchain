@@ -18,8 +18,9 @@ $debugMode =
     | Logger::DBG_DBA
     | Logger::DBG_MSG_FLD
     | Logger::DBG_DB_FLD
-    | Logger::DBG_ROW
-    | Logger::DBG_ROW_SET
+    | Logger::DBG_DB_FROW
+    | Logger::DBG_DB_MROW
+    | Logger::DBG_DB_RSET
     | Logger::DBG_TRANS
 ;
 //*/

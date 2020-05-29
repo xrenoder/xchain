@@ -3,9 +3,6 @@
 
 abstract class aVarLengthFieldFormat extends aFieldFormat
 {
-    /** @var string  */
-    protected $lengthFormatId = null;  /* override me */
-
     public function packField($data) : string
     {
         return $this->packVariableLength($this->packDataTransform($data));

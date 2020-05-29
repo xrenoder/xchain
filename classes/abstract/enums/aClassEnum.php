@@ -43,4 +43,15 @@ abstract class aClassEnum extends aEnum
 
         return $className;
     }
+
+    public static function getIdByClassName(string $className)
+    {
+        $keys = array_keys(static::$items, $className);
+
+        if (count($keys) !== 1) {
+            return null;
+        }
+
+        return $keys[0];
+    }
 }

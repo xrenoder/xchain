@@ -3,9 +3,15 @@
 
 abstract class aFieldSet extends aBase
 {
-    /** @var string */
-    protected $name;
-    public function getName() : string {return $this->name;}
+    /** @var string  */
+    protected $enumClass = null; /* override me */
+    public function getEnumClass() : string {return $this->enumClass;}
+
+    protected $id = null;
+    public function setId($val) : self {$this->id = $val; return $this;}
+    public function getId() {return $this->id;}
+
+    public function getName() : string {return get_class($this);}
 
     /** @var string */
     protected $rawString;
@@ -31,6 +37,7 @@ abstract class aFieldSet extends aBase
 
     /** @var int  */
     protected $fieldOffset = 0;
+    public function setFieldOffset(int $val) : self {$this->fieldOffset = $val; return $this;}
 
     abstract protected function spawnField(int $fieldId) : aField;
 

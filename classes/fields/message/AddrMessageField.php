@@ -24,8 +24,7 @@ class AddrMessageField extends aMessageField
         $remoteNodeId = $message->getRemoteNodeId();
 
         if ($remoteNodeId !== NodeClassEnum::CLIENT_ID && $myNodeId !== NodeClassEnum::CLIENT_ID) {
-            $pubKeyAndNode = PubKeyNodeByAddr::create($locator, $remoteAddrBin);
-            $savedNodeId = $pubKeyAndNode->getNodeId();
+            $savedNodeId = NodeByAddr::create($locator, $remoteAddrBin)->getNodeId();
 
             if ($savedNodeId === null) {
                 $this->dbg("BAD DATA don't know node with address " . Address::binToBase16($remoteAddrBin));
@@ -39,8 +38,17 @@ class AddrMessageField extends aMessageField
                 return false;
             }
 
-            $message->setRemoteAddress(Address::createFromPublic($locator, $pubKeyAndNode->getPublicKey()));
-// TODO при сохранении публичного ключа в базу проверять соответствие ключа и адреса
+            $savedPubKey = PubKeyByAddr::create($locator, $remoteAddrBin)->getPublicKey();
+
+            if ($savedPubKey === null) {
+                $this->dbg("BAD DATA don't know public key for address " . Address::binToBase16($remoteAddrBin));
+                $legate->setBadData();
+                return false;
+            }
+
+// TODO при сохранении публичного ключа в базу проверять соответствие ключа и адреса, чтобы здесь уже не проверять
+
+            $message->setRemoteAddress(Address::createFromPublic($locator, $savedPubKey));
         }
 
         $this->dbg("Message received from address " . Address::binToBase16($remoteAddrBin));

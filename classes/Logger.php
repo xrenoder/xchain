@@ -17,8 +17,9 @@ class Logger extends aBase
     public const DBG_DBA =      512;
     public const DBG_MSG_FLD =  1024;
     public const DBG_DB_FLD =   32768;
-    public const DBG_ROW =      2048;
-    public const DBG_ROW_SET =  4096;
+    public const DBG_DB_FROW =  2048;
+    public const DBG_DB_MROW =  65536;
+    public const DBG_DB_RSET =  4096;
     public const DBG_TRANS =    8192;
 
 
@@ -36,8 +37,9 @@ class Logger extends aBase
         self::DBG_DBA =>        'DBA    ',
         self::DBG_MSG_FLD =>    'Msg Fld',
         self::DBG_DB_FLD =>     'DB Fld ',
-        self::DBG_ROW =>        'DB Row ',
-        self::DBG_ROW_SET =>    'DB RSet',
+        self::DBG_DB_FROW =>    'DB FRow',
+        self::DBG_DB_MROW =>    'DB MRow',
+        self::DBG_DB_RSET =>    'DB RSet',
         self::DBG_TRANS =>      'Trans  ',
     );
 

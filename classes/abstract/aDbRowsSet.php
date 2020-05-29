@@ -1,12 +1,12 @@
 <?php
 
 
-abstract class aDbRowsSet extends aBase implements constDbRowIds
+abstract class aDbRowsSet extends aBase
 {
-    protected static $dbgLvl = Logger::DBG_ROW_SET;
+    protected static $dbgLvl = Logger::DBG_DB_RSET;
 
     /**
-     * 'propertyName' => 'rowClassName'
+     * 'rowId' => 'propertyName'
      * @var string[]
      */
     protected static $rows = array();   /* override me */
@@ -17,9 +17,8 @@ abstract class aDbRowsSet extends aBase implements constDbRowIds
     {
         $dbTransactionKey = $this->dbTrans();
 
-        foreach (static::$rows as $property => $className) {
-            /** @var aDbRow $className */
-            $this->$property = $className::create($this->getLocator());
+        foreach (static::$rows as $rowId => $property) {
+            $this->$property = aFixedIdDbRow::spawn($this->getLocator(), $rowId);
         }
 
         $this->dbCommit($dbTransactionKey);

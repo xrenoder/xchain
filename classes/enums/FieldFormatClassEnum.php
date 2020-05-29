@@ -3,7 +3,7 @@
  * Enumeration of field of DB-row, message, transaction formats
  */
 
-class FieldFormatClassEnum extends aEnum
+class FieldFormatClassEnum extends aClassEnum
 {
     protected static $baseClassName = 'aFieldFormat'; /* overrided */
 
@@ -37,20 +37,21 @@ class FieldFormatClassEnum extends aEnum
     );
 
     /* 0: field len or len of field len */
-    /* 1: maximal value of field
-    /* 2: true if field can be only last field in row or message */
+    /* 1: format of field len */
+    /* 2: maximal value of field
+    /* 3: true if field can be only last field in row or message */
     protected static $data = array(
-        self::ASIS =>     [0, false, true],  // 'Not packed without declared length (variable bytes). Can be only last field in row.',
-        self::ASIS_LBE => [4, false, false],  // 'Not packed with declared length as first 4 bytes ULONG_BE (variable bytes)',
-        self::BINHEX =>     [0, false, true],  // 'Bin converted from/to Hex without declared length (variable bytes). Can be only last field in row.',
-        self::BINHEX_LBE => [4, false, false],  // 'Bin converted from/to Hex with declared length as first 4 bytes ULONG_BE (variable bytes)',
+        self::ASIS =>     [0, null, false, true],  // 'Not packed without declared length (variable bytes). Can be only last field in row.',
+        self::ASIS_LBE => [4, self::ULONG_BE, false, false],  // 'Not packed with declared length as first 4 bytes ULONG_BE (variable bytes)',
+        self::BINHEX =>     [0, null, false, true],  // 'Bin converted from/to Hex without declared length (variable bytes). Can be only last field in row.',
+        self::BINHEX_LBE => [4, self::ULONG_BE, false, false],  // 'Bin converted from/to Hex with declared length as first 4 bytes ULONG_BE (variable bytes)',
 
-        self::ADDR =>       [Address::ADDRESS_BIN_LEN, false, false], // 'Not packed with 25 bytes length',
-        self::PUBKEY =>     [Address::PUBLIC_BIN_LEN, false, false],// 'Not packed with 248 bytes length',
-        self::SIGN_LC =>    [1, false, false],  // 'Not packed with declared length as first 1 bytes UCHAR (variable bytes)',
+        self::ADDR =>       [Address::ADDRESS_BIN_LEN, null, false, false], // 'Not packed with 25 bytes length',
+        self::PUBKEY =>     [Address::PUBLIC_BIN_LEN, null, false, false],// 'Not packed with 248 bytes length',
+        self::SIGN_LC =>    [1, self::UCHAR, false, false],  // 'Not packed with declared length as first 1 bytes UCHAR (variable bytes)',
 
-        self::UCHAR =>      [1, 2^8 - 1, false], // 'Unsigned char (1 byte)',
-        self::ULONG_BE =>   [4, 2^31 - 1, false], // 'Unsigned long big-endian (4 bytes)',
+        self::UCHAR =>      [1, null, 2^8 - 1, false], // 'Unsigned char (1 byte)',
+        self::ULONG_BE =>   [4, null, 2^31 - 1, false], // 'Unsigned long big-endian (4 bytes)',
     );
 
     public static function getLength(string $id) : int
@@ -58,13 +59,18 @@ class FieldFormatClassEnum extends aEnum
         return self::$data[$id][0];
     }
 
-    public static function getMaxValue(string $id) : bool
+    public static function getLengthFormatId(string $id) : bool
     {
         return self::$data[$id][1];
     }
 
-    public static function isLast(string $id) : bool
+    public static function getMaxValue(string $id) : bool
     {
         return self::$data[$id][2];
+    }
+
+    public static function isLast(string $id) : bool
+    {
+        return self::$data[$id][3];
     }
 }

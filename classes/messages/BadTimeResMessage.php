@@ -4,10 +4,6 @@
  */
 class BadTimeResMessage extends aMessage
 {
-    /** @var int  */
-    protected static $id = MessageClassEnum::BAD_TIME_RES;  /* overrided */
-    protected static $needAliveCheck = false;               /* overrided */
-
     protected function incomingMessageHandler(): bool
     {
 // TODO продумать действия при получении сообщения о рассинхронизации времени

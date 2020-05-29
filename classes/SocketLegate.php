@@ -89,15 +89,11 @@ class SocketLegate extends aBase implements constMessageParsingResult
         $message = $this->getInMessage();
 
         if ($message === null) {
-            $typeField = aMessageField::spawn($this, MessageFieldClassEnum::TYPE);
-            $messageType = $typeField->unpack($packet);
-            unset($typeField);
+            $messageId = TypeMessageField::create($this)->unpack($packet);
 
-            if (!($message = aMessage::spawn($this, $messageType))) {
+            if (!($message = aMessage::spawn($this, $messageId))) {
 // if cannot create class of request by declared type - incoming data is bad
-                // кривой костыль для отладки и записи в лог
-                // TODO remove this after debug
-                AliveResMessage::debugForBadMessageType($this->getLocator(), "BAD DATA cannot create class of request by declared type: '$messageType'");
+                $this->getLocator()->dbg("BAD DATA cannot create message class with ID $messageId");
                 $this->badData = true;
                 $this->workerResult = self::MESSAGE_PARSED;
                 return;

@@ -1,7 +1,7 @@
 <?php
 
 
-class aFieldClassEnum extends aClassEnum
+abstract class aFieldClassEnum extends aClassEnum
 {
     public static function getFormat(int $fieldId) : string
     {

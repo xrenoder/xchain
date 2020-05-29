@@ -4,10 +4,6 @@
  */
 class BusyResMessage extends aMessage
 {
-    /** @var int  */
-    protected static $id = MessageClassEnum::BUSY_RES;  /* overrided */
-    protected static $needAliveCheck = false;           /* overrided */
-
     /**
      * @return bool
      */

@@ -6,10 +6,11 @@ abstract class aMessageField extends aField
 {
     protected static $dbgLvl = Logger::DBG_MSG_FLD;
 
+    /** @var string  */
+    protected $enumClass = 'MessageFieldClassEnum'; /* overrided */
+
     public function getMessage() : aMessage {return $this->getParent();}
     public function getLegate() : SocketLegate {return $this->getMessage()->getLegate();}
-
-    public function setName() : aField {$this->name = MessageFieldClassEnum::getItem($this->id); return $this;}
 
     public static function getStatLength($id) : int {return MessageFieldClassEnum::getLength($id);}
 
