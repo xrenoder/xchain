@@ -59,12 +59,12 @@ class FieldFormatClassEnum extends aClassEnum
         return self::$data[$id][0];
     }
 
-    public static function getLengthFormatId(string $id) : bool
+    public static function getLengthFormatId(string $id) : string
     {
         return self::$data[$id][1];
     }
 
-    public static function getMaxValue(string $id) : bool
+    public static function getMaxValue(string $id)
     {
         return self::$data[$id][2];
     }
