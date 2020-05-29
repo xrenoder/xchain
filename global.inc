@@ -45,5 +45,7 @@ define('SELECT_TIMEOUT_USEC', 50000);
 define('CONNECT_TIMEOUT', 30);
 define('GARBAGE_TIMEOUT', 60);
 
+define('DBG_ONEBYTE_SEND_USLEEP', 50000);  // 50000 for byte-to-byte messages sending, 0 for normal mode
+
 require_once 'init.inc';
 

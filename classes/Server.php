@@ -272,7 +272,11 @@ class Server extends aBase implements constMessageParsingResult
         foreach($wr as $fd) {
             if ($socketId = array_search($fd, $this->sends, true)) {
                 $this->getSocket($socketId)->send();
-                usleep(50000);  // отладочное для побайтовой отправки пакетов
+
+                if (DBG_ONEBYTE_SEND_USLEEP) {
+                    usleep(DBG_ONEBYTE_SEND_USLEEP);  // отладочное для побайтовой отправки пакетов
+                }
+
             }
         }
 

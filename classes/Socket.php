@@ -223,8 +223,11 @@ class Socket extends aBase implements constMessageParsingResult
         $this->setTime();
 
         if ($this->outData) {
-//            $buff = $this->outData;
-            $buff = $this->outData[0];   // отладочное для побайтовой отправки пакетов
+            if (DBG_ONEBYTE_SEND_USLEEP) {
+                $buff = $this->outData[0];   // отладочное для побайтовой отправки пакетов
+            } else {
+                $buff = $this->outData;
+            }
 
             if (($realLength = fwrite($this->fd, $buff, strlen($buff))) === false) {
                 $this->err('ERROR: write to socket error');
