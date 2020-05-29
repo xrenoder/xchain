@@ -23,7 +23,7 @@ abstract class aFieldFormat extends aBase
 
     /** @var string  */
     protected $lengthFormatId = null;
-    public function setLengthFormatId(string $val) : self {$this->lengthFormatId = $val; return $this;}
+    public function setLengthFormatId(?string $val) : self {$this->lengthFormatId = $val; return $this;}
 
     /** @var bool */
     protected $isLast;
