@@ -1,7 +1,7 @@
 <?php
 
 
-class TransactionRewardsRuleRowFixedId extends aFixedIdDbRow
+class TransactionRewardsRuleRow extends aFixedIdDbRow
 {
     /**
      * 'propertyName' => fieldFormat

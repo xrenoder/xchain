@@ -1,7 +1,7 @@
 <?php
 
 
-class TransactionEmissionRuleRowFixedId extends aFixedIdDbRow
+class TransactionEmissionRuleRow extends aFixedIdDbRow
 {
     /**
      * 'propertyName' => fieldFormat

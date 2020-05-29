@@ -24,13 +24,13 @@ class SummaryDataSet extends aDbRowsSet
     protected $lastPreparedBlock;
     public function getLastPreparedBlock() : ?LastPreparedBlockRow {return $this->lastPreparedBlock;}
 
-    /** @var TransactionEmissionRuleRowFixedId */
+    /** @var TransactionEmissionRuleRow */
     protected $transactionEmissionRule;
-    public function getTransactionEmissionRule() : ?TransactionEmissionRuleRowFixedId {return $this->transactionEmissionRule;}
+    public function getTransactionEmissionRule() : ?TransactionEmissionRuleRow {return $this->transactionEmissionRule;}
 
-    /** @var TransactionRewardsRuleRowFixedId */
+    /** @var TransactionRewardsRuleRow */
     protected $transactionRewardsRule;
-    public function getTransactionRewardsRule() : ?TransactionRewardsRuleRowFixedId {return $this->transactionRewardsRule;}
+    public function getTransactionRewardsRule() : ?TransactionRewardsRuleRow {return $this->transactionRewardsRule;}
 
     public static function create(aLocator $locator)
     {
