@@ -179,7 +179,7 @@ class Daemon extends aBase
 // load node private key
                 $worker->setMyAddress(Address::createFromWallet($worker, MY_ADDRESS, WALLET_PATH));
 // load chain state data
-                SummaryDataSet::create($worker);
+//                SummaryDataSet::create($worker);
 
 // start worker loop
                 $worker->run($channelRecv, $channelSend);
