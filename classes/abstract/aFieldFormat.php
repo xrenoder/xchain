@@ -22,8 +22,8 @@ abstract class aFieldFormat extends aBase
     public function getLength() : int {return $this->length;}
 
     /** @var string  */
-    protected $lengthFormatId = null;  /* override me */
-    public function setLengthFormatId(int $val) : self {$this->lengthFormatId = $val; return $this;}
+    protected $lengthFormatId = null;
+    public function setLengthFormatId(string $val) : self {$this->lengthFormatId = $val; return $this;}
 
     /** @var bool */
     protected $isLast;
