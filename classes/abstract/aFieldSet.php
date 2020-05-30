@@ -89,7 +89,7 @@ abstract class aFieldSet extends aBase
             }
 
             $this->dbg("Prepared field " . $field->getName() . ": $property = " . $this->$property);
-            $this->dbg(bin2hex($field->getRawWithoutLength()));
+            $this->dbg(bin2hex($field->getRawFieldLength()) . " " . bin2hex($field->getRawWithoutLength()));
 
             $result = $field->check();
 

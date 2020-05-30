@@ -26,6 +26,7 @@ abstract class aField extends aBase
     public function getLength() : int {return $this->format->getLength();}
 
     public function getRawWithoutLength() : string {return $this->format->getRawWithoutLength();}
+    public function getRawFieldLength() : string {return $this->format->getRawFieldLength();}
     public function getRawWithLength() : string {return $this->format->getRawWithLength();}
 
     public function getValue() {return $this->format->getValue();}
@@ -68,7 +69,8 @@ abstract class aField extends aBase
     {
         $field = static::create($parent);
         $result = $field->getFormat()->packField($val);
-        $field->dbg($field->getName() . " packed: " . bin2hex($result));
+        $field->dbg($val);
+        $field->dbg(bin2hex($result));
         return $result;
     }
 

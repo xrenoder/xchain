@@ -39,6 +39,8 @@ abstract class aFieldFormat extends aBase
     public function getRawWithoutLength() : string {return $this->rawWithoutLength;}
 
     protected $rawFieldLength = '';
+    public function getRawFieldLength() : string {return $this->rawFieldLength;}
+
     public function getRawWithLength() : string {return $this->rawFieldLength . $this->rawWithoutLength;}
 
     protected $value = null;
