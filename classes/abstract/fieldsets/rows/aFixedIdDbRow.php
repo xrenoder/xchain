@@ -41,7 +41,7 @@ abstract class aFixedIdDbRow extends aDbRow
         throw new Exception("Bad code - unknown fixed-ID row class for ID " . $id);
     }
 
-    public function setId($val) : aFieldSet
+    public function setId($val) : self
     {
         $this->id = $val;
         $this->setInternalId();

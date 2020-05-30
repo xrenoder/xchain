@@ -1,20 +1,12 @@
 <?php
 
 
-abstract class aFieldFormat extends aBase
+abstract class aFieldFormat extends aBaseEnum
 {
     protected static $dbgLvl = Logger::DBG_FLD_FMT;
 
     /** @var string  */
     protected $enumClass = 'FieldFormatClassEnum';
-    public function getEnumClass() : string {return $this->enumClass;}
-
-    /** @var string  */
-    protected $id;
-    public function setId(string $val) : self {if ($this->id === null) $this->id = $val; return $this;}
-    public function getId() : string {return $this->id;}
-
-    public function getName() : string {return get_class($this);}
 
     /** @var int  */
     protected $length = null;

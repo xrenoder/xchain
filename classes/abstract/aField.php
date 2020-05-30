@@ -1,19 +1,8 @@
 <?php
 
 
-abstract class aField extends aBase
+abstract class aField extends aBaseEnum
 {
-    /** @var string  */
-    protected $enumClass = null; /* override me */
-    public function getEnumClass() : string {return $this->enumClass;}
-
-    public function getName() : string {return get_class($this);}
-
-    /** @var int  */
-    protected $id = null;
-    public function setId(int $val) : self {if ($this->id === null) $this->id = $val; return $this;}
-    public function getId() : ?int {return $this->id;}
-
     /** @var aFieldFormat  */
     protected $format = null;
     public function getFormat() : aFieldFormat {return $this->format;}

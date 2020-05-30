@@ -1,19 +1,31 @@
 1 bytes         type of message (255)
-4 bytes         length of message body (include this field and type field) (2+ Gb)
-                (last field for "aMessage": "AliveReqMessage" and "AliveReqMessage")
+4 bytes         length of message body (include this field and type field) (4+ Gb)
+                (last field for "aMessage": "AliveReqMessage" and "AliveReqMessage")        5
 
 1 byte          sender node type (255)
 4 bytes         time (if "local time" is different from "message time" to 2 sec or more - decline)
-                (last field for "SimpleMessage")
+                (last field for "SimpleMessage")                10
 
 25 bytes        sender address
-                (last field for "SimpleAddressMessage")
+                (last field for "SimpleAddressMessage")         35
 
 variable        data
-                (last field for "DataMessage")
+                (last field for "DataMessage")                  35 + data
 
-248 bytes       author public key
+248 bytes       author (not sender) public key
 
-variable 71-73  data signature
-                (last field for "SignMessage")
+variable 71-73  data signature (signed by sender)
+                (last field for "SignMessage")                  max 356 + data
+
+
+signed data fields:
+
+author public key
+data with length
+sender node ID
+sending time
+sender address
+
+
+
 
