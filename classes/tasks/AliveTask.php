@@ -20,7 +20,9 @@ class AliveTask extends aTask
             return false;
         }
 
-        $this->socket->sendMessage(AliveReqMessage::create($this->getLocator()));
+        $myPubKey = $this->getLocator()->getMyAddress()->getPublicKeyBin();
+
+        $this->socket->sendMessage(AliveReqMessage::create($this->getLocator(), [self::DATA => 'test', self::AUTHKEY => $myPubKey]));
 
         return true;
     }

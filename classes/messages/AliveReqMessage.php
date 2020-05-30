@@ -12,7 +12,10 @@ class AliveReqMessage extends aSignMessage
         $legate = $this->getLegate();
 
         $legate->setCloseAfterSend();
-        $legate->createResponseString(AliveResMessage::create($this->getLocator()));
+
+        $myPubKey = $this->getLocator()->getMyAddress()->getPublicKeyBin();
+
+        $legate->createResponseString(AliveResMessage::create($this->getLocator(), [self::DATA => 'test', self::AUTHKEY => $myPubKey]));
 
         return self::MESSAGE_PARSED;
     }
