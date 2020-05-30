@@ -14,6 +14,8 @@ class AddrMessageField extends aMessageField
         $remoteAddrBin = $message->getRemoteAddrBin();
         $locator = $this->getLocator();
 
+        $message->setSignedData($message->getSignedData() . $this->getRawWithLength());
+
         if (!Address::checkAddressBin($remoteAddrBin)) {
             $this->dbg("BAD DATA remote address is bad " . Address::binToBase16($remoteAddrBin));
             $legate->setBadData();
@@ -52,8 +54,6 @@ class AddrMessageField extends aMessageField
         }
 
         $this->dbg("Message received from address " . Address::binToBase16($remoteAddrBin));
-
-        $message->setSignedData($message->getSignedData() . $this->getRaw());
 
         return true;
     }

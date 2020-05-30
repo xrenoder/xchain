@@ -12,6 +12,8 @@ class TimeMessageField extends aMessageField
         $message = $this->getMessage();
         $legate = $this->getLegate();
 
+        $message->setSignedData($message->getSignedData() . $this->getRawWithLength());
+
 // Clients (type NodeClassEnum::CLIENT_ID) may have unsynchronized time
         if (
             $message->getRemoteNodeId() === NodeClassEnum::CLIENT_ID
@@ -30,8 +32,6 @@ class TimeMessageField extends aMessageField
             $legate->createResponseString(BadTimeResMessage::create($this->getLocator()));
             return false;
         }
-
-        $message->setSignedData($message->getSignedData() . $this->getRaw());
 
         return true;
     }

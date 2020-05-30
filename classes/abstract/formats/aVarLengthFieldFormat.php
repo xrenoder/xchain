@@ -12,7 +12,7 @@ abstract class aVarLengthFieldFormat extends aFieldFormat
     {
         $this->unpackVariableLength($data);
 
-        if ($this->raw !== null) {
+        if ($this->rawWithoutLength !== null) {
             $this->unpackRawTransform();
         }
 
@@ -33,13 +33,14 @@ abstract class aVarLengthFieldFormat extends aFieldFormat
     private function unpackVariableLength(string $data) : void
     {
         $lengthFormatLen = FieldFormatClassEnum::getLength($this->lengthFormatId);
-        $rawLength = unpack($this->lengthFormatId, substr($data, $this->offset, $lengthFormatLen))[1];
+        $this->rawFieldLength = substr($data, $this->offset, $lengthFormatLen);
+        $fieldLength = unpack($this->lengthFormatId, $this->rawFieldLength)[1];
 
-        $this->raw = substr($data, $this->offset + $lengthFormatLen, $rawLength);
-        $this->length = $rawLength + $lengthFormatLen;
+        $this->rawWithoutLength = substr($data, $this->offset + $lengthFormatLen, $fieldLength);
+        $this->length = $fieldLength + $lengthFormatLen;
 
-        if (strlen($this->raw) < $rawLength) {
-            $this->raw = null;
+        if (strlen($this->rawWithoutLength) < $fieldLength) {
+            $this->rawWithoutLength = null;
         }
     }
 }

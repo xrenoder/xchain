@@ -9,7 +9,9 @@ class DataMessageField extends aMessageField
     public function check(): bool
     {
         $message = $this->getMessage();
-        $message->setSignedData($this->getRaw() . $message->getSignedData());
+
+        $message->setSignedData($this->getRawWithLength() . $message->getSignedData());
+
         return true;
     }
 }

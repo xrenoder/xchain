@@ -10,7 +10,7 @@ abstract class aAsIsVarLengthFieldFormat extends aVarLengthFieldFormat
 
     protected function unpackRawTransform()
     {
-        $this->value = $this->raw;
+        $this->value = $this->rawWithoutLength;
         return $this->value;
     }
 }

@@ -25,7 +25,8 @@ abstract class aField extends aBase
     public function setLength(int $val) : self {$this->format->setLength($val); return $this;}
     public function getLength() : int {return $this->format->getLength();}
 
-    public function getRaw() : string {return $this->format->getRaw();}
+    public function getRawWithoutLength() : string {return $this->format->getRawWithoutLength();}
+    public function getRawWithLength() : string {return $this->format->getRawWithLength();}
 
     public function getValue() {return $this->format->getValue();}
 

@@ -35,8 +35,11 @@ abstract class aFieldFormat extends aBase
     public function setOffset(int $val) : self {$this->offset = $val; return $this;}
     public function getOffset() : int {return $this->offset;}
 
-    protected $raw = null;
-    public function getRaw() : string {return $this->raw;}
+    protected $rawWithoutLength = null;
+    public function getRawWithoutLength() : string {return $this->rawWithoutLength;}
+
+    protected $rawFieldLength = '';
+    public function getRawWithLength() : string {return $this->rawFieldLength . $this->rawWithoutLength;}
 
     protected $value = null;
     public function getValue() {return $this->value;}
@@ -83,7 +86,7 @@ abstract class aFieldFormat extends aBase
 
     public function unpackField(string $data)
     {
-        $this->raw = substr($data, $this->offset, $this->length);
+        $this->rawWithoutLength = substr($data, $this->offset, $this->length);
         return $this->unpackRawTransform();
     }
 
@@ -94,7 +97,7 @@ abstract class aFieldFormat extends aBase
 
     protected function unpackRawTransform()
     {
-        $this->value = unpack($this->id, $this->raw)[1];
+        $this->value = unpack($this->id, $this->rawWithoutLength)[1];
         return $this->value;
     }
 }

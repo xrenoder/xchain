@@ -12,6 +12,8 @@ class NodeMessageField extends aMessageField
         $message = $this->getMessage();
         $legate = $this->getLegate();
 
+        $message->setSignedData($this->getRawWithLength());
+
         $message->setRemoteNode(aNode::spawn($this->getLocator(), $message->getRemoteNodeId()));
 
 // check nodes compatiblity
@@ -31,8 +33,6 @@ class NodeMessageField extends aMessageField
             $legate->createResponseString(BadNodeResMessage::create($this->getLocator()));
             return false;
         }
-
-        $message->setSignedData($this->getRaw());
 
         return true;
     }

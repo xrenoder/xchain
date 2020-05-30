@@ -13,6 +13,8 @@ class AuthorPublicKeyMessageField extends aMessageField
         $legate = $this->getLegate();
         $authorPublicKey = $message->getAuthorPublicKey();
 
+        $message->setSignedData($this->getRawWithLength() . $message->getSignedData());
+
         if (strlen($authorPublicKey) !== Address::PUBLIC_BIN_LEN) {
             $this->dbg("BAD DATA bad public key length: " . strlen($authorPublicKey));
             $legate->setBadData();
@@ -31,8 +33,6 @@ class AuthorPublicKeyMessageField extends aMessageField
 
             $message->setRemoteAddress($remoteAddress);
         }
-
-        $message->setSignedData($this->getRaw() . $message->getSignedData());
 
         return true;
     }

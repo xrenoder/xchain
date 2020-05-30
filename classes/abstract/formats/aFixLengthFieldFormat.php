@@ -17,10 +17,10 @@ abstract class aFixLengthFieldFormat extends aFieldFormat
 
     public function unpackField(string $data)
     {
-        $this->raw = substr($data, $this->offset, $this->length);
+        $this->rawWithoutLength = substr($data, $this->offset, $this->length);
 
-        if (strlen($this->raw) !== $this->length) {
-            throw new Exception("Bad unpack length of " . $this->getName() . ": " . strlen($this->raw) . " not equal " . $this->length);
+        if (strlen($this->rawWithoutLength) !== $this->length) {
+            throw new Exception("Bad unpack length of " . $this->getName() . ": " . strlen($this->rawWithoutLength) . " not equal " . $this->length);
         }
 
         $this->unpackRawTransform();
