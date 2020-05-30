@@ -113,7 +113,6 @@ class SocketLegate extends aBase implements constMessageParsingResult
     public function createResponseString(aMessage $message) : void
     {
         $this->responseString = $message->createMessageString();
-        $this->getLocator()->dbg("Response string created in SocketLegate $this->id\n" . bin2hex($this->responseString) . "\n");
     }
 
     public function serializeInSocket() : string

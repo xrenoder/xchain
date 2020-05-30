@@ -2,7 +2,7 @@
 /**
  * Response "Daemon is alive"
  */
-class AliveResMessage extends aMessage
+class AliveResMessage extends aSignMessage
 {
     /**
      * @return bool
