@@ -38,6 +38,8 @@ abstract class aSignMessage extends aAuthorPublicKeyMessage
     {
         $bodyParent = $this->bodyAuthorPublicKey();
 
+        $this->dbg($this->getName() . " signed data: " . bin2hex($this->signedData));
+
         $signField = SignMessageField::pack($this,$this->getLocator()->getMyAddress()->signBin($this->signedData));
 
         return $bodyParent . $signField;

@@ -50,8 +50,10 @@ class FieldFormatClassEnum extends aClassEnum
         self::PUBKEY =>     [Address::PUBLIC_BIN_LEN, null, false, false],// 'Not packed with 248 bytes length',
         self::SIGN_LC =>    [1, self::UCHAR, false, false],  // 'Not packed with declared length as first 1 bytes UCHAR (variable bytes)',
 
-        self::UCHAR =>      [1, null, 255, false], // 'Unsigned char (1 byte)',
-        self::ULONG_BE =>   [4, null, 2^31 - 1, false], // 'Unsigned long big-endian (4 bytes)',
+        self::UCHAR =>      [1, null, 2**8 - 1, false], // 'Unsigned char (1 byte)',
+
+ // TODO проверить корректность работы с числами больще 2**31 (не возвращается ли отрицательное значение)
+        self::ULONG_BE =>   [4, null, 2**32 - 1, false], // 'Unsigned long big-endian (4 bytes)',
     );
 
     public static function getLength(string $id) : int

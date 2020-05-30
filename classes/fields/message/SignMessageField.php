@@ -17,7 +17,11 @@ class SignMessageField extends aMessageField
             throw new Exception("Bad code - public key must be here!!! Repair method AddrMessageField::check() and AuthorPublicKeyMessageField::check()");
         }
 
-        if (!$remoteAddress->verifyBin($message->getSignature(), $message->getSignedData())) {
+        $signedData = $message->getSignedData();
+
+        $this->dbg($this->getName() . " verified data: " . bin2hex($signedData));
+
+        if (!$remoteAddress->verifyBin($message->getSignature(), $signedData)) {
             $this->dbg("BAD DATA message signature is bad");
             $this->getLegate()->setBadData();
             return false;

@@ -65,7 +65,10 @@ abstract class aField extends aBase
 
     public static function pack($parent, $val) : string
     {
-        return static::create($parent)->getFormat()->packField($val);
+        $field = static::create($parent);
+        $result = $field->getFormat()->packField($val);
+        $field->dbg($field->getName() . " packed: " . bin2hex($result));
+        return $result;
     }
 
     public function check(): bool
