@@ -24,7 +24,7 @@ class Logger extends aBase
 
 
     private static $flags = array(
-        self::DBG_LOCATOR =>    'Locator',
+        self::DBG_LOCATOR =>    'Locator ',
         self::DBG_DAEMON =>     'Daemon ',
         self::DBG_SERV =>       'Server ',
         self::DBG_SOCK =>       'Socket ',
@@ -37,9 +37,9 @@ class Logger extends aBase
         self::DBG_DBA =>        'DBA    ',
         self::DBG_MSG_FLD =>    'Msg Fld',
         self::DBG_DB_FLD =>     'DB Fld ',
-        self::DBG_DB_FROW =>    'DB FRow',
-        self::DBG_DB_MROW =>    'DB MRow',
-        self::DBG_DB_RSET =>    'DB RSet',
+        self::DBG_DB_FROW =>    'DBfxRow',
+        self::DBG_DB_MROW =>    'DBdyRow',
+        self::DBG_DB_RSET =>    'DBrcSet',
         self::DBG_TRANS =>      'Trans  ',
     );
 
