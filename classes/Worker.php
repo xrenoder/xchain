@@ -34,6 +34,7 @@ class Worker extends aLocator implements constMessageParsingResult
         }
 
         CommandToParent::send($this->channelSend, CommandToParent::IM_FINISH, $this->getName());
+        $this->log("Message about finishing thread " . $this->getName() . " sended");
         $this->log("Worker " . $this->getName() . " finished");
     }
 

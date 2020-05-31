@@ -574,6 +574,7 @@ class Server extends aBase implements constMessageParsingResult
         foreach($threads as $threadId => $thread) {
             $channel = $app->getChannelFromParent($threadId);
             CommandToWorker::send($channel, CommandToWorker::MUST_DIE_SOFT);
+            $this->log("Command to hard finish thread $threadId sended");
         }
 
         $app->getDba()->close();
@@ -600,7 +601,7 @@ class Server extends aBase implements constMessageParsingResult
         foreach($threads as $threadId => $thread) {
             $channel = $app->getChannelFromParent($threadId);
             CommandToWorker::send($channel, CommandToWorker::MUST_DIE_SOFT);
-            $this->log("Command to stop thread $threadId sended");
+            $this->log("Command to soft finish thread $threadId sended");
         }
     }
 

@@ -317,11 +317,11 @@ class Socket extends aBase implements constMessageParsingResult
         $channel = $locator->getChannelFromParent($this->threadId);
 
         $serializedLegate = $this->legate->serializeInSocket();
-        $this->getLocator()->dbg("Send legate from socket $this->id to worker $this->threadId");
-//        $this->dbg("\n $serializedLegate\n");
-
         CommandToWorker::send($channel, CommandToWorker::INCOMING_PACKET, $this->legate->getId(), $serializedLegate);
         $this->legatesInWorker++;
+
+        $this->getLocator()->dbg("Send legate from socket $this->id to worker $this->threadId");
+//        $this->dbg("\n $serializedLegate\n");
 
         return false;
     }

@@ -88,7 +88,10 @@ try {
     foreach($threads as $threadId => $thread) {
         $channel = $app->getChannelFromParent($threadId);
         CommandToWorker::send($channel, CommandToWorker::MUST_DIE_HARD);
+        $this->log("Command to hard finish thread $threadId sended");
     }
+
+    sleep(1);
 
     throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
 }
