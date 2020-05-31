@@ -99,23 +99,23 @@ class Logger extends aBase
     /**
      * Create log record
      * @param $message
-     * @param bool $isErr
-     * @param int $debug
+     * @param bool $isError
+     * @param int $dbgLevel
      * @return string
      */
-    private function createRecord($message, $isErr  = false, $debug = 0) : string
+    private function createRecord(string $message, int $dbgLevel, bool $isError  = false, bool $isDebug  = false) : string
     {
         $record =
             $this->getDate() . "\t"
             . $this->getLocator()->getPid() . "\t"
             . $this->getLocator()->getName() . "\t";
 
-        if ($isErr) {
-            $record .= '[error]' . "\t\t";
-        } else if ($debug) {
-            $record .= '[dbg ' . self::$flags[$debug] . ']' . "\t";
+        if ($isError) {
+            $record .= '[err ' . self::$flags[$dbgLevel] . ']' . "\t";
+        } else if ($isDebug) {
+            $record .= '[dbg ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else {
-            $record .= "\t\t";
+            $record .= self::$flags[$dbgLevel] . "\t";
         }
 
         $record .= $message . "\n";
@@ -127,9 +127,9 @@ class Logger extends aBase
      * Usual log
      * @param string $message
      */
-    public function simpleLog(string $message) : void
+    public function simpleLog(int $dbgLevel, string $message) : void
     {
-        $this->write($this->logFile, $this->createRecord($message));
+        $this->write($this->logFile, $this->createRecord($message, $dbgLevel));
     }
 
     /**
@@ -140,17 +140,19 @@ class Logger extends aBase
     {
         if (!($this->dbgMode & $dbgLevel)) return;
 
-        $this->write($this->logFile, $this->createRecord($message, false, $dbgLevel));
+        $this->write($this->logFile, $this->createRecord($message, $dbgLevel, false, true));
     }
 
     /**
      * Error logging
      * @param string $message
      */
-    public function errorLog(string $message) : void
+    public function errorLog(int $dbgLevel, string $message) : void
     {
-        $this->write($this->logFile, $this->createRecord($message, true));
-        $this->write($this->errFile, $this->createRecord($message, true));
+        $logStr = $this->createRecord($message, $dbgLevel, true);
+
+        $this->write($this->logFile, $logStr);
+        $this->write($this->errFile, $logStr);
     }
 
     /**

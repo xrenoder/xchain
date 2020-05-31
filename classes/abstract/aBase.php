@@ -40,7 +40,7 @@ abstract class aBase implements constMessageDataIds
      */
     public function log(string $message) : void
     {
-        $this->getLocator()->getLogger()->simpleLog($message);
+        $this->getLocator()->getLogger()->simpleLog(static::$dbgLvl, $message);
     }
 
     /**
@@ -49,7 +49,7 @@ abstract class aBase implements constMessageDataIds
      */
     public function err(string $message) : void
     {
-        $this->getLocator()->getLogger()->errorLog($message);
+        $this->getLocator()->getLogger()->errorLog(static::$dbgLvl, $message);
     }
 
     /**
