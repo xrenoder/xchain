@@ -7,7 +7,7 @@ class Daemon extends aBase
 {
     protected static $dbgLvl = Logger::DBG_DAEMON;
 
-    public function getApp() : App {return $this->getParent();}
+    public function getApp() : App {return $this->getLocator();}
 
     /** @var string */
     private $pidFile;
@@ -184,8 +184,10 @@ class Daemon extends aBase
 // start worker loop
                 $worker->run($channelRecv, $channelSend);
             } catch (Exception $e) {
-// TODO здесь должна быть отправка сообщения в основной поток о завершении работы с выключеним всех потоков воркеров
-                $worker->err($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
+                $worker->err("Worker EXCEPTION: " . $e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
+
+                CommandToParent::send($channelSend, CommandToParent::IM_FINISH, $threadId);
+                $this->log("Worker " . $threadId . " finished by Exception");
 
 //                throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
             }
@@ -197,9 +199,9 @@ class Daemon extends aBase
 //    $app->getEvents()->setTimeout(1000000); // Uncomment when blocking
 
         for($i = 1; $i <= THREADS_COUNT; $i++) {
-            $threadId = "thread_" . $i;
+            $threadId = "THREAD_" . $i;
 
-            $app->setChannelFromSocket($threadId, new parallel\Channel(parallel\Channel::Infinite));
+            $app->setChannelFromParent($threadId, new parallel\Channel(parallel\Channel::Infinite));
             $app->setChannelFromWorker($threadId, parallel\Channel::make($threadId, parallel\Channel::Infinite));
             $app->setThread($threadId,new parallel\Runtime(XCHAIN_PATH . "local.inc"));
 
@@ -207,7 +209,7 @@ class Daemon extends aBase
                 $workerThread,
                 [
                     $threadId,
-                    $app->getChannelFromSocket($threadId),
+                    $app->getChannelFromParent($threadId),
                     $app->getChannelFromWorker($threadId),
                     $app->getLogger()->getDbgMode()
                 ]

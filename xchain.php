@@ -67,7 +67,7 @@ try {
 // get daemon-object
     Daemon::create($app, RUN_PATH,  'pid');
 
-// run daemon
+// start daemon
     if (!$app->getDaemon()->run($command)) {
         throw new Exception('Cannot daemon start');
     }
@@ -79,9 +79,16 @@ try {
 //    GetFnodesTask::create($app->getServer(), $startPool, $firstRemoteHost);
 //    $startPool->toQueue();
 
-// run server
+// start server
     $app->getServer()->run();
 } catch (Exception $e) {
-// TODO здесь должно быть выключение потоков воркеров
+// hard close all workers
+    $threads = $app->getAllThreads();
+
+    foreach($threads as $threadId => $thread) {
+        $channel = $app->getChannelFromParent($threadId);
+        CommandToWorker::send($channel, CommandToWorker::MUST_DIE_HARD);
+    }
+
     throw new Exception($e->getMessage() . "\n" . var_export($e->getTraceAsString(), true));
 }

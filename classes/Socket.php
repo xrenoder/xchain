@@ -43,6 +43,7 @@ class Socket extends aBase implements constMessageParsingResult
 
     /** @var int */
     private $threadId = null;
+    public function getThreadId() : ?int {return $this->threadId;}
 
     /** @var string  */
     private $outData = '';
@@ -313,15 +314,13 @@ class Socket extends aBase implements constMessageParsingResult
         }
 
         $locator->incThreadBusy($this->threadId);
-        $channel = $locator->getChannelFromSocket($this->threadId);
+        $channel = $locator->getChannelFromParent($this->threadId);
 
         $serializedLegate = $this->legate->serializeInSocket();
         $this->getLocator()->dbg("Send legate from socket $this->id to worker $this->threadId");
 //        $this->dbg("\n $serializedLegate\n");
 
-        $toWorker = new CommandToWorker(CommandToWorker::INCOMING_PACKET, $this->legate->getId(), $serializedLegate);
-        $channel->send($toWorker->serialize());
-
+        CommandToWorker::send($channel, CommandToWorker::INCOMING_PACKET, $this->legate->getId(), $serializedLegate);
         $this->legatesInWorker++;
 
         return false;

@@ -2,6 +2,7 @@
 //use parallel\{Channel,Runtime,Events,Events\Event,Events\Event\Type};
 /**
  * Work with sockets: listen, select, accept, read, write
+ * Read and handle events from workers
  */
 class Server extends aBase implements constMessageParsingResult
 {
@@ -17,8 +18,10 @@ class Server extends aBase implements constMessageParsingResult
     private const RW_TIMEOUT = RW_TIMEOUT;
     private const GARBAGE_TIMEOUT = GARBAGE_TIMEOUT;
 
-    private const LISTEN_SOCKET_ID = 'lst';
-    private const SOCKET_ID_PREFIX = 'sock_';
+    private const LISTEN_SOCKET_ID = 'SOCKET_LISTEN';
+    private const SOCKET_ID_PREFIX = 'SOCKET_';
+
+    public function getApp() : App {return $this->getLocator();}
 
     /** @var Host */
     private $listenHost;
@@ -189,7 +192,7 @@ class Server extends aBase implements constMessageParsingResult
         $result = self::MESSAGE_NOT_PARSED;
 
         /** @var App $app */
-        $app = $this->getLocator();
+        $app = $this->getApp();
         $event = null;
 
         while ($event = $app->getEvents()->poll()) { // Returns non-null if there is an event
@@ -197,11 +200,9 @@ class Server extends aBase implements constMessageParsingResult
             $this->needSleep  = false;
 
             $threadId = $event->source;
-            $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
 
             $this->dbg("Event detected from worker $threadId");
 
-// TODO добавить отправку и обработку служебных сообщений через канал (закрытие воркера при завершении работы, cмена ноды)
             if ($event->type === parallel\Events\Event\Type::Read) {
 //                $this->dbg("Read event");
 
@@ -211,8 +212,14 @@ class Server extends aBase implements constMessageParsingResult
                     $result = self::MESSAGE_PARSED;
                 }
             } else {
-                $this->err("EXCEPTION: " . "Bad event from worker: \n" . var_export($event, true) . "\n");
-                throw new Exception("Bad event from worker: \n" . var_export($event, true) . "\n");
+                $this->err("EXCEPTION: " . "Bad event type $event->type from worker: \n" . var_export($event, true) . "\n");
+                throw new Exception("Bad event type $event->type from worker: \n" . var_export($event, true) . "\n");
+            }
+
+            $channel = $app->getChannelFromWorker($threadId);
+
+            if ($channel !== null) {
+                $app->getEvents()->addChannel($channel);
             }
 
             $event = null;
@@ -221,7 +228,7 @@ class Server extends aBase implements constMessageParsingResult
         return $result; // self::MESSAGE_PARSED (daemon is alive) or self::MESSAGE_NOT_PARSED
     }
 
-    public function packetResponseHandler(string $socketId, string $serializedLegate) : bool
+    public function workerPacketResponseHandler(string $socketId, string $serializedLegate) : bool
     {
         $this->dbg("Event for socket $socketId detected");
 
@@ -231,6 +238,20 @@ class Server extends aBase implements constMessageParsingResult
         }
 
         return $socket->workerResponseHandler($serializedLegate);
+    }
+
+    public function workerImFinishHandler(string $threadId, ?string $unused = null) : bool
+    {
+// TODO возможно, при завершении одного потока нужно гасить весь скрипт
+        $this->getApp()->unsetThread($threadId);
+
+        foreach ($this->sockets as $socketId => $socket) {
+            if ($socket->getThreadId() === $threadId) {
+                $socket->close(" after his worker closed");
+            }
+        }
+
+        return self::MESSAGE_NOT_PARSED;
     }
 
     /**
@@ -544,12 +565,21 @@ class Server extends aBase implements constMessageParsingResult
             $this->closeSocket($id);
         }
 
-        $this->getLocator()->getDba()->close();
+// hard close all workers
+        $app = $this->getApp();
+        $threads = $app->getAllThreads();
 
-        $this->log('******** Daemon ' . $this->getLocator()->getPid() . ' close all sockets & finished ********');
+        foreach($threads as $threadId => $thread) {
+            $channel = $app->getChannelFromParent($threadId);
+            CommandToWorker::send($channel, CommandToWorker::MUST_DIE_SOFT);
+        }
+
+        $app->getDba()->close();
+
+        $this->log('******** Daemon ' . $app->getPid() . ' close all sockets & finished ********');
         $this->log('******** ');
 
-        posix_kill($this->getLocator()->getPid(), SIGKILL);
+        posix_kill($app->getPid(), SIGKILL);
         exit(0);
     }
 
@@ -560,6 +590,15 @@ class Server extends aBase implements constMessageParsingResult
     {
         $this->finishFlag = true;
         $this->closeSocket(self::LISTEN_SOCKET_ID);
+
+// soft close all workers
+        $app = $this->getApp();
+        $threads = $app->getAllThreads();
+
+        foreach($threads as $threadId => $thread) {
+            $channel = $app->getChannelFromParent($threadId);
+            CommandToWorker::send($channel, CommandToWorker::MUST_DIE_SOFT);
+        }
     }
 
     public function freeConnected(Socket $socket, Host $host, string $id) : self

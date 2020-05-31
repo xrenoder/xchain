@@ -1,13 +1,12 @@
 <?php
 
-
 abstract class aCommand
 {
     /** @var int */
     protected $command;
 
     /** @var string */
-    protected $socketId;
+    protected $targetId;    // socketId, threadId etc
 
     /** @var string */
     protected $data;
@@ -15,14 +14,21 @@ abstract class aCommand
     /** @var string[] */
     protected $handlers = array(); /* override me */
 
-    public function __construct(int $command, string $socketId, string $data)
+    public function __construct(int $command, ?string $targetId, ?string $data)
     {
         $this->command = $command;
-        $this->socketId = $socketId;
+        $this->targetId = $targetId;
         $this->data = $data;
     }
 
-    public static function handle(aBase $handlerObject, $serializedCommand) : bool
+    public static function send(parallel\Channel $channel, int $command, ?string $targetId = null, ?string $data = null)
+    {
+        $commandObject = new static($command, $targetId, $data);
+        $channel->send(serialize($commandObject));
+        unset($commandObject);
+    }
+
+    public static function handle(aBase $handlerObject, string $serializedCommand) : bool
     {
         /** @var aCommand $commandObject */
         $commandObject = unserialize($serializedCommand, ['allowed_classes' => true]);
@@ -32,11 +38,6 @@ abstract class aCommand
     protected function runHandler(aBase $handlerObject) : bool
     {
         $handlerMethod = $this->handlers[$this->command];
-        return $handlerObject->$handlerMethod($this->socketId, $this->data);
-    }
-
-    public function serialize() : string
-    {
-        return serialize($this);
+        return $handlerObject->$handlerMethod($this->targetId, $this->data);
     }
 }
