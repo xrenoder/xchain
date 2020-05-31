@@ -514,10 +514,12 @@ class Server extends aBase implements constMessageParsingResult
             ->getPool() //->setHandler("AliveTask::poolFinishHandler")
             ->toQueue();
 
+        $this->nowTime = time();
+
         if ($this->getQueue()->runOnePool()) {
             $beg = time();
 
-            while ((time() - $beg) < self::ALIVE_TIMEOUT) {
+            while (($this->nowTime - $beg) < self::ALIVE_TIMEOUT) {
                 if ($this->selectAndPoll()) {  // self::MESSAGE_PARSED means daemon is alive
                     return true;
                 }
