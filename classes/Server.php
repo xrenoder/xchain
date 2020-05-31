@@ -109,11 +109,13 @@ class Server extends aBase implements constMessageParsingResult
     }
 
     /**
-     * Running server
+     * Start server
      */
     public function run() : void
     {
         $this->dbg('Server started');
+
+        $app = $this->getApp();
 
         $this->nowTime = time();
         $this->garbTime = time();
@@ -134,12 +136,12 @@ class Server extends aBase implements constMessageParsingResult
             }
 
             if ($this->finishFlag) { 	// if mode 'soft finish' setted
+                $this->dbg('Threads cnt: ' . count($app->getAllThreads()));
                 $this->dbg('Sockets cnt: ' . count($this->sockets));
                 $this->dbg('Sends cnt: ' . count($this->sends));
                 $this->dbg('Recvs cnt: ' . count($this->recvs));
 
-// TODO добавить проверку завершения работы всех воркеров
-                if (!count($this->recvs) && !count($this->sends)) {   // and no have active sockets - go out
+                if (!count($this->recvs) && !count($this->sends) && !count($app->getAllThreads())) {   // and no have active sockets - go out
                     break;
                 }
             }
@@ -598,6 +600,7 @@ class Server extends aBase implements constMessageParsingResult
         foreach($threads as $threadId => $thread) {
             $channel = $app->getChannelFromParent($threadId);
             CommandToWorker::send($channel, CommandToWorker::MUST_DIE_SOFT);
+            $this->log("Command to stop thread $threadId sended");
         }
     }
 
