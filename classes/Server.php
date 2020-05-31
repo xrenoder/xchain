@@ -1,5 +1,5 @@
 <?php
-use parallel\{Channel,Runtime,Events,Events\Event,Events\Event\Type};
+//use parallel\{Channel,Runtime,Events,Events\Event,Events\Event\Type};
 /**
  * Work with sockets: listen, select, accept, read, write
  */
@@ -14,6 +14,7 @@ class Server extends aBase implements constMessageParsingResult
     private const SELECT_TIMEOUT_SEC = SELECT_TIMEOUT_SEC;
     private const SELECT_TIMEOUT_USEC = SELECT_TIMEOUT_USEC;
     private const CONNECT_TIMEOUT = CONNECT_TIMEOUT;
+    private const RW_TIMEOUT = RW_TIMEOUT;
     private const GARBAGE_TIMEOUT = GARBAGE_TIMEOUT;
 
     private const LISTEN_SOCKET_ID = 'lst';
@@ -129,18 +130,6 @@ class Server extends aBase implements constMessageParsingResult
                 $this->garbTime = $this->nowTime;
             }
 
-// TODO проверка истечения таймаутов чтения-записи и отключение просроченых сокетов
-            /*
-                        foreach(static::$sockets as $key => $socket) {
-                            if ($socket[static::KEEP_KEY]) continue;
-
-                            if ((static::$nowTime - $socket[static::BEG_KEY]) > static::CLIENT_TIMEOUT) {
-                                static::log("Client closed by timeout");
-                                static::closeConnection($key);
-                            }
-                        }
-            */
-
             if ($this->finishFlag) { 	// if mode 'soft finish' setted
                 $this->dbg('Sockets cnt: ' . count($this->sockets));
                 $this->dbg('Sends cnt: ' . count($this->sends));
@@ -168,7 +157,25 @@ class Server extends aBase implements constMessageParsingResult
 
         $result = $this->workerEventsPoll();
 
-// sleep if no events from sockets and workers detected
+// проверка истечения таймаутов чтения-записи и отключение сокетов просроченых сессий
+        if ((time() - $this->nowTime) >= self::RW_TIMEOUT) { // check RW-timeout every 1 sec
+            $activeSockets = array_replace($this->recvs, $this->sends);
+
+            foreach ($activeSockets as $socketId => $fd) {
+                if (($socket = $this->getSocket($socketId)) === null) {
+                    throw new Exception("Don't know about socket $socketId");
+                }
+
+                $socketTime = $socket->getTime();
+
+                if ($socketTime !== 0 && ($this->nowTime - $socketTime) > self::RW_TIMEOUT && $socket->getLegatesInWorker() === 0) {
+// TODO отправить в ожидающий продолжения потока данных воркер сообщение об отключении сокета и необходимости обнулить посла
+                    $socket->close();
+                }
+            }
+        }
+
+// sleep if no events from sockets and workers
         if ($this->needSleep) {
             sleep(self::SELECT_TIMEOUT_SEC);
             usleep(self::SELECT_TIMEOUT_USEC);
@@ -192,25 +199,16 @@ class Server extends aBase implements constMessageParsingResult
             $threadId = $event->source;
             $app->getEvents()->addChannel($app->getChannelFromWorker($threadId));
 
+            $this->dbg("Event detected from worker $threadId");
+
 // TODO добавить отправку и обработку служебных сообщений через канал (закрытие воркера при завершении работы, cмена ноды)
             if ($event->type === parallel\Events\Event\Type::Read) {
 //                $this->dbg("Read event");
-                if (is_array($event->value) && count($event->value) === 2) {
-                    [$socketId, $serializedLegate] = $event->value;
 
-                    $this->dbg("Event for socket $socketId detected from worker $threadId");
+                $serializedCommand = $event->value;
 
-                    if (($socket = $this->getSocket($socketId)) === null) {
-                        $this->err("EXCEPTION: " . "Don't know about socket $socketId");
-                        throw new Exception("Don't know about socket $socketId");
-                    }
-
-                    if ($socket->workerResponseHandler($serializedLegate) === self::MESSAGE_PARSED) {
-                        $result = self::MESSAGE_PARSED;
-                    }
-                } else {
-                    $this->err("EXCEPTION: " . "Bad event value from worker: \n" . var_export($event->value, true) . "\n");
-                    throw new Exception("Bad event value from worker: \n" . var_export($event->value, true) . "\n");
+                if (CommandToParent::handle($this, $serializedCommand) === self::MESSAGE_PARSED) {
+                    $result = self::MESSAGE_PARSED;
                 }
             } else {
                 $this->err("EXCEPTION: " . "Bad event from worker: \n" . var_export($event, true) . "\n");
@@ -221,6 +219,18 @@ class Server extends aBase implements constMessageParsingResult
         }
 
         return $result; // self::MESSAGE_PARSED (daemon is alive) or self::MESSAGE_NOT_PARSED
+    }
+
+    public function packetResponseHandler(string $socketId, string $serializedLegate) : bool
+    {
+        $this->dbg("Event for socket $socketId detected");
+
+        if (($socket = $this->getSocket($socketId)) === null) {
+//          $this->err("EXCEPTION: " . "Don't know about socket $socketId");
+            throw new Exception("Don't know about socket $socketId");
+        }
+
+        return $socket->workerResponseHandler($serializedLegate);
     }
 
     /**
@@ -449,8 +459,10 @@ class Server extends aBase implements constMessageParsingResult
 
         if ($toRead) {
             $socket->setRecvs();
+            $socket->setTime();
         } else {
             $socket->setSends();
+            $socket->setTime();
         }
 
         return $socket;

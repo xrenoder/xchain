@@ -82,7 +82,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
         return $me->setId($id);
     }
 
-    public function messageHandler(parallel\Channel $channel) : void
+    public function incomingPacketHandler(parallel\Channel $channel) : void
     {
         $packet = $this->incomingString;
         $this->incomingString = null;
@@ -107,7 +107,9 @@ class SocketLegate extends aBase implements constMessageParsingResult
         $serializedLegate = $this->serializeInWorker();
         $this->getLocator()->dbg("Send SocketLegate from worker " . $this->getLocator()->getName(). " to socket $this->id");
 //        $this->dbg("\n $serializedLegate\n");
-        $channel->send([$this->id, $serializedLegate]);
+
+        $toParent = new CommandToParent(CommandToParent::PACKET_RESPONSE, $this->id, $serializedLegate);
+        $channel->send($toParent->serialize());
     }
 
     public function createResponseString(aMessage $message) : void

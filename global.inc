@@ -42,7 +42,8 @@ define('ALIVE_TIMEOUT', 10);
 define('KILL_TIMEOUT', 10);
 define('SELECT_TIMEOUT_SEC', 0);
 define('SELECT_TIMEOUT_USEC', 50000);
-define('CONNECT_TIMEOUT', 30);
+define('CONNECT_TIMEOUT', 5);
+define('RW_TIMEOUT', 1);
 define('GARBAGE_TIMEOUT', 60);
 
 define('DBG_ONEBYTE_SEND_USLEEP', 0);  // 50000 for byte-to-byte messages sending, 0 for normal mode

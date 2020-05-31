@@ -23,7 +23,8 @@ class Socket extends aBase implements constMessageParsingResult
 
     /** @var int  */
     private $time = null;
-    public function setTime() : self {$this->time = time(); return $this;}
+    public function setTime() : self {$this->time = $this->getServer()->getNowTime(); return $this;}
+    public function getTime() : int {return $this->time;}
 
     /** @var SocketLegate */
     private $legate = null;
@@ -32,6 +33,7 @@ class Socket extends aBase implements constMessageParsingResult
 
     /** @var int  */
     private $legatesInWorker = 0;
+    public function getLegatesInWorker() : int {return $this->legatesInWorker;}
 
     /** @var bool  */
     private $needCloseAfterAllLegatesReturn = false;
@@ -234,7 +236,7 @@ class Socket extends aBase implements constMessageParsingResult
             }
 
             if ($realLength) {
-                $this->outData = (substr($this->outData, $realLength));
+                $this->outData = substr($this->outData, $realLength);
             }
 
             $this->dbg('SEND ' . $this->id . ": $realLength bytes");
@@ -243,6 +245,8 @@ class Socket extends aBase implements constMessageParsingResult
         }
 
         if (!$this->outData) {
+            $this->time = 0;
+
             if ($this->legate->needCloseAfterSend()) {
                 $this->dbg("Worker command: close socket after send");
                 $this->close();
@@ -297,6 +301,8 @@ class Socket extends aBase implements constMessageParsingResult
         $this->dbg('RECV ' . $this->getId() . ': '. strlen($data) . ' bytes');
 
         $this->legate->setIncomingStringTime($this->getServer()->getNowTime());
+// TODO включить обработку входящего пакета для защиты от зловредной инъекции
+// TODO провести тщательное тестирование на возможность зловредной инъекции
         $this->legate->setIncomingString($data);
 
         /** @var App $locator */
@@ -312,14 +318,17 @@ class Socket extends aBase implements constMessageParsingResult
         $serializedLegate = $this->legate->serializeInSocket();
         $this->getLocator()->dbg("Send legate from socket $this->id to worker $this->threadId");
 //        $this->dbg("\n $serializedLegate\n");
-        $channel->send([$this->legate->getId(), $serializedLegate]);
+
+        $toWorker = new CommandToWorker(CommandToWorker::INCOMING_PACKET, $this->legate->getId(), $serializedLegate);
+        $channel->send($toWorker->serialize());
 
         $this->legatesInWorker++;
 
         return false;
     }
 
-    public function workerResponseHandler($serializedLegate) {
+    public function workerResponseHandler($serializedLegate) : bool
+    {
         /** @var App $locator */
         $locator = $this->getLocator();
 
@@ -342,6 +351,7 @@ class Socket extends aBase implements constMessageParsingResult
             $this->dbg("Free worker " . $this->threadId);
             $locator->decThreadBusy($this->threadId);
             $this->threadId = null;
+            $this->time = 0;
         }
 
         if ($legate->isBadData()) {
