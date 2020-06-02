@@ -99,7 +99,7 @@ class DBA extends aBase
     {
         $this->lockEx();
 
-        if ($this->check(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH) !== false) {
+        if ($this->check(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH) === false) {
 // initialize integrity records
             $val = 'init';
 
