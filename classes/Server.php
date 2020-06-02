@@ -175,7 +175,7 @@ class Server extends aBase implements constMessageParsingResult
                 $socketTime = $socket->getTime();
 
                 if ($socketTime !== 0 && ($this->nowTime - $socketTime) > self::RW_TIMEOUT && $socket->getLegatesInWorker() === 0) {
-                    $socket->close('by RW-timeout');
+                    $socket->close(' by RW-timeout');
                 }
             }
         }
