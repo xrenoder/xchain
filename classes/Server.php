@@ -481,11 +481,11 @@ class Server extends aBase implements constMessageParsingResult
 
         if ($toRead) {
             $socket->setRecvs();
-            $socket->setTime();
         } else {
             $socket->setSends();
-            $socket->setTime();
         }
+
+        $socket->setTime();
 
         return $socket;
     }
