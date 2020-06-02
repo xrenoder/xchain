@@ -129,12 +129,6 @@ class Server extends aBase implements constMessageParsingResult
 
             $this->selectAndPoll();
 
-// regular garbage collecting
-            if (($this->nowTime - $this->garbTime) >= self::GARBAGE_TIMEOUT) {
-                $this->getLocator()->garbageCollect();
-                $this->garbTime = $this->nowTime;
-            }
-
             if ($this->finishFlag) { 	// if mode 'soft finish' setted
                 $this->dbg('Threads cnt: ' . count($app->getAllThreads()));
                 $this->dbg('Sockets cnt: ' . count($this->sockets));
@@ -174,16 +168,19 @@ class Server extends aBase implements constMessageParsingResult
                 $socketTime = $socket->getTime();
 
                 if ($socketTime !== 0 && ($this->nowTime - $socketTime) > self::RW_TIMEOUT && $socket->getLegatesInWorker() === 0) {
-// TODO отправить в ожидающий продолжения потока данных воркер сообщение об отключении сокета и необходимости обнулить посла
                     $socket->close();
                 }
             }
         }
 
-// sleep if no events from sockets and workers
-        if ($this->needSleep) {
-            sleep(self::SELECT_TIMEOUT_SEC);
-            usleep(self::SELECT_TIMEOUT_USEC);
+        if ($this->needSleep) {                                                 // sleep if no events from sockets and workers
+            if (($this->nowTime - $this->garbTime) >= self::GARBAGE_TIMEOUT) {  // regular garbage collecting
+                $this->getApp()->garbageCollect();
+                $this->garbTime = $this->nowTime;
+            } else {
+                sleep(self::SELECT_TIMEOUT_SEC);
+                usleep(self::SELECT_TIMEOUT_USEC);
+            }
         }
 
         return $result;  // self::MESSAGE_PARSED (daemon is alive) or self::MESSAGE_NOT_PARSED
@@ -244,7 +241,6 @@ class Server extends aBase implements constMessageParsingResult
 
     public function workerImFinishHandler(string $threadId, ?string $unused = null) : bool
     {
-// TODO возможно, при завершении одного потока нужно гасить весь скрипт
         $this->getApp()->unsetThread($threadId);
 
         foreach ($this->sockets as $socketId => $socket) {
@@ -252,6 +248,8 @@ class Server extends aBase implements constMessageParsingResult
                 $socket->close(" after his worker closed");
             }
         }
+
+        $this->softFinish();    // when one worker stopped, all script finished
 
         return self::MESSAGE_NOT_PARSED;
     }
@@ -338,7 +336,7 @@ class Server extends aBase implements constMessageParsingResult
                     $acceptedSocket = $this->newReadSocket(
                         $fd,
                         Host::create(
-                            $this->getLocator(),
+                            $this->getApp(),
                             $this->getListenHost()->getTransport(),
                             stream_socket_get_name($fd,true)
                         )
@@ -557,11 +555,30 @@ class Server extends aBase implements constMessageParsingResult
     }
 
     /**
+     * Finish server with waiting end of current operations
+     */
+    public function softFinish() : void
+    {
+        $this->finishFlag = true;
+        $this->closeSocket(self::LISTEN_SOCKET_ID);
+
+// soft close all workers
+        $app = $this->getApp();
+        $threads = $app->getAllThreads();
+
+        foreach($threads as $threadId => $thread) {
+            $channel = $app->getChannelFromParent($threadId);
+            CommandToWorker::send($channel, CommandToWorker::MUST_DIE_SOFT);
+            $this->log("Command to soft finish thread $threadId sended");
+        }
+    }
+
+    /**
      * Finish server without waiting end of current operations
      */
     public function hardFinish() : void
     {
-        $this->closeSocket(self::LISTEN_SOCKET_ID);       // close first for not accepting new clients
+        $this->closeSocket(self::LISTEN_SOCKET_ID);       // close first for not accepting new connections
 
         foreach ($this->sockets as $id => $socket) {
             $this->closeSocket($id);
@@ -584,25 +601,6 @@ class Server extends aBase implements constMessageParsingResult
 
         posix_kill($app->getPid(), SIGKILL);
         exit(0);
-    }
-
-    /**
-     * Finish server with waiting end of current operations
-     */
-    public function softFinish() : void
-    {
-        $this->finishFlag = true;
-        $this->closeSocket(self::LISTEN_SOCKET_ID);
-
-// soft close all workers
-        $app = $this->getApp();
-        $threads = $app->getAllThreads();
-
-        foreach($threads as $threadId => $thread) {
-            $channel = $app->getChannelFromParent($threadId);
-            CommandToWorker::send($channel, CommandToWorker::MUST_DIE_SOFT);
-            $this->log("Command to soft finish thread $threadId sended");
-        }
     }
 
     public function freeConnected(Socket $socket, Host $host, string $id) : self

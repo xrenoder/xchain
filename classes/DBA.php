@@ -4,15 +4,30 @@
  */
 class DBA extends aBase
 {
+// TODO сделать обработку ошибок
     protected static $dbgLvl = Logger::DBG_DBA;
 
-    // TODO сделать обработку ошибок
-    private const TRANS_FD = 'fd';
-    private const TRANS_OP = 'op';
-    private const TRANS_ID = 'id';
-    private const TRANS_VAL = 'val';
+    private const LOCK_EX_MODE = true;
+    private const LOCK_SH_MODE = false;
+    private const LOCK_UN_MODE = null;
+
+    private const RECORD_FIELD = 'rec';
+    private const OPERATION_FIELD = 'op';
+
+    private const RECORD_TABLE = 'tab';
+    private const RECORD_ID = 'id';
+    private const RECORD_VAL = 'val';
 
     private const TRANS_KEY = 'tkey';
+
+    private const INTEGRITY_TABLE = DB_INTEGRITY_TABLE;
+    private const INTEGRITY_HASH_ALGO = 'md4';
+    private const INTEGRITY_LAST_RECORD_TABLE = 'lastRecordTable';
+    private const INTEGRITY_LAST_RECORD_ID = 'lastRecordId';
+    private const INTEGRITY_LAST_RECORD_VALUE = 'lastRecordValue';
+    private const INTEGRITY_LAST_RECORD_HASH = 'lastRecordHash';
+
+    private $integrityPassed = false;
 
     protected static $dbaMode = "cd";
 
@@ -38,10 +53,15 @@ class DBA extends aBase
 
     private $fdDbLock = null;
 
+    /** @var bool */
+    private $transLockMode = null;
+
     private $transactions = array();
     private $transactionStack = array();
 
     private $dbhTables = array();
+
+
 
     /**
      * @param App $locator
@@ -50,10 +70,15 @@ class DBA extends aBase
      * @param string $lockExt
      * @return self
      */
-    public static function create(aLocator $locator, string $handler, string $dbPath, string $dbExt, string $lockFile, string $lockExt) : self
+    public static function create(
+        aLocator $locator,
+        string $handler,
+        string $dbPath,
+        string $dbExt,
+        string $lockFile,
+        string $lockExt
+    ) : self
     {
-// TODO добавить проверку целостности базы данных (хэш последней записи транзакции, имя таблицы и ключ строки)
-
         $me = new static($locator);
 
         $me
@@ -70,7 +95,38 @@ class DBA extends aBase
         return $me;
     }
 
-    public function inTransaction() : bool
+    public function integrity() : bool
+    {
+        $this->lockEx();
+
+        if ($this->check(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH) !== false) {
+// initialize integrity records
+            $val = 'init';
+
+            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, self::INTEGRITY_TABLE);
+            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, self::INTEGRITY_LAST_RECORD_VALUE);
+            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_VALUE, $val);
+
+            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_VALUE, $val));
+        }
+// check DB for integrity
+
+        $table = $this->fetch(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE);
+        $id = $this->fetch(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID);
+        $val = $this->fetch($table, $id);
+
+        $hash = $this->fetch(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH);
+
+        $this->unlock();
+
+        if ($hash === $this->hash($table, $id, $val)) {
+            $this->integrityPassed = true;
+        }
+
+        return $this->integrityPassed;
+    }
+
+    private function inTransaction() : bool
     {
         if (!count($this->transactions)) {
             return false;
@@ -88,6 +144,8 @@ class DBA extends aBase
         $transactionKey = self::TRANS_KEY . count($this->transactions);
         $this->transactions[$transactionKey] = true;
 
+        $this->dbg("DB transaction $transactionKey begin");
+
         return $transactionKey;
     }
 
@@ -98,18 +156,48 @@ class DBA extends aBase
         }
 
         if (!count($this->transactions)) {
+            $this->dbg("DB transaction $transactionKey will be commited");
+
+            $table = null;
+            $id = null;
+            $val = null;
+
+            $recordsCnt = 0;
+
             foreach($this->transactionStack as $record) {
-                $table = $record[self::TRANS_FD];
-                $operation = $record[self::TRANS_OP];
-                $id = $record[self::TRANS_ID];
-                $val = $record[self::TRANS_VAL];
+                $operation = $record[self::OPERATION_FIELD];
+
+                $table = $record[self::RECORD_FIELD][self::RECORD_TABLE];
+                $id = $record[self::RECORD_FIELD][self::RECORD_ID];
+                $val = $record[self::RECORD_FIELD][self::RECORD_VAL];
+
+// fill data for integrity checking
+                $recordsCnt++;
+
+                if ($recordsCnt === 1) {
+                    $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
+                    $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
+                }
 
                 $this->$operation($table, $id, $val);
+            }
+
+            if ($recordsCnt > 1) {
+                $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
+                $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
+            }
+
+            if ($recordsCnt > 0) {
+                $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($table, $id, $val));
             }
 
             $this->unlock();
 
             $this->transactionStack = array();
+
+            $this->dbg("DB transaction $transactionKey commited sussesful");
+        } else {
+            $this->dbg("DB transaction $transactionKey ended, but still inside earlier transaction");
         }
     }
 
@@ -164,7 +252,7 @@ class DBA extends aBase
             $this->lockSh();
         } else {
             $isLock = false;
-            $cacheId = $table . $id;
+            $cacheId = $this->getCacheId($table, $id);
 
             if (isset($this->transactionStack[$cacheId])) {
                 $result = true;
@@ -193,10 +281,10 @@ class DBA extends aBase
             $this->lockSh();
         } else {
             $isLock = false;
-            $cacheId = $table . $id;
+            $cacheId = $this->getCacheId($table, $id);
 
             if (isset($this->transactionStack[$cacheId])) {
-                $result = $this->transactionStack[$cacheId][self::TRANS_VAL];
+                $result = $this->transactionStack[$cacheId][self::RECORD_FIELD][self::RECORD_VAL];
             }
         }
 
@@ -213,17 +301,17 @@ class DBA extends aBase
         return $result;
     }
 
-    public function insert(string $table, string $id, string $val)
+    public function insert(string $table, string $id, string $val) : void
     {
-        $this->writing('realInsert', $table, $id, $val);
+        $this->write('realInsert', $table, $id, $val);
     }
 
-    public function update(string $table, string $id, string $val)
+    public function update(string $table, string $id, string $val) : void
     {
-        $this->writing('realUpdate', $table, $id, $val);
+        $this->write('realUpdate', $table, $id, $val);
     }
 
-    public function close()
+    public function close() : void
     {
         $this->unlock();
         $this->lockFileClose();
@@ -233,7 +321,7 @@ class DBA extends aBase
         }
     }
 
-    private function writing(string $operation, string $table, string $id, string $val)
+    private function write(string $operation, string $table, string $id, string $val) : void
     {
         if (!$this->inTransaction()) {
             $this->lockEx();
@@ -242,17 +330,22 @@ class DBA extends aBase
         } else {
             $record = array();
 
-            $record[self::TRANS_FD] = $table;
-            $record[self::TRANS_OP] = $operation;
-            $record[self::TRANS_ID] = $id;
-            $record[self::TRANS_VAL] = $val;
+            $record[self::RECORD_TABLE] = $table;
+            $record[self::RECORD_ID] = $id;
+            $record[self::RECORD_VAL] = $val;
 
-            $cacheId = $table . $id;
-            $this->transactionStack[$cacheId] = $record;
+            $cacheId = $this->getCacheId($table, $id);
+
+            if (!isset($this->transactionStack[$cacheId])) {
+                $this->transactionStack[$cacheId][self::OPERATION_FIELD] = $operation;
+            }
+
+            $this->transactionStack[$cacheId][self::RECORD_FIELD] = $record;
+
         }
     }
 
-    private function realInsert(string $table, string $id, string $val)
+    private function realInsert(string $table, string $id, string $val) : void
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
@@ -261,7 +354,7 @@ class DBA extends aBase
         }
     }
 
-    public function realUpdate(string $table, string $id, string $val)
+    public function realUpdate(string $table, string $id, string $val) : void
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
@@ -270,7 +363,7 @@ class DBA extends aBase
         }
     }
 
-    private function tableOpen(string $table)
+    private function tableOpen(string $table) : void
     {
         $tableFile = $this->dbPath . $table . $this->dbExt;
 
@@ -282,6 +375,7 @@ class DBA extends aBase
     private function lockEx(bool $checkOnly = false) : bool
     {
         if (!$this->fdDbLock) $this->lockFileOpen();
+        else if ($this->transLockMode === self::LOCK_EX_MODE) return true;
 
         if ($checkOnly) {
             $flag = LOCK_EX | LOCK_NB;
@@ -289,12 +383,15 @@ class DBA extends aBase
             $flag = LOCK_EX;
         }
 
+        $this->transLockMode = self::LOCK_EX_MODE;
+
         return flock($this->fdDbLock, $flag);
     }
 
     private function lockSh(bool $checkOnly = false) : bool
     {
         if (!$this->fdDbLock) $this->lockFileOpen();
+        else if ($this->transLockMode !== self::LOCK_UN_MODE) return true;
 
         if ($checkOnly) {
             $flag = LOCK_SH | LOCK_NB;
@@ -302,12 +399,17 @@ class DBA extends aBase
             $flag = LOCK_SH;
         }
 
+        $this->transLockMode = self::LOCK_SH_MODE;
+
         return flock($this->fdDbLock, $flag);
     }
 
     private function unlock() : bool
     {
         if (!$this->fdDbLock) $this->lockFileOpen();
+        else if ($this->transLockMode === self::LOCK_UN_MODE) return true;
+
+        $this->transLockMode = self::LOCK_UN_MODE;
 
         return flock($this->fdDbLock, LOCK_UN);
     }
@@ -331,5 +433,15 @@ class DBA extends aBase
     {
         if (!$this->fdDbLock) return true;
         return fclose($this->fdDbLock);
+    }
+
+    private function hash(string $table, string $id, string $val) : string
+    {
+        return hash(self::INTEGRITY_HASH_ALGO, $table . "_" . $id . "_" . $val, true);
+    }
+
+    private function getCacheId(string $table, string $id) : string
+    {
+        return $table . "*" . $id;
     }
 }

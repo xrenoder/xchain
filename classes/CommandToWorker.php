@@ -14,5 +14,6 @@ class CommandToWorker extends aCommand
         self::INCOMING_PACKET => 'serverIncomingPacketHandler',   // $worker->serverIncomingPacketHandler($socketId, $serializedLegate) : bool
         self::MUST_DIE_SOFT => 'serverMustDieSoftHandler',        // $worker->serverMustDieSoftHandler(null, null) : bool
         self::MUST_DIE_HARD => 'serverMustDieHardHandler',        // $worker->serverMustDieHardHandler(null, null) : bool
+        self::SOCKET_CLOSED => 'serverSocketClosedHandler',        // $worker->serverSocketClosedHandler($socketId, null) : bool
     );
 }

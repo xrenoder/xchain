@@ -1,6 +1,6 @@
 <?php
 /**
- * Base class for classes of messages between nodes
+ * Base classenum for classes of messages between nodes
  */
 abstract class aMessage extends aFieldSet implements constMessageParsingResult
 {
@@ -73,7 +73,7 @@ abstract class aMessage extends aFieldSet implements constMessageParsingResult
         $enumClass = $me->getEnumClass();
 
         if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for class " . $me->getName());
+            throw new Exception("Bad code - unknown ID (not found or not exclusive) for classenum " . $me->getName());
         }
 
         $me
@@ -109,7 +109,7 @@ abstract class aMessage extends aFieldSet implements constMessageParsingResult
             return $className::create($parent, $outData);
         }
 
-        throw new Exception("Bad code - unknown message class for ID " . $id);
+        throw new Exception("Bad code - unknown message classenum for ID " . $id);
     }
 
     /**

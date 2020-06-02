@@ -29,7 +29,8 @@ define('LOG_EXT', '.log');
 
 define('DBA_HANDLER', 'qdbm');
 define('DBA_EXT', '.qdbm');
-define('DBA_LOCK_FILE', 'db');           // lock file for database transactions
+define('DBA_LOCK_FILE', 'db');                          // lock file for database transactions
+define('DB_INTEGRITY_TABLE', 'db.integrity');           // table for DB integrity checking data
 define('LOCK_EXT', '.lock');
 
 define('CLASS_PATH', XCHAIN_PATH . 'classes' . DS);

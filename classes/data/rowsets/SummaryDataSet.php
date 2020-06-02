@@ -40,8 +40,6 @@ class SummaryDataSet extends aDbRowsSet
             ->fillRows()
             ->getLocator()->setSummaryDataSet($me);
 
-// TODO точно ли ее нужно вызывать в воркерах - как будут синхронизироваться между собой
-// либо сделать отдельные воркеры для обработки блоков и записи в БД
         return $me;
     }
 }

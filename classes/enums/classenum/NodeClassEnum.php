@@ -1,7 +1,7 @@
 <?php
 /**
  * Enumeration of nodes
- * items:   "node type" => "node class name"
+ * items:   "node type" => "node classenum name"
  * data:    "node type" => array(
  *              'canConnect' => flags of nodes, to whom this node can connect
  *              'canAccept' =>  flags of nodes, from whom this node can accept connection

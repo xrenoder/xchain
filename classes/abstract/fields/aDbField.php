@@ -16,6 +16,6 @@ abstract class aDbField extends aField
             return $className::create($row, $offset);
         }
 
-        throw new Exception("Bad code - unknown DB field class for fixed ID " . $id);
+        throw new Exception("Bad code - unknown DB field classenum for fixed ID " . $id);
     }
 }

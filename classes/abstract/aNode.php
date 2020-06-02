@@ -1,6 +1,6 @@
 <?php
 /**
- * Base class for node types
+ * Base classenum for node types
  */
 abstract class aNode extends aBaseEnum
 {
@@ -31,7 +31,7 @@ abstract class aNode extends aBaseEnum
         $enumClass = $me->getEnumClass();
 
         if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field class " . $me->getName());
+            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field classenum " . $me->getName());
         }
 
         $me
@@ -52,6 +52,6 @@ abstract class aNode extends aBaseEnum
             return $className::create($locator);
         }
 
-        throw new Exception("Bad code - unknown node class for ID " . $id);
+        throw new Exception("Bad code - unknown node classenum for ID " . $id);
     }
 }

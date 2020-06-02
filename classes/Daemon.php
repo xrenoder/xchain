@@ -142,8 +142,6 @@ class Daemon extends aBase
 
         pcntl_async_signals(true);
 
-// TODO сделать обработку сигналов в воркерах
-
 // write new daemon pid to file and unlock them - we are ready for working
         ftruncate($fd, 0);
         fwrite($fd, $pid);
@@ -178,8 +176,6 @@ class Daemon extends aBase
                 $worker->setMyNode(aNode::spawn($worker, NodeClassEnum::CLIENT_ID));
 // load node private key
                 $worker->setMyAddress(Address::createFromWallet($worker, MY_ADDRESS, WALLET_PATH));
-// load chain state data
-//                SummaryDataSet::create($worker);
 
 // start worker loop
                 $worker->run($channelRecv, $channelSend);

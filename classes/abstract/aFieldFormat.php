@@ -46,7 +46,7 @@ abstract class aFieldFormat extends aBaseEnum
         $enumClass = $me->getEnumClass();
 
         if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field format class " . $me->getName());
+            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field format classenum " . $me->getName());
         }
 
         $me
@@ -69,7 +69,7 @@ abstract class aFieldFormat extends aBaseEnum
             return $className::create($parent, $offset);
         }
 
-        throw new Exception("Bad code - unknown field format class for ID " . $id);
+        throw new Exception("Bad code - unknown field format classenum for ID " . $id);
     }
 
     /* can be overrided */

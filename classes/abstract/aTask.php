@@ -1,6 +1,6 @@
 <?php
 /**
- * Base class for task classes
+ * Base classenum for task classes
  */
 
 abstract class aTask extends aBase

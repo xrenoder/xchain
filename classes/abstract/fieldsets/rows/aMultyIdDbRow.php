@@ -20,7 +20,7 @@ abstract class aMultyIdDbRow extends aDbRow
     public function setId($val) : aFieldSet
     {
         if ($this->table === null) {
-            throw new Exception($this->getName() . " Bad code - table must be defined for multy-ID row in row class (for ID $this->id)");
+            throw new Exception($this->getName() . " Bad code - table must be defined for multy-ID row in row classenum (for ID $this->id)");
         }
 
         $this->id = $val;

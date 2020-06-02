@@ -63,7 +63,7 @@ class Host extends aBase
     public static function create(aLocator $locator, string $transport, string $pair) : self
     {
         if (!in_array($transport, self::$transports)) {
-            throw new Exception("Host class: Bad transport $transport");
+            throw new Exception("Host classenum: Bad transport $transport");
         }
 
         [$host, $port] = explode(':', trim($pair));

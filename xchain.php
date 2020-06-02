@@ -51,6 +51,14 @@ try {
 // set DBA
     DBA::create($app, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
 
+// check DB integrity
+    if ($app->getDba()->integrity() === true) {
+        $this->log("DB integrity test passed");
+    } else {
+// TODO продумать действия при нарушении целостности БД (например, удалить все таблицы, после чего заново получить и обработать блоки)
+        $this->log("DB integrity test failed");
+    }
+
 // set current node as Client (always, before full syncronization)
     $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT_ID));
 

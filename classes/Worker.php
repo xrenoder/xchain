@@ -55,15 +55,7 @@ class Worker extends aLocator implements constMessageParsingResult
             || $this->legates[$socketId]->isBadData()
             || $this->legates[$socketId]->needCloseSocket()
         ) {
-            unset($this->legates[$socketId]);
-            $this->legatesCounter--;
-            $this->dbg("Worker " . $this->getName() . " unattach legate from $socketId");
-// TODO продумать более тщательно сборку мусора в воркерах
-            $this->garbageCollect();
-        }
-
-        if ($this->mustDieLater && $this->legatesCounter === 0) {
-            $this->mustDieNow = true;
+            $this->serverSocketClosedHandler($socketId);
         }
 
         return true;
@@ -80,6 +72,22 @@ class Worker extends aLocator implements constMessageParsingResult
     {
         $this->log("Worker " . $this->getName() . " will be hard finished");
         $this->mustDieNow = true;
+        return true;
+    }
+
+    public function serverSocketClosedHandler(string $socketId = null, ?string $unused = null) : bool
+    {
+        unset($this->legates[$socketId]);
+        $this->legatesCounter--;
+
+        $this->garbageCollect();
+
+        if ($this->mustDieLater && $this->legatesCounter === 0) {
+            $this->mustDieNow = true;
+        }
+
+        $this->dbg("Worker " . $this->getName() . " unattach legate from $socketId");
+
         return true;
     }
 }

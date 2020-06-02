@@ -6,6 +6,7 @@ class Socket extends aBase implements constMessageParsingResult
 {
     protected static $dbgLvl = Logger::DBG_SOCK;
 
+    public function getApp() : App {return $this->getLocator();}
     public function getServer() : Server {return $this->getParent();}
 
     /** @var resource */
@@ -61,7 +62,7 @@ class Socket extends aBase implements constMessageParsingResult
     /** @var aTask  */
     private $task;
     public function setTask(aTask $val) : self {$this->task = $val; $this->legate->setMyNodeId($this->task->getPool()->getMyNodeId()); return $this;}
-    public function unsetTask() : self {$this->task = null; $this->legate->setMyNodeId($this->getLocator()->getMyNode()->getId()); return $this;}
+    public function unsetTask() : self {$this->task = null; $this->legate->setMyNodeId($this->getApp()->getMyNode()->getId()); return $this;}
     public function getTask() : ?aTask {return $this->task;}
 
     /**
@@ -306,30 +307,30 @@ class Socket extends aBase implements constMessageParsingResult
 // TODO провести тщательное тестирование на возможность зловредной инъекции
         $this->legate->setIncomingString($data);
 
-        /** @var App $locator */
-        $locator = $this->getLocator();
+        /** @var App $app */
+        $app = $this->getApp();
 
         if ($this->threadId === null) {
-            $this->threadId = $locator->getBestThreadId();
+            $this->threadId = $app->getBestThreadId();
         }
 
-        $locator->incThreadBusy($this->threadId);
-        $channel = $locator->getChannelFromParent($this->threadId);
+        $app->incThreadBusy($this->threadId);
+        $channel = $app->getChannelFromParent($this->threadId);
 
         $serializedLegate = $this->legate->serializeInSocket();
         CommandToWorker::send($channel, CommandToWorker::INCOMING_PACKET, $this->legate->getId(), $serializedLegate);
         $this->legatesInWorker++;
 
-        $this->getLocator()->dbg("Send legate from socket $this->id to worker $this->threadId");
+        $this->getApp()->dbg("Send legate from socket $this->id to worker $this->threadId");
 //        $this->dbg("\n $serializedLegate\n");
 
         return false;
     }
 
-    public function workerResponseHandler($serializedLegate) : bool
+    public function workerResponseHandler(string $serializedLegate) : bool
     {
-        /** @var App $locator */
-        $locator = $this->getLocator();
+        /** @var App $app */
+        $app = $this->getApp();
 
 //        $this->dbg("Socket legate from worker:\n $serializedLegate\n");
 
@@ -348,7 +349,7 @@ class Socket extends aBase implements constMessageParsingResult
 
         if ($result === self::MESSAGE_PARSED || $legate->isBadData() || $legate->needCloseSocket()) {
             $this->dbg("Free worker " . $this->threadId);
-            $locator->decThreadBusy($this->threadId);
+            $app->decThreadBusy($this->threadId);
             $this->threadId = null;
             $this->time = 0;
         }
@@ -404,6 +405,12 @@ class Socket extends aBase implements constMessageParsingResult
              ->busyConnected($host, $id);
 
         unset($this->task);
+
+        if ($this->threadId !== null) {
+            $channel = $this->getApp()->getChannelFromParent($this->threadId);
+            CommandToWorker::send($channel, CommandToWorker::SOCKET_CLOSED, $this->legate->getId());
+            $this->log("Message about closing socket $this->id to thread $this->threadId sended");
+        }
 
         $this->dbg("Socket $id closed" . $logStr);
 

@@ -3,6 +3,7 @@
 
 interface constDbTables
 {
+// TODO перенести все таблицы в enum, для удаления в случае нарушения целостности
     public const SUMMARY_TABLE = 'summary';               // actual fixed blockchain data (last prepared block, last known block, rules, etc); used for all non-client nodes
 
     public const ADDR_PUBKEYS_TABLE = 'addr.pubkeys';    // "address" => "publicKey"; used for all non-client nodes

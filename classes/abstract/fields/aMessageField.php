@@ -1,6 +1,6 @@
 <?php
 /**
- * Base class for formats of message
+ * Base classenum for formats of message
  */
 abstract class aMessageField extends aField
 {
@@ -22,6 +22,6 @@ abstract class aMessageField extends aField
             return $className::create($message, $offset);
         }
 
-        throw new Exception("Bad code - unknown message field class for ID " . $id);
+        throw new Exception("Bad code - unknown message field classenum for ID " . $id);
     }
 }

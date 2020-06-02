@@ -1,6 +1,6 @@
 <?php
 /**
- * Application class
+ * Application classenum
  */
 class App extends aLocator
 {

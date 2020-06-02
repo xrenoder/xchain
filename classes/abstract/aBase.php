@@ -1,6 +1,6 @@
 <?php
 /**
- * Base class for other application classes, uses App class (with Logger, Daemon, Server, Node etc)
+ * Base classenum for other application classes, uses App classenum (with Logger, Daemon, Server, Node etc)
  */
 abstract class aBase implements constMessageDataIds
 {

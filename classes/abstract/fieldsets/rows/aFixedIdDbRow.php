@@ -21,7 +21,7 @@ abstract class aFixedIdDbRow extends aDbRow
         $enumClass = $me->getEnumClass();
 
         if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for class " . $me->getName());
+            throw new Exception("Bad code - unknown ID (not found or not exclusive) for classenum " . $me->getName());
         }
 
         $me
@@ -38,7 +38,7 @@ abstract class aFixedIdDbRow extends aDbRow
             return $className::create($parent);
         }
 
-        throw new Exception("Bad code - unknown fixed-ID row class for ID " . $id);
+        throw new Exception("Bad code - unknown fixed-ID row classenum for ID " . $id);
     }
 
     public function setId($val) : self

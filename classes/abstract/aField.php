@@ -28,7 +28,7 @@ abstract class aField extends aBaseEnum
         $enumClass = $me->getEnumClass();
 
         if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field class " . $me->getName());
+            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field classenum " . $me->getName());
         }
 
         $me

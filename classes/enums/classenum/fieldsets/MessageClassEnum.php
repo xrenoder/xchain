@@ -1,7 +1,7 @@
 <?php
 /**
  * Enumeration of messages
- * items:   "message type ID" => "message class"
+ * items:   "message type ID" => "message classenum"
  * data:    "message type ID" => array(
  *              "maxLength" => maximal length of message
  *          )

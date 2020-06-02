@@ -1,6 +1,6 @@
 <?php
 /**
- * Base class for all enumerations
+ * Base classenum for all enumerations
  */
 
 abstract class aEnum
