@@ -18,7 +18,7 @@ class DBA extends aBase
     private const RECORD_ID = 'id';
     private const RECORD_VAL = 'val';
 
-    private const TRANS_KEY = 'tkey';
+    private const TRANS_KEY = 'TRANS_';
 
     private const INTEGRITY_TABLE = DB_INTEGRITY_TABLE;
     private const INTEGRITY_HASH_ALGO = 'md4';
@@ -195,7 +195,7 @@ class DBA extends aBase
 
             $this->transactionStack = array();
 
-            $this->dbg("DB transaction $transactionKey commited sussesful");
+            $this->dbg("DB transaction $transactionKey commit suss");
         } else {
             $this->dbg("DB transaction $transactionKey ended, but still inside earlier transaction");
         }
