@@ -81,6 +81,9 @@ class Server extends aBase implements constMessageParsingResult
     /** @var int */
     private $garbTime;
 
+    /** @var int */
+    private $rwTime;
+
     /** @var bool */
     private $finishFlag = false;
 
@@ -118,7 +121,8 @@ class Server extends aBase implements constMessageParsingResult
         $app = $this->getApp();
 
         $this->nowTime = time();
-        $this->garbTime = time();
+        $this->garbTime = $this->nowTime;
+        $this->rwTime = $this->nowTime;
 
         $this->listen();
 
@@ -157,7 +161,9 @@ class Server extends aBase implements constMessageParsingResult
         $result = $this->workerEventsPoll();
 
 // проверка истечения таймаутов чтения-записи и отключение сокетов просроченых сессий
-        if ((time() - $this->nowTime) >= self::RW_TIMEOUT) { // check RW-timeout every 1 sec
+        if (($this->nowTime - $this->rwTime) >= self::RW_TIMEOUT) { // check RW-timeout every 1 sec
+            $this->rwTime = $this->nowTime;
+
             $activeSockets = array_replace($this->recvs, $this->sends);
 //            unset($activeSockets[self::LISTEN_SOCKET_ID]);
 
