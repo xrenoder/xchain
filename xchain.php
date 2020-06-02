@@ -53,10 +53,10 @@ try {
 
 // check DB integrity
     if ($app->getDba()->integrity() === true) {
-        $this->log("DB integrity test passed");
+        $app->log("DB integrity test passed");
     } else {
 // TODO продумать действия при нарушении целостности БД (например, удалить все таблицы, после чего заново получить и обработать блоки)
-        $this->log("DB integrity test failed");
+        $app->log("DB integrity test failed");
     }
 
 // set current node as Client (always, before full syncronization)
@@ -96,7 +96,7 @@ try {
     foreach($threads as $threadId => $thread) {
         $channel = $app->getChannelFromParent($threadId);
         CommandToWorker::send($channel, CommandToWorker::MUST_DIE_HARD);
-        $this->log("Command to hard finish thread $threadId sended");
+        $app->log("Command to hard finish thread $threadId sended");
     }
 
     sleep(1);
