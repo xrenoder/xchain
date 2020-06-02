@@ -165,7 +165,7 @@ class Server extends aBase implements constMessageParsingResult
             $this->rwTime = $this->nowTime;
 
             $activeSockets = array_replace($this->recvs, $this->sends);
-//            unset($activeSockets[self::LISTEN_SOCKET_ID]);
+            unset($activeSockets[self::LISTEN_SOCKET_ID]);
 
             foreach ($activeSockets as $socketId => $fd) {
                 if (($socket = $this->getSocket($socketId)) === null) {
