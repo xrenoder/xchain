@@ -504,7 +504,7 @@ class Server extends aBase
     {
         if (!$socket = $this->getSocket($id)) return;
 
-        $socket->close();
+        $socket->close(' by finish-method');
         unset($socket);
     }
 
@@ -554,7 +554,7 @@ class Server extends aBase
             }
 
             foreach ($this->sockets as $id => $socket) {
-                $this->getSocket($id)->close();
+                $this->getSocket($id)->close(' ALIVE-TIMEOUT failed');
             }
         }
 
@@ -660,7 +660,7 @@ class Server extends aBase
 
         $id = array_key_first($this->freeConnectedTime);
 
-        $this->getSocket($id)->close();
+        $this->getSocket($id)->close(' by removeUnusedConnected');
 
         return true;
     }
@@ -676,7 +676,7 @@ class Server extends aBase
 
         $id = array_key_first($this->freeAcceptedTime[0]);
 
-        $this->getSocket($id)->close();
+        $this->getSocket($id)->close(' by removeUnusedAccepted');
 
         return true;
     }

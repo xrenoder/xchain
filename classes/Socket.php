@@ -251,7 +251,7 @@ class Socket extends aBase
 
             if ($this->legate->needCloseAfterSend()) {
                 $this->dbg("Worker command: close socket after send");
-                $this->close();
+                $this->close('by needCloseAfterSend');
             } else {
                 $this
                     ->unsetSends()
@@ -369,7 +369,7 @@ class Socket extends aBase
                 $this->close(" from remote side" . $addLogStr);
             } else {
                 $this->dbg("Worker command: close socket");
-                $this->close();
+                $this->close(' by worker command');
             }
         } else if ($legate->getResponseString() !== null) {
             $this->dbg("Worker command: send response");
