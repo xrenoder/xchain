@@ -1,63 +1,105 @@
-Address-To-Address with amount (AtAa) transaction  (transfer, delegate amount to node, undelegate amount to node):
+AtAAdT  "Address-to-Address with Amount with data Tiny" transaction  (transfer):
 
 0    1 byte          type of transaction (255)
-1    25 bytes        from (author) address
-2    25 bytes        to address
+1    25 bytes        author address
+
+2    25 bytes        target address
 3    8 bytes         amount
-4    8 bytes         fee (comission) (may be 0)
-5    2 + variable    short data (may be '') (65 535)
+5    1 + variable    tiny data (255)
+
+6    variable 71-73  author transaction signature (0-5)
+7    16 bytes        transaction ID (MD4 hash of 6)
+
+    149 bytes + data
+
+
+
+
+AtAA    "Address-To-Address with Amount without data" transaction  (delegate amount to node, undelegate amount from node):
+
+0    1 byte          type of transaction (255)
+1    25 bytes        author address
+
+2    25 bytes        target address
+3    8 bytes         amount
+
+6    variable 71-73  author transaction signature (0-5)
+7    16 bytes        transaction ID (MD4 hash of 6)
+
+    148 bytes
+
+
+
+
+AtA     "Address-To-Address without amount without data" transaction (undelegate all from node):
+
+0    1 byte          type of transaction (255)
+1    25 bytes        author address
+
+2    25 bytes        target address
+
+6    variable 71-73  author transaction signature (0-5)
+7    16 bytes        transaction ID (MD4 hash of 6)
+
+    140 bytes
+
+
+
+
+AtAdT "Address-To-Address without amount with data Tiny" transaction (node alive check directive):
+
+0    1 byte          type of transaction (255)
+1    25 bytes        author address
+
+2    25 bytes        target address
+5    1 + variable    tiny data (255)
 
 6    variable 71-73  author transaction signature (0-5)
 
 7    16 bytes        transaction ID (MD4 hash of 6)
 
-    158 bytes + data
+    141 bytes + data
 
-Address-To-Address without amount (AtAwa) transaction (undelegate all from node):
 
-0    1 byte          type of transaction (255)
-1    25 bytes        from (author) address
-2    25 bytes        to address
-4    8 bytes         fee (comission) (may be 0)
-5    2 + variable    short data (may be '') (65 535)
 
-6    variable 71-73  author transaction signature (0-5)
 
-7    16 bytes        transaction ID (MD4 hash of 6)
-
-    150 bytes + data
-
-Group with amount (Ga) transaction (freeze amount, unfreeze amount):
+AtCA    "Address-to-Chain with Amount without data"  transaction (freeze amount, unfreeze amount):
 
 0    1 byte          type of transaction (255)
-1    25 bytes        from (author) address
+1    25 bytes        author address
+
 3    8 bytes         amount
 
 6    variable 71-73  author transaction signature (0-5)
-
 7    16 bytes        transaction ID (MD4 hash of 6)
 
     123 bytes + data
 
-Group without amount (Gwa) transaction (unfreeze all, undelegate all from all nodes):
+
+
+
+AtC     "Address-to-Chain without amount without data" transaction (unfreeze all, undelegate all from all nodes):
 
 0    1 byte          type of transaction (255)
-1    25 bytes        from (author) address
+1    25 bytes        author address
 
 6    variable 71-73  author transaction signature (0-5)
-
 7    16 bytes        transaction ID (MD4 hash of 6)
 
     115 bytes + data
 
-Group without amount with tiny data (GwaTd) transaction (blockchain settings):
+
+
+
+
+AtCdT   "Address-to-Chain without amount with data Tiny" transaction (blockchain rules):
 
 0    1 byte          type of transaction (255)
-1    25 bytes        from (author) address
+1    25 bytes        author address
+
 5    1 + variable    tiny data (may be '') (255)
 
 6    variable 71-73  author transaction signature (0-5)
-
 7    16 bytes        transaction ID (MD4 hash of 6)
 
     116 bytes + data

@@ -1,7 +1,6 @@
-Transfer:
+Transfer (author - client):
 
 AtAa    transfer
-
 
 Delegation/Undelegation:
 
@@ -19,14 +18,25 @@ Ga      unfreeze amount
 Gwa     unfreeze all
 
 
+
+Node registration (author - client or node):
+GwaTd   register current node host (data - IP, port, name, opt - previous node host) - must worked as client, must have 'node alive check'-transaction
+
+
+
 Node status (author - node):
-GwaTd   wanna be F-node (amount - freeze, data - node type) - signer put transaction in block, if aspirant really can be node (but node need have delegations)
+GwaTd   node alive check (data - IP, port)
+GwaTd   register future node host (data - IP, port, current node host) - must worked as client, must be checked twice
 GaTd    wanna be node (amount  - freeze, data - node type) - signer put transaction in block, if aspirant really can be node (but node need have delegations)
 GwaTd   start node (data - node type) - signer put transaction in block, if aspirant really can be node (have delegations)
 GaTd    short stop node (amount - additional freeze, will be pay for every block, data - max time of stopping)
 Gwa     long or forever stop node (automatically unfrozen and undelegation all)
 
+
+
 Node status (author - signer):
+AtAwa   node alive check directive (data - IP, port, node address)
+node type approved (data - node type) - only after this node can work as node, signer put it after "start node" transaction
 
 
 GwaTd   set allower                       allower can set/unset allow modes and allows for nodes
@@ -39,3 +49,6 @@ allow/deny address to be node S
 lock/unlock address to transfer              (to, ~amount)
 
 remove transaction from mempool
+
+
+next signers queue

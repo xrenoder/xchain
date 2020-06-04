@@ -4,7 +4,7 @@
  * Class for transfering socket state between socket-object in parent thread and message in worker thread
  */
 
-class SocketLegate extends aBase implements constMessageParsingResult
+class SocketLegate extends aBase
 {
     /** @var string */
     private $id;
@@ -95,7 +95,7 @@ class SocketLegate extends aBase implements constMessageParsingResult
 // if cannot create classenum of request by declared type - incoming data is bad
                 $this->getLocator()->dbg("BAD DATA cannot create message classenum with ID $messageId");
                 $this->badData = true;
-                $this->workerResult = self::MESSAGE_PARSED;
+                $this->workerResult = aMessage::MESSAGE_PARSED;
                 return;
             }
 

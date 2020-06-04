@@ -15,7 +15,13 @@ class AliveReqMessage extends aSignMessage
 
         $myPubKey = $this->getLocator()->getMyAddress()->getPublicKeyBin();
 
-        $legate->createResponseString(AliveResMessage::create($this->getLocator(), [self::DATA => 'test', self::AUTHKEY => $myPubKey]));
+//AliveResMessage::create($this->getLocator(), [self::DATA => 'test', self::AUTHKEY => $myPubKey]);
+        $response
+            = AliveResMessage::create($this->getLocator())
+                ->setData('test')
+                ->setAuthorPublicKey($myPubKey);
+
+        $legate->createResponseString($response);
 
         return self::MESSAGE_PARSED;
     }

@@ -14,7 +14,7 @@ abstract class aMessageField extends aField
 
     public static function getStatLength($id) : int {return MessageFieldClassEnum::getLength($id);}
 
-    public static function spawn(aBase $message, int $id, int $offset = 0) : self
+    public static function spawn(aMessage $message, int $id, int $offset = 0) : self
     {
         /** @var aMessageField $className */
 

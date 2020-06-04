@@ -2,7 +2,7 @@
 /**
  * Base classenum for other application classes, uses App classenum (with Logger, Daemon, Server, Node etc)
  */
-abstract class aBase implements constMessageDataIds
+abstract class aBase
 {
     protected static $dbgLvl = Logger::DBG_LOCATOR; /* override me */
 

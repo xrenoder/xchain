@@ -1,0 +1,58 @@
+in zero block nothing not checked, all transactions are true by default
+
+8 bytes         0
+4 bytes         time
+variable 71-74  (empty) prev block signature
+25 bytes        address of signer (M-node, who sign this block)
+
+
+
+Author: finance transactions
+4 bytes         transactions count (0)
+
+Author: nodes checking
+4 bytes         transactions count (0)
+
+
+
+Author: broadcast transactions
+4 bytes         transactions count (3)
+
+register current first M-node host (data - IP:port, name)
+start M-node (data - node type)
+
+
+
+Signer: collecting finance transactions - collect reward fund
+4 bytes         transactions count (0)
+
+start emission
+
+
+
+Signer: rewards finance transactions (rewards)
+4 bytes         transactions count (0)
+
+
+
+Signer: blockchain rules transactions (nodes frozen limits, emission rules, rewards rules, penalty rules)
+4 bytes         transactions count
+emission rule
+transaction reward rule
+transaction delay penalty rule
+M-nodes count rule
+
+
+
+
+Signer: change nodes status transactions
+4 bytes         transactions count (1)
+first M-node type approved (data - node type)
+
+
+
+Signer: next signers queue:
+1 byte      count
+25 bytes    first M-node address
+
+variable 71-74  block signature

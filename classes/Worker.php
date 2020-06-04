@@ -1,6 +1,6 @@
 <?php
 
-class Worker extends aLocator implements constMessageParsingResult
+class Worker extends aLocator
 {
     public function isWorker() : bool {return true;}
 
@@ -51,7 +51,7 @@ class Worker extends aLocator implements constMessageParsingResult
         $this->legates[$socketId]->incomingPacketHandler($this->channelSend);
 
         if (
-            $this->legates[$socketId]->getWorkerResult() === self::MESSAGE_PARSED
+            $this->legates[$socketId]->getWorkerResult() === aMessage::MESSAGE_PARSED
             || $this->legates[$socketId]->isBadData()
             || $this->legates[$socketId]->needCloseSocket()
         ) {

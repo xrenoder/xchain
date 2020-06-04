@@ -4,9 +4,9 @@
  * Work with sockets: listen, select, accept, read, write
  * Read and handle events from workers
  */
-class Server extends aBase implements constMessageParsingResult
+class Server extends aBase
 {
-    protected static $dbgLvl = Logger::DBG_SERV;
+    protected static $dbgLvl = Logger::DBG_SERVER;
 
     private const MAX_SOCK = MAX_SOCKETS;
     private const RESERVE_SOCK = RESERVE_SOCKETS;
@@ -195,7 +195,7 @@ class Server extends aBase implements constMessageParsingResult
 
     private function workerEventsPoll() : bool
     {
-        $result = self::MESSAGE_NOT_PARSED;
+        $result = aMessage::MESSAGE_NOT_PARSED;
 
         /** @var App $app */
         $app = $this->getApp();
@@ -214,8 +214,8 @@ class Server extends aBase implements constMessageParsingResult
 
                 $serializedCommand = $event->value;
 
-                if (CommandToParent::handle($this, $serializedCommand) === self::MESSAGE_PARSED) {
-                    $result = self::MESSAGE_PARSED;
+                if (CommandToParent::handle($this, $serializedCommand) === aMessage::MESSAGE_PARSED) {
+                    $result = aMessage::MESSAGE_PARSED;
                 }
             } else {
                 $this->err("EXCEPTION: " . "Bad event type $event->type from worker: \n" . var_export($event, true) . "\n");
@@ -258,7 +258,7 @@ class Server extends aBase implements constMessageParsingResult
 
         $this->softFinish();    // when one worker stopped, all script finished
 
-        return self::MESSAGE_NOT_PARSED;
+        return aMessage::MESSAGE_NOT_PARSED;
     }
 
     /**

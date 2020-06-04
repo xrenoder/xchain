@@ -4,7 +4,7 @@
 class NodeByAddr extends aMultyIdDbRow
 {
     /** @var string  */
-    protected $table = self::ADDR_NODES_TABLE;     /* overrided */
+    protected $table = DbTableEnum::ADDR_NODES;     /* overrided */
 
     /** @var string  */
     protected $idFormat = DbFieldClassEnum::ADDR; /* overrided */

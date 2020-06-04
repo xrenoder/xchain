@@ -4,21 +4,21 @@
 
 1 byte          sender node type (255)
 4 bytes         time (if "local time" is different from "message time" to 2 sec or more - decline)
-                (last field for "SimpleMessage")                10
+                (last field for "aSimpleMessage")                10
 
 25 bytes        sender address
-                (last field for "SimpleAddressMessage")         35
+                (last field for "aSimpleAddressMessage")         35
 
 variable        data
-                (last field for "DataMessage")                  35 + data
+                (last field for "aDataMessage")                  35 + data
 
 248 bytes       author (not sender) public key
 
 variable 71-73  data signature (signed by sender)
-                (last field for "SignMessage")                  max 356 + data
+                (last field for "aSignMessage")                  max 356 + data
 
 
-signed data fields:
+signed message fields:
 
 author public key
 data with length

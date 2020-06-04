@@ -2,9 +2,9 @@
 /**
  * Socket
  */
-class Socket extends aBase implements constMessageParsingResult
+class Socket extends aBase
 {
-    protected static $dbgLvl = Logger::DBG_SOCK;
+    protected static $dbgLvl = Logger::DBG_SOCKET;
 
     public function getApp() : App {return $this->getLocator();}
     public function getServer() : Server {return $this->getParent();}
@@ -343,11 +343,11 @@ class Socket extends aBase implements constMessageParsingResult
 
         $result = $this->legate->getWorkerResult();
 
-        if ($result === self::MESSAGE_PARSED) {
+        if ($result === aMessage::MESSAGE_PARSED) {
             $this->dbg("Worker result: MESSAGE_PARSED");
         }
 
-        if ($result === self::MESSAGE_PARSED || $legate->isBadData() || $legate->needCloseSocket()) {
+        if ($result === aMessage::MESSAGE_PARSED || $legate->isBadData() || $legate->needCloseSocket()) {
             $this->dbg("Free worker " . $this->threadId);
             $app->decThreadBusy($this->threadId);
             $this->threadId = null;

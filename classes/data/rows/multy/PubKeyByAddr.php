@@ -4,7 +4,7 @@
 class PubKeyByAddr extends aMultyIdDbRow
 {
     /** @var string  */
-    protected $table = self::ADDR_PUBKEYS_TABLE;     /* overrided */
+    protected $table = DbTableEnum::ADDR_PUBKEYS;     /* overrided */
 
     /** @var string  */
     protected $idFormat = DbFieldClassEnum::ADDR; /* overrided */

@@ -17,15 +17,8 @@ abstract class aFixedIdDbRow extends aDbRow
     {
         $me = new static($locator);
 
-        /** @var aClassEnum $enumClass */
-        $enumClass = $me->getEnumClass();
-
-        if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for classenum " . $me->getName());
-        }
-
         $me
-            ->setId($id)
+            ->setIdFromEnum()
             ->load();
 
         return $me;

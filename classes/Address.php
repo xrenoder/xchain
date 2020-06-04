@@ -11,12 +11,14 @@
  */
 class Address extends aBase
 {
-    protected static $dbgLvl = Logger::DBG_ADDR;
+    protected static $dbgLvl = Logger::DBG_ADDRESS;
 
     private const PRIVATE_HEX_LEN = 558;
     public const PUBLIC_BIN_LEN = 248;
     public const ADDRESS_HUM_LEN = 52;
     public const ADDRESS_BIN_LEN = 25;
+
+    public const HASH_BIN_LEN = 16;
 
     private $publicKey = null;      // bin  248 bytes
     private $address = null;        // bin  25 bytes

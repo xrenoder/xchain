@@ -1,7 +1,7 @@
 <?php
 
 
-abstract class aDbRow extends aFieldSet implements constDbTables
+abstract class aDbRow extends aFieldSet
 {
     /** @var string  */
     protected $table = null;

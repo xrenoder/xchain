@@ -6,41 +6,45 @@ class Logger extends aBase
 {
     public const DBG_LOCATOR  = 1;
     public const DBG_DAEMON =   2;
-    public const DBG_SERV =     4;
-    public const DBG_SOCK =     8;
+    public const DBG_SERVER =   4;
+    public const DBG_SOCKET =   8;
     public const DBG_FLD_FMT =  16384;
-    public const DBG_MESS =     16;
+    public const DBG_MESSAGE =  16;
     public const DBG_POOL =     32;
     public const DBG_TASK =     64;
     public const DBG_NODE =     128;
-    public const DBG_ADDR =     256;
+    public const DBG_ADDRESS =  256;
     public const DBG_DBA =      512;
     public const DBG_MSG_FLD =  1024;
     public const DBG_DB_FLD =   32768;
     public const DBG_DB_FROW =  2048;
     public const DBG_DB_MROW =  65536;
     public const DBG_DB_RSET =  4096;
-    public const DBG_TRANS =    8192;
+    public const DBG_TRANSACT = 8192;
+    public const DBG_TRANS_FLD = 131072;
+    public const DBG_BLOCK =    262144;
 
 
     private static $flags = array(
         self::DBG_LOCATOR =>    'Locator  ',
         self::DBG_DAEMON =>     'Daemon   ',
-        self::DBG_SERV =>       'Server   ',
-        self::DBG_SOCK =>       'Socket   ',
+        self::DBG_SERVER =>     'Server   ',
+        self::DBG_SOCKET =>     'Socket   ',
         self::DBG_FLD_FMT =>    'Field Fmt',
-        self::DBG_MESS =>       'Message  ',
+        self::DBG_MESSAGE =>    'Message  ',
         self::DBG_POOL =>       'Pool     ',
         self::DBG_TASK =>       'Task     ',
         self::DBG_NODE =>       'Node     ',
-        self::DBG_ADDR =>       'Address  ',
+        self::DBG_ADDRESS =>    'Address  ',
         self::DBG_DBA =>        'DBA      ',
         self::DBG_MSG_FLD =>    'Msg Field',
         self::DBG_DB_FLD =>     'DB Field ',
         self::DBG_DB_FROW =>    'DB fixRow',
         self::DBG_DB_MROW =>    'DB dynRow',
         self::DBG_DB_RSET =>    'DB recSet',
-        self::DBG_TRANS =>      'Trans    ',
+        self::DBG_TRANSACT =>   'Transact ',
+        self::DBG_TRANS_FLD =>  'Trans Fld',
+        self::DBG_BLOCK =>      'Block ',
     );
 
     /** @var string */

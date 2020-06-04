@@ -8,20 +8,20 @@ use parallel\{Channel,Runtime,Events,Events\Event,Events\Event\Type};
 $debugMode =
       Logger::DBG_LOCATOR
     | Logger::DBG_DAEMON
-    | Logger::DBG_SERV
-    | Logger::DBG_SOCK
+    | Logger::DBG_SERVER
+    | Logger::DBG_SOCKET
     | Logger::DBG_MESS
     | Logger::DBG_POOL
     | Logger::DBG_TASK
     | Logger::DBG_NODE
-    | Logger::DBG_ADDR
+    | Logger::DBG_ADDRESS
     | Logger::DBG_DBA
     | Logger::DBG_MSG_FLD
     | Logger::DBG_DB_FLD
     | Logger::DBG_DB_FROW
     | Logger::DBG_DB_MROW
     | Logger::DBG_DB_RSET
-    | Logger::DBG_TRANS
+    | Logger::DBG_TRANSACT
 ;
 //*/
 /*
@@ -55,8 +55,10 @@ try {
     if ($app->getDba()->integrity() === true) {
         $app->log("DB integrity test passed");
     } else {
-// TODO продумать действия при нарушении целостности БД (например, удалить все таблицы, после чего заново получить и обработать блоки)
         $app->log("DB integrity test failed");
+        $app->getDba()->removeDbTables();
+        $app->log("All DB tables was removed, application stopped for restarting");
+        exit(0);
     }
 
 // set current node as Client (always, before full syncronization)

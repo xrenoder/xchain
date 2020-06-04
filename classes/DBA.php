@@ -20,7 +20,7 @@ class DBA extends aBase
 
     private const TRANS_KEY = 'TRANS_';
 
-    private const INTEGRITY_TABLE = DB_INTEGRITY_TABLE;
+    public const INTEGRITY_TABLE = DbTableEnum::INTEGRITY;
     private const INTEGRITY_HASH_ALGO = 'md4';
     private const INTEGRITY_LAST_RECORD_TABLE = 'lastRecordTable';
     private const INTEGRITY_LAST_RECORD_ID = 'lastRecordId';
@@ -124,6 +124,16 @@ class DBA extends aBase
         }
 
         return $this->integrityPassed;
+    }
+
+    public function removeDbTables()
+    {
+        $tables = DbTableEnum::getItemsList();
+
+        foreach($tables as $table) {
+            $tableFile = $this->getTableFile($table);
+            unlink($tableFile);
+        }
     }
 
     private function inTransaction() : bool
@@ -365,7 +375,7 @@ class DBA extends aBase
 
     private function tableOpen(string $table) : void
     {
-        $tableFile = $this->dbPath . $table . $this->dbExt;
+        $tableFile = $this->getTableFile($table);
 
         if(!$this->dbhTables[$table] = dba_open($tableFile, static::$dbaMode, $this->dbaHandler)) {
             throw new RuntimeException("Cannot open table file " . $tableFile);
@@ -443,5 +453,10 @@ class DBA extends aBase
     private function getCacheId(string $table, string $id) : string
     {
         return $table . "*" . $id;
+    }
+
+    private function getTableFile(string $table) : string
+    {
+        return $this->dbPath . $table . $this->dbExt;
     }
 }

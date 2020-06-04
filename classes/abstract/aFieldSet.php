@@ -41,6 +41,20 @@ abstract class aFieldSet extends aBaseEnum
         return $this->rawStringLen - $this->fieldOffset;
     }
 
+    public function setIdFromEnum() : self
+    {
+        /** @var aClassEnum $enumClass */
+        $enumClass = $this->getEnumClass();
+
+        if (($id = $enumClass::getIdByClassName(get_class($this))) === null) {
+            throw new Exception("Bad code - unknown ID (not found or not exclusive) for classenum " . $this->getName());
+        }
+
+        $this->setId($id);
+
+        return $this;
+    }
+
     protected function parseRawString() : void
     {
         foreach ($this->fields as $fieldId => $property) {

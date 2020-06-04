@@ -1,7 +1,7 @@
 <?php
 
 
-class FixedIdDbRowClassEnum extends aClassEnum implements constDbTables
+class FixedIdDbRowClassEnum extends aClassEnum
 {
     protected static $baseClassName = 'aFixedIdDbRow'; /* overrided */
 
@@ -18,10 +18,10 @@ class FixedIdDbRowClassEnum extends aClassEnum implements constDbTables
     );
 
     protected static $data = array(
-        self::LAST_KNOWN_BLOCK => self::SUMMARY_TABLE,
-        self::LAST_PREPARED_BLOCK => self::SUMMARY_TABLE,
-        self::TRANSACTION_EMISSION_RULE => self::SUMMARY_TABLE,
-        self::TRANSACTION_REWARDS_RULE => self::SUMMARY_TABLE,
+        self::LAST_KNOWN_BLOCK => DbTableEnum::SUMMARY,
+        self::LAST_PREPARED_BLOCK => DbTableEnum::SUMMARY,
+        self::TRANSACTION_EMISSION_RULE => DbTableEnum::SUMMARY,
+        self::TRANSACTION_REWARDS_RULE => DbTableEnum::SUMMARY,
     );
 
     public static function getTable(string $id) : ?string

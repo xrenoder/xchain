@@ -16,6 +16,7 @@ abstract class aDataMessage extends aSimpleAddressMessage
 
     /** @var string  */
     protected $data = null;
+    public function setData(string $val) : self {$this->data = $val; return $this;}
     public function getData() : string {return $this->data;}
 
     protected function __construct(aBase $parent)
@@ -36,15 +37,13 @@ abstract class aDataMessage extends aSimpleAddressMessage
 
     protected function bodyData() : string
     {
-        if (empty($this->outData) || !isset($this->outData[self::DATA])) {
-            $data = '';
-        } else {
-            $data = $this->outData[static::DATA];
+        if ($this->data === null) {
+            $this->data = '';
         }
 
         $bodyParent = $this->bodySimpleAddress();
 
-        $dataField = DataMessageField::pack($this,$data);
+        $dataField = DataMessageField::pack($this,$this->data);
 
         $this->signedData = $dataField . $this->signedData;
 

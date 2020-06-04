@@ -2,9 +2,12 @@
 /**
  * Base classenum for classes of messages between nodes
  */
-abstract class aMessage extends aFieldSet implements constMessageParsingResult
+abstract class aMessage extends aFieldSet
 {
-    protected static $dbgLvl = Logger::DBG_MESS;  /* overrided */
+    public const MESSAGE_PARSED = true;
+    public const MESSAGE_NOT_PARSED = false;
+
+    protected static $dbgLvl = Logger::DBG_MESSAGE;  /* overrided */
 
     /** @var string  */
     protected $enumClass = 'MessageClassEnum'; /* overrided */
@@ -13,35 +16,31 @@ abstract class aMessage extends aFieldSet implements constMessageParsingResult
     protected $maxLen = MessageFieldClassEnum::BASE_MAX_LEN;   /* override me */
     public function getMaxLen() : int {return $this->maxLen;}
 
+    /** @var int  */
+    protected $fieldPointer = MessageFieldClassEnum::LENGTH;  /* overrided */    // first fieldId prepared inside Message-object (field 'Message Length')
+
     /**
      * fieldId => 'propertyName'
      * @var string[]
      */
     protected static $fieldSet = array(      /* overrided */
-        MessageFieldClassEnum::TYPE =>      '',                // must be always first field in message
+        MessageFieldClassEnum::TYPE =>      'id',              // must be always first field in message
         MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
     );
 
     /** @var int  */
-    protected $fieldPointer = MessageFieldClassEnum::LENGTH;  /* overrided */    // first fieldId prepared inside Message-object (field 'Message Length')
+    protected $declaredLen = null;
+    public function getDeclaredLen() : ?int {return $this->declaredLen;}
 
     /** @var int  */
     protected $incomingMessageTime = null;
     public function setIncomingMessageTime(int $val) : self {$this->incomingMessageTime = $val; return $this;}
     public function getIncomingMessageTime() : int {return $this->incomingMessageTime;}
 
-    /** @var array  */
-    protected $outData = null;
-    public function setOutData(array $val) : self {$this->outData = $val; return $this;}
-
     /** @var string  */
     protected $signedData = null;
     public function setSignedData(string $val) : self {$this->signedData = $val; return $this;}
     public function getSignedData() : string {return $this->signedData;}
-
-    /** @var int  */
-    protected $declaredLen = null;
-    public function getDeclaredLen() : ?int {return $this->declaredLen;}
 
     /** @var bool  */
     protected $isIncoming = null;
@@ -65,19 +64,12 @@ abstract class aMessage extends aFieldSet implements constMessageParsingResult
         $this->fields = array_replace($this->fields, self::$fieldSet);
     }
 
-    public static function create(aBase $parent, array $outData = []) : self
+    public static function create(aBase $parent) : self
     {
         $me = new static($parent);
 
-        /** @var aClassEnum $enumClass */
-        $enumClass = $me->getEnumClass();
-
-        if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for classenum " . $me->getName());
-        }
-
         $me
-            ->setId($id)
+            ->setIdFromEnum()
             ->setFieldOffset(MessageFieldClassEnum::getLength(MessageFieldClassEnum::TYPE));
 
         if ($parent instanceof SocketLegate) {
@@ -88,7 +80,6 @@ abstract class aMessage extends aFieldSet implements constMessageParsingResult
         } else {
 // else - outgoing message (usually used aLocator-object as parent)
             $me->setIsIncoming(false);
-            $me->setOutData($outData);
             $me->dbg($me->getName() .  " created");
         }
 
@@ -101,12 +92,12 @@ abstract class aMessage extends aFieldSet implements constMessageParsingResult
      * @return aMessage|null
      * @throws Exception
      */
-    public static function spawn(aBase $parent, int $id, array $outData = []) : self
+    public static function spawn(aBase $parent, int $id) : self
     {
         /** @var aMessage $className */
 
         if ($className = MessageClassEnum::getClassName($id)) {
-            return $className::create($parent, $outData);
+            return $className::create($parent);
         }
 
         throw new Exception("Bad code - unknown message classenum for ID " . $id);

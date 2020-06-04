@@ -16,6 +16,7 @@ abstract class aAuthorPublicKeyMessage extends aDataMessage
 
     /** @var string  */
     protected $authorPublicKey = null;
+    public function setAuthorPublicKey(string $val) : self {$this->authorPublicKey = $val; return $this;}
     public function getAuthorPublicKey() : string {return $this->authorPublicKey;}
 
     protected function __construct(aBase $parent)
@@ -36,19 +37,17 @@ abstract class aAuthorPublicKeyMessage extends aDataMessage
 
     protected function bodyAuthorPublicKey() : string
     {
-        if (empty($this->outData) || !isset($this->outData[static::AUTHKEY])) {
+        if ($this->authorPublicKey === null) {
             throw new Exception("Bad coding: author public key must be here!!!");
         }
 
-        $pubKey = $this->outData[static::AUTHKEY];
-
-        if (strlen($pubKey) !== Address::PUBLIC_BIN_LEN) {
+        if (strlen($this->authorPublicKey) !== Address::PUBLIC_BIN_LEN) {
             throw new Exception("Bad coding: author public key bad length!!!");
         }
 
         $bodyParent = $this->bodyData();
 
-        $pubkeyField = AuthorPublicKeyMessageField::pack($this,$pubKey);
+        $pubkeyField = AuthorPublicKeyMessageField::pack($this,$this->authorPublicKey);
 
         $this->signedData = $pubkeyField . $this->signedData;
 

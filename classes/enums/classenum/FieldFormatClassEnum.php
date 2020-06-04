@@ -12,8 +12,9 @@ class FieldFormatClassEnum extends aClassEnum
 
     public const BINHEX_LBE = 'BHLBE'; // aVarLengthFieldFormat + BinHex transform
 
-    public const ADDR =         'ADDR'; // aAsIsFixLengthFieldFormat
-    public const PUBKEY =       'PUBK'; // aAsIsFixLengthFieldFormat
+    public const ADDR =         'ADDR';     // aAsIsFixLengthFieldFormat
+    public const PUBKEY =       'PUBK';     // aAsIsFixLengthFieldFormat
+    public const MD4_RAW =      'MD4RAW';   // aAsIsFixLengthFieldFormat
 
     public const ASIS_LBE =   'AILBE'; // aAsIsVarLengthFieldFormat
     public const SIGN_LC =    'SIGN'; // aAsIsVarLengthFieldFormat
@@ -28,15 +29,17 @@ class FieldFormatClassEnum extends aClassEnum
         self::BINHEX =>     'BinHexFormat',  // 'Bin converted from/to Hex without declared length (variable bytes). Can be only last field in row.',
         self::BINHEX_LBE => 'BinHexLongFormat',  // 'Bin converted from/to Hex with declared length as first 4 bytes ULONG_BE (variable bytes)',
 
-        self::ADDR =>       'AddressFormat', // 'Not packed with 25 bytes length',
-        self::PUBKEY =>     'PubKeyFormat',// 'Not packed with 248 bytes length',
+        self::ADDR =>       'AddressFormat',    // 'Not packed with 25 bytes length',
+        self::PUBKEY =>     'PubKeyFormat',     // 'Not packed with 248 bytes length',
+        self::MD4_RAW =>    'Md4RawFormat',     // 'Not packed with 16 bytes length',
+
         self::SIGN_LC =>    'SignFormat',  // 'Not packed with declared length as first 1 bytes UCHAR (variable bytes)',
 
         self::UCHAR =>      'ByteFormat', // 'Unsigned char (1 byte)',
         self::ULONG_BE =>   'LongFormat', // 'Unsigned long big-endian (4 bytes)',
     );
 
-    /* 0: field len or len of field len */
+    /* 0: field len or len of field len (if "format of field len" not null) */
     /* 1: format of field len */
     /* 2: maximal value of field
     /* 3: true if field can be only last field in row or message */
@@ -48,6 +51,8 @@ class FieldFormatClassEnum extends aClassEnum
 
         self::ADDR =>       [Address::ADDRESS_BIN_LEN, null, false, false], // 'Not packed with 25 bytes length',
         self::PUBKEY =>     [Address::PUBLIC_BIN_LEN, null, false, false],// 'Not packed with 248 bytes length',
+        self::MD4_RAW =>    [Address::HASH_BIN_LEN, null, false, false],// 'Not packed with 248 bytes length',
+
         self::SIGN_LC =>    [1, self::UCHAR, false, false],  // 'Not packed with declared length as first 1 bytes UCHAR (variable bytes)',
 
         self::UCHAR =>      [1, null, 2**8 - 1, false], // 'Unsigned char (1 byte)',
