@@ -10,7 +10,7 @@ $debugMode =
     | Logger::DBG_DAEMON
     | Logger::DBG_SERVER
     | Logger::DBG_SOCKET
-    | Logger::DBG_MESS
+    | Logger::DBG_MESSAGE
     | Logger::DBG_POOL
     | Logger::DBG_TASK
     | Logger::DBG_NODE
