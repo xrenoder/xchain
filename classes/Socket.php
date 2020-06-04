@@ -285,7 +285,7 @@ class Socket extends aBase
             $this->err('ERROR: read from stream error');
         }
 
-        if (!$data)	{	// удаленный сервер разорвал соединение
+        if ($data === '')	{	// удаленный сервер разорвал соединение
             $this->dbg("Socket " . $this->getId(). " will be closed: remote side shutdown connection");
 
             if ($this->legatesInWorker !== 0) {
