@@ -161,7 +161,7 @@ class Server extends aBase
         $result = $this->workerEventsPoll();
 
 // проверка истечения таймаутов чтения-записи и отключение сокетов просроченых сессий
-        if (($this->nowTime - $this->rwTime) >= self::RW_TIMEOUT) { // check RW-timeout every 1 sec
+        if (($this->nowTime - $this->rwTime) >= 1) { // check RW-timeout every 1 sec
             $this->rwTime = $this->nowTime;
 
             $activeSockets = array_replace($this->recvs, $this->sends);
@@ -545,16 +545,10 @@ class Server extends aBase
         $this->nowTime = time();
 
         if ($this->getQueue()->runOnePool()) {
-            $beg = time();
-
-            while (($this->nowTime - $beg) < self::ALIVE_TIMEOUT) {
-                if ($this->selectAndPoll()) {  // self::MESSAGE_PARSED means daemon is alive
+            while (count($this->sockets)) {
+                if ($this->selectAndPoll() === aMessage::MESSAGE_PARSED) {  // aMessage::MESSAGE_PARSED means daemon is alive
                     return true;
                 }
-            }
-
-            foreach ($this->sockets as $id => $socket) {
-                $this->getSocket($id)->close(' ALIVE-TIMEOUT failed');
             }
         }
 
