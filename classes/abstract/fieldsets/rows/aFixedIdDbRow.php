@@ -11,7 +11,7 @@ abstract class aFixedIdDbRow extends aDbRow
 
     protected $canBeReplaced = true;     /* overrided */
 
-    private static function create(aBase $parent) : self
+    protected static function create(aBase $parent) : self
     {
         $me = new static($parent);
 
