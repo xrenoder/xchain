@@ -23,7 +23,7 @@ abstract class aField extends aSpawnedFromEnum
 
     public function getValue() {return $this->format->getValue();}
 
-    public static function create(aFieldSet $parent, int $offset = 0) : self
+    public static function create(aBase $parent, int $offset = 0) : self
     {
         $me = new static($parent);
 

@@ -89,9 +89,9 @@ class SocketLegate extends aBase
         $message = $this->getInMessage();
 
         if ($message === null) {
-            $tmpMessage = BusyResMessage::create($this->getLocator());
-            $messageId = TypeMessageField::create($tmpMessage)->unpack($packet);
-            unset($tmpMessage);
+//            $tmpMessage = BusyResMessage::create($this->getLocator());
+            $messageId = TypeMessageField::create($this)->unpack($packet);
+//            unset($tmpMessage);
 
             if (!($message = aMessage::spawn($this, $messageId))) {
 // if cannot create classenum of request by declared type - incoming data is bad
