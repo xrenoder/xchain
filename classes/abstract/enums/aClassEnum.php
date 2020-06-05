@@ -4,7 +4,7 @@
  */
 abstract class aClassEnum extends aEnum
 {
-    protected static $baseClassName = 'aBaseEnum'; /* override me */
+    protected static $baseClassName = 'aSpawnedFromEnum'; /* override me */
 
     /**
      * @return string
@@ -12,12 +12,8 @@ abstract class aClassEnum extends aEnum
      */
     public static function getBaseClassName() : string
     {
-        if (!static::$baseClassName) {
-            throw new Exception(static::class . ' knows nothing about his base classenum name');
-        }
-
-        if (!is_a(static::$baseClassName, 'aBaseEnum', true)) {
-            throw new Exception( static::$baseClassName . ' is not instance of aBaseEnum classenum');
+        if (!is_a(static::$baseClassName, 'aSpawnedFromEnum', true)) {
+            throw new Exception( static::$baseClassName . ' is not instance of aSpawnedFromEnum');
         }
 
         return static::$baseClassName;
@@ -38,7 +34,7 @@ abstract class aClassEnum extends aEnum
         $baseClassName = static::getBaseClassName();
 
         if (!is_a($className, $baseClassName, true)) {
-            throw new Exception( "$className is not instance of $baseClassName classenum");
+            throw new Exception( "$className is not instance of $baseClassName");
         }
 
         return $className;

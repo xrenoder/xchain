@@ -1,12 +1,12 @@
 <?php
 
 
-abstract class aFieldFormat extends aBaseEnum
+abstract class aFieldFormat extends aSpawnedFromEnum
 {
     protected static $dbgLvl = Logger::DBG_FLD_FMT;
 
     /** @var string  */
-    protected $enumClass = 'FieldFormatClassEnum';
+    protected static $enumClass = 'FieldFormatClassEnum';
 
     /** @var int  */
     protected $length = null;
@@ -38,19 +38,12 @@ abstract class aFieldFormat extends aBaseEnum
     protected $value = null;
     public function getValue() {return $this->value;}
 
-    protected static function create(aBase $parent, int $offset = 0) : ?self
+    protected static function create(aField $parent, int $offset = 0) : ?self
     {
         $me = new static($parent);
 
-        /** @var aClassEnum $enumClass */
-        $enumClass = $me->getEnumClass();
-
-        if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field format classenum " . $me->getName());
-        }
-
         $me
-            ->setId($id)
+            ->setIdFromEnum()
             ->setLength(FieldFormatClassEnum::getLength($me->getId()))
             ->setLengthFormatId(FieldFormatClassEnum::getLengthFormatId($me->getId()))
             ->setIsLast()
@@ -61,7 +54,7 @@ abstract class aFieldFormat extends aBaseEnum
         return $me;
     }
 
-    public static function spawn(aBase $parent, string $id, int $offset = 0) : self
+    public static function spawn(aField $parent, string $id, int $offset = 0) : self
     {
         /** @var aFieldFormat $className */
 
@@ -69,7 +62,7 @@ abstract class aFieldFormat extends aBaseEnum
             return $className::create($parent, $offset);
         }
 
-        throw new Exception("Bad code - unknown field format classenum for ID " . $id);
+        throw new Exception("Bad code - cannot spawn class from FieldFormatClassEnum for ID " . $id);
     }
 
     /* can be overrided */

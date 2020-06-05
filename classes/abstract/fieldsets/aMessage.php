@@ -10,7 +10,10 @@ abstract class aMessage extends aFieldSet
     protected static $dbgLvl = Logger::DBG_MESSAGE;  /* overrided */
 
     /** @var string  */
-    protected $enumClass = 'MessageClassEnum'; /* overrided */
+    protected static $enumClass = 'MessageClassEnum'; /* overrided */
+
+    /** @var string  */
+    protected $fieldClass = 'aMessageField'; /* overrided */
 
     /** @var int  */
     protected $maxLen = MessageFieldClassEnum::BASE_MAX_LEN;   /* override me */
@@ -87,23 +90,6 @@ abstract class aMessage extends aFieldSet
     }
 
     /**
-     * @param Socket $parent
-     * @param int $id
-     * @return aMessage|null
-     * @throws Exception
-     */
-    public static function spawn(aBase $parent, int $id) : self
-    {
-        /** @var aMessage $className */
-
-        if ($className = MessageClassEnum::getClassName($id)) {
-            return $className::create($parent);
-        }
-
-        throw new Exception("Bad code - unknown message classenum for ID " . $id);
-    }
-
-    /**
      * @param string $packet
      * @return bool
      */
@@ -151,11 +137,6 @@ abstract class aMessage extends aFieldSet
         }
 
         return $this->incomingMessageHandler();
-    }
-
-    protected function spawnField(int $fieldId) : aField
-    {
-        return aMessageField::spawn($this, $fieldId, $this->fieldOffset);
     }
 
     protected function getLengthForLast() : int

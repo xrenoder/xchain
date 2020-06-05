@@ -11,7 +11,6 @@ class Server extends aBase
     private const MAX_SOCK = MAX_SOCKETS;
     private const RESERVE_SOCK = RESERVE_SOCKETS;
 
-    private const ALIVE_TIMEOUT = ALIVE_TIMEOUT;
     private const SELECT_TIMEOUT_SEC = SELECT_TIMEOUT_SEC;
     private const SELECT_TIMEOUT_USEC = SELECT_TIMEOUT_USEC;
     private const CONNECT_TIMEOUT = CONNECT_TIMEOUT;
@@ -338,6 +337,7 @@ class Server extends aBase
 
                 if (($fd = @stream_socket_accept($listenFd, -1)) === false) {
                     $this->err('ERROR: accept error');
+// TODO продумать действия при ошибке принятия соединения. Возможно, для ноды - отправка транзакции о временном уходе со службы
                     $this->softFinish();
                 } else {
                     $acceptedSocket = $this->newReadSocket(
@@ -415,6 +415,7 @@ class Server extends aBase
                 $context
             );
         } catch (Exception $e) {
+// TODO сымитировать ошибку коннекта и проверить действия (выбор другого хоста или что-то еще)
             $this->err('ERROR: stream_socket_client exception ' . $e->getMessage());
             $this->err("DETAILS: stream_socket_client ($errNo) $errStr");
         }

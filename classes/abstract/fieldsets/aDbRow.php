@@ -4,6 +4,9 @@
 abstract class aDbRow extends aFieldSet
 {
     /** @var string  */
+    protected $fieldClass = 'aDbField'; /* overrided */
+
+    /** @var string  */
     protected $table = null;
 
     /** @var int  */
@@ -25,11 +28,6 @@ abstract class aDbRow extends aFieldSet
     {
         parent::__construct($parent);
         $this->fields = array_replace($this->fields, self::$fieldSet);
-    }
-
-    protected function spawnField(int $fieldId) : aField
-    {
-        return aDbField::spawn($this, $fieldId, $this->fieldOffset);
     }
 
     public function setInternalId() : self

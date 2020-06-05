@@ -1,8 +1,11 @@
 <?php
 
 
-abstract class aField extends aBaseEnum
+abstract class aField extends aSpawnedFromEnum
 {
+    /** @var string  */
+    protected static $parentClass = null; /* override me */
+
     /** @var aFieldFormat  */
     protected $format = null;
     public function getFormat() : aFieldFormat {return $this->format;}
@@ -20,19 +23,12 @@ abstract class aField extends aBaseEnum
 
     public function getValue() {return $this->format->getValue();}
 
-    public static function create(aBase $parent, int $offset = 0) : self
+    public static function create(aFieldSet $parent, int $offset = 0) : self
     {
         $me = new static($parent);
 
-        /** @var aClassEnum $enumClass */
-        $enumClass = $me->getEnumClass();
-
-        if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field classenum " . $me->getName());
-        }
-
         $me
-            ->setId($id)
+            ->setIdFromEnum()
             ->setFormat($offset);
 
         $me->dbg($me->getName() .  " object created (offset $offset)");
@@ -40,10 +36,35 @@ abstract class aField extends aBaseEnum
         return $me;
     }
 
+    public static function spawn(aFieldSet $parent, int $id, int $offset) : self
+    {
+        if (static::$enumClass === null) {
+            throw new Exception("Bad code - not defined enumClass");
+        }
+
+        if (static::$parentClass === null) {
+            throw new Exception("Bad code - not defined parentClass");
+        }
+
+        if (!is_a($parent, static::$parentClass, true)) {
+            throw new Exception( $parent->getName() . " is not instance of " . static::$parentClass);
+        }
+
+        /** @var aFieldClassEnum $enumClass */
+        $enumClass = static::$enumClass;
+
+        /** @var aField $className */
+        if ($className = $enumClass::getClassName($id)) {
+            return $className::create($parent, $offset);
+        }
+
+        throw new Exception("Bad code - cannot spawn class from $enumClass for ID " . $id);
+    }
+
     public function setFormat(int $offset) : self
     {
         /** @var aFieldClassEnum $enumClass */
-        $enumClass = $this->enumClass;
+        $enumClass = static::$enumClass;
         $formatId = $enumClass::getFormat($this->id);
         $this->format = aFieldFormat::spawn($this, $formatId, $offset);
         return $this;

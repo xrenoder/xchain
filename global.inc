@@ -38,15 +38,14 @@ define('RUN_PATH', XCHAIN_PATH . 'run' . DS);
 define('DATA_PATH', XCHAIN_PATH . 'data' . DS);
 define('WALLET_PATH', XCHAIN_PATH . 'wallet' . DS);
 
-define('ALIVE_TIMEOUT', 10);
-define('KILL_TIMEOUT', 10);
+define('KILL_TIMEOUT', 5);
 define('SELECT_TIMEOUT_SEC', 0);
 define('SELECT_TIMEOUT_USEC', 50000);
-define('CONNECT_TIMEOUT', 5);
+define('CONNECT_TIMEOUT', 2);
 define('RW_TIMEOUT', 1);
 define('GARBAGE_TIMEOUT', 60);
 
-define('DBG_ONEBYTE_SEND_USLEEP', 50000);  // 50000 for byte-to-byte messages sending, 0 for normal mode
+define('DBG_ONEBYTE_SEND_USLEEP', 0);  // 50000 for byte-to-byte messages sending, 0 for normal mode
 
 require_once 'init.inc';
 

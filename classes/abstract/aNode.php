@@ -2,12 +2,12 @@
 /**
  * Base classenum for node types
  */
-abstract class aNode extends aBaseEnum
+abstract class aNode extends aSpawnedFromEnum
 {
     protected static $dbgLvl = Logger::DBG_NODE;
 
     /** @var string  */
-    protected $enumClass = 'NodeClassEnum'; /* overrided */
+    protected static $enumClass = 'NodeClassEnum'; /* overrided */
 
     /** @var bool  */
     protected $isClient = false;  /* can be overrided in client child */
@@ -23,35 +23,34 @@ abstract class aNode extends aBaseEnum
     public function setCanConnect($val) : self {$this->canConnect = $val; return $this;}
     public function getCanConnect() : int {return $this->canConnect;}
 
-    public static function create(aLocator $locator) : self
+    public static function create(aLocator $parent) : self
     {
-        $me = new static($locator);
-
-        /** @var aClassEnum $enumClass */
-        $enumClass = $me->getEnumClass();
-
-        if (($id = $enumClass::getIdByClassName(get_class($me))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for field classenum " . $me->getName());
-        }
+        $me = new static($parent);
 
         $me
-            ->setId($id)
-            ->setCanAccept(NodeClassEnum::getCanAccept($id))
-            ->setCanConnect(NodeClassEnum::getCanConnect($id));
+            ->setIdFromEnum()
+            ->setCanAccept(NodeClassEnum::getCanAccept($me->getId()))
+            ->setCanConnect(NodeClassEnum::getCanConnect($me->getId()));
 
-        $locator->dbg($me->getName() .  ' defined');
+        $parent->dbg($me->getName() .  ' defined');
 
         return $me;
     }
 
-    public static function spawn(aLocator $locator, int $id) : aNode
+    public static function spawn(aLocator $parent, $id) : self
     {
-        /** @var aNode $className */
-
-        if ($className = NodeClassEnum::getClassName($id)) {
-            return $className::create($locator);
+        if (static::$enumClass === null) {
+            throw new Exception("Bad code - not defined enumClass");
         }
 
-        throw new Exception("Bad code - unknown node classenum for ID " . $id);
+        /** @var aClassEnum $enumClass */
+        $enumClass = static::$enumClass;
+
+        /** @var aNode $className */
+        if ($className = $enumClass::getClassName($id)) {
+            return $className::create($parent);
+        }
+
+        throw new Exception("Bad code - cannot spawn class from $enumClass for ID " . $id);
     }
 }

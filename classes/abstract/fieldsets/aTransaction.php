@@ -12,7 +12,10 @@ abstract class aTransaction extends aFieldSet
     protected static $dbgLvl = Logger::DBG_TRANSACT;
 
     /** @var string  */
-    protected $enumClass = 'TransactionClassEnum'; /* overrided */
+    protected static $enumClass = 'TransactionClassEnum'; /* overrided */
+
+    /** @var string  */
+    protected $fieldClass = 'aTransactionField'; /* overrided */
 
     /** @var int  */
     protected $fieldPointer = TransactionFieldClassEnum::AUTHOR;  /* overrided */    // first fieldId prepared inside ttransaction-object (field 'Author')
@@ -97,21 +100,5 @@ abstract class aTransaction extends aFieldSet
         }
 
         return $me;
-    }
-
-    public static function spawn(aBase $parent, int $id) : self
-    {
-        /** @var aTransaction $className */
-
-        if ($className = TransactionClassEnum::getClassName($id)) {
-            return $className::create($parent);
-        }
-
-        throw new Exception("Bad code - unknown transaction classenum for ID " . $id);
-    }
-
-    protected function spawnField(int $fieldId) : aField
-    {
-        return aTransactionField::spawn($this, $fieldId, $this->fieldOffset);
     }
 }

@@ -1,8 +1,11 @@
 <?php
 
 
-abstract class aFieldSet extends aBaseEnum
+abstract class aFieldSet extends aSpawnedFromEnum
 {
+    /** @var string  */
+    protected $fieldClass = null; /* override me */
+
     /** @var string */
     protected $rawString;
 
@@ -29,30 +32,43 @@ abstract class aFieldSet extends aBaseEnum
     protected $fieldOffset = 0;
     public function setFieldOffset(int $val) : self {$this->fieldOffset = $val; return $this;}
 
-    abstract protected function spawnField(int $fieldId) : aField;
-
     protected function __construct(aBase $parent)
     {
         parent::__construct($parent);
     }
 
+    public static function spawn(aBase $parent, $id) : self
+    {
+        if (static::$enumClass === null) {
+            throw new Exception("Bad code - not defined enumClass");
+        }
+
+        /** @var aClassEnum $enumClass */
+        $enumClass = static::$enumClass;
+
+        /** @var aFieldSet $className */
+        if ($className = $enumClass::getClassName($id)) {
+            return $className::create($parent);
+        }
+
+        throw new Exception("Bad code - cannot spawn class from $enumClass for ID " . $id);
+    }
+
+    protected function spawnField(int $fieldId) : aField
+    {
+        if ($this->fieldClass === null) {
+            throw new Exception("Bad code - not defined fieldClass");
+        }
+
+        /** @var aField $fieldClass */
+        $fieldClass = $this->fieldClass;
+
+        return $fieldClass::spawn($this, $fieldId, $this->fieldOffset);
+    }
+
     protected function getLengthForLast() : int
     {
         return $this->rawStringLen - $this->fieldOffset;
-    }
-
-    public function setIdFromEnum() : self
-    {
-        /** @var aClassEnum $enumClass */
-        $enumClass = $this->getEnumClass();
-
-        if (($id = $enumClass::getIdByClassName(get_class($this))) === null) {
-            throw new Exception("Bad code - unknown ID (not found or not exclusive) for classenum " . $this->getName());
-        }
-
-        $this->setId($id);
-
-        return $this;
     }
 
     protected function parseRawString() : void
