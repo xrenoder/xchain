@@ -89,7 +89,7 @@ class SocketLegate extends aBase
         $message = $this->getInMessage();
 
         if ($message === null) {
-            $tmpMessage = BusyResMessage::create($this);
+            $tmpMessage = BusyResMessage::create($this->getLocator());
             $messageId = TypeMessageField::create($tmpMessage)->unpack($packet);
             unset($tmpMessage);
 
