@@ -16,46 +16,46 @@ class NodeClassEnum extends aClassEnum
     public const CAN_ACCEPT  = 'canAccept';
 
     /* maximal ID is 255 (8 bits) */
-    public const CLIENT_ID =    1;
-    public const FRONT_ID =     2;
-    public const PROXY_ID =     4;
-    public const SIDE_ID =      8;
-    public const MASTER_ID =    16;
-    public const TORRENT_ID =   32;
+    public const CLIENT =    1;
+    public const FRONT =     2;
+    public const PROXY =     4;
+    public const SIDE =      8;
+    public const MASTER =    16;
+    public const TORRENT =   32;
 
     protected static $items = array(
-        self::CLIENT_ID => 'ClientNode',
-        self::FRONT_ID => 'FrontNode',
-        self::PROXY_ID => 'ProxyNode',
-        self::SIDE_ID => 'SideNode',
-        self::MASTER_ID => 'MasterNode',
-        self::TORRENT_ID => 'TorrentNode',
+        self::CLIENT => 'ClientNode',
+        self::FRONT => 'FrontNode',
+        self::PROXY => 'ProxyNode',
+        self::SIDE => 'SideNode',
+        self::MASTER => 'MasterNode',
+        self::TORRENT => 'TorrentNode',
     );
 
     protected static $data = array(
-        self::CLIENT_ID => array(
+        self::CLIENT => array(
             self::CAN_ACCEPT => 0,
-            self::CAN_CONNECT => self::FRONT_ID
+            self::CAN_CONNECT => self::FRONT
         ),
-        self::FRONT_ID => array(
-            self::CAN_ACCEPT => self::CLIENT_ID,
-            self::CAN_CONNECT => self::PROXY_ID
+        self::FRONT => array(
+            self::CAN_ACCEPT => self::CLIENT,
+            self::CAN_CONNECT => self::PROXY
         ),
-        self::PROXY_ID => array(
-            self::CAN_ACCEPT => self::FRONT_ID,
-            self::CAN_CONNECT => self::SIDE_ID
+        self::PROXY => array(
+            self::CAN_ACCEPT => self::FRONT,
+            self::CAN_CONNECT => self::SIDE
         ),
-        self::SIDE_ID => array(
-            self::CAN_ACCEPT => self::PROXY_ID | self::SIDE_ID,
-            self::CAN_CONNECT => self::SIDE_ID | self::MASTER_ID
+        self::SIDE => array(
+            self::CAN_ACCEPT => self::PROXY | self::SIDE,
+            self::CAN_CONNECT => self::SIDE | self::MASTER
         ),
-        self::MASTER_ID => array(
-            self::CAN_ACCEPT => self::SIDE_ID | self::MASTER_ID,
-            self::CAN_CONNECT => self::SIDE_ID | self::MASTER_ID
+        self::MASTER => array(
+            self::CAN_ACCEPT => self::SIDE | self::MASTER,
+            self::CAN_CONNECT => self::SIDE | self::MASTER
         ),
-        self::TORRENT_ID => array(
-            self::CAN_ACCEPT => self::PROXY_ID | self::SIDE_ID | self::MASTER_ID,
-            self::CAN_CONNECT => self::SIDE_ID
+        self::TORRENT => array(
+            self::CAN_ACCEPT => self::PROXY | self::SIDE | self::MASTER,
+            self::CAN_CONNECT => self::SIDE
         ),
     );
 

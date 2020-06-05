@@ -16,8 +16,8 @@ class TimeMessageField extends aMessageField
 
 // Clients (type NodeClassEnum::CLIENT_ID) may have unsynchronized time
         if (
-            $message->getRemoteNodeId() === NodeClassEnum::CLIENT_ID
-            || $legate->getMyNodeId() === NodeClassEnum::CLIENT_ID
+            $message->getRemoteNodeId() === NodeClassEnum::CLIENT
+            || $legate->getMyNodeId() === NodeClassEnum::CLIENT
         ) {
             return true;
         }

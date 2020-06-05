@@ -25,7 +25,7 @@ class AddrMessageField extends aMessageField
         $myNodeId = $legate->getMyNodeId();
         $remoteNodeId = $message->getRemoteNodeId();
 
-        if ($remoteNodeId !== NodeClassEnum::CLIENT_ID && $myNodeId !== NodeClassEnum::CLIENT_ID) {
+        if ($remoteNodeId !== NodeClassEnum::CLIENT && $myNodeId !== NodeClassEnum::CLIENT) {
             $savedNodeId = NodeByAddr::create($locator, $remoteAddrBin)->getNodeId();
 
             if ($savedNodeId === null) {

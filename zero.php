@@ -55,7 +55,7 @@ try {
     }
 
 // set current node as Client (always, before full syncronization)
-    $app->setMyNode(aNode::spawn($app, NodeClassEnum::MASTER_ID));
+    $app->setMyNode(aNode::spawn($app, NodeClassEnum::MASTER));
 
 // load node private key
     $app->setMyAddress(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
