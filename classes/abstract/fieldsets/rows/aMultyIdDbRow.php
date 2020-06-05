@@ -7,9 +7,9 @@ abstract class aMultyIdDbRow extends aDbRow
 
     protected $canBeReplaced = false;     /* overrided */
 
-    public static function create(aLocator $locator, $id) : self
+    public static function create(aBase $parent, $id) : self
     {
-        $me = new static($locator);
+        $me = new static($parent);
         $me
             ->setId($id)
             ->load();
