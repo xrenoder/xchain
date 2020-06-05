@@ -128,6 +128,13 @@ abstract class aMessage extends aFieldSet
 // parse raw string and prepare formats
         $this->parseRawString();
 
+// check unpack maxLength or maxValue or fixLength error
+        if ($this->field !== null && $this->field->getLength() === null && $this->field->getValue() === null) {
+            $this->dbg("BAD DATA (see prev string))");
+            $legate->setBadData();
+            return self::MESSAGE_PARSED;
+        }
+
         if ($legate->isBadData() || $legate->getResponseString() !== null) {
             return self::MESSAGE_PARSED;
         }

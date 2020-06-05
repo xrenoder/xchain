@@ -5,6 +5,9 @@ in zero block nothing not checked, all transactions are true by default
 variable 71-74  (empty) prev block signature
 25 bytes        address of signer (M-node, who sign this block)
 
+Signer: public keys:
+4 bytes         keys count (1)
+
 
 
 Author: finance transactions

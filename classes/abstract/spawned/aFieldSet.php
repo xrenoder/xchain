@@ -104,6 +104,10 @@ abstract class aFieldSet extends aSpawnedFromEnum
             $this->$property = $field->unpack($this->rawString);
 
             if ($this->$property === null) {
+                if ($field->getLength() === null) {  // unpack maxLength or maxValue or fixLength error
+                    return false;
+                }
+
                 $this->dbg("Prepare field " . $field->getName() . ": field length = " . $field->getLength());
                 return $this->prepareField($fieldId, $property);
             }

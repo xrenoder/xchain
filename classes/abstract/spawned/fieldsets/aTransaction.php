@@ -2,13 +2,15 @@
 /**
  * Base classenum for blockchain transactions
  *
- * "Address-to-Chain without amount without data"
+ * "Address-to-Chain without amount without data" (type C)
  * unfreeze all
  * undelegate all from all nodes
  */
 
 abstract class aTransaction extends aFieldSet
 {
+    use tTransactionConstructor;
+
     protected static $dbgLvl = Logger::DBG_TRANSACT;
 
     /** @var string  */
@@ -26,18 +28,7 @@ abstract class aTransaction extends aFieldSet
      */
     protected static $fieldSet = array(      /* overrided */
         TransactionFieldClassEnum::TYPE =>      'id',              // must be always first field in message
-        TransactionFieldClassEnum::AUTHOR =>    'authorAddrBin',
     );
-
-    /** @var string  */
-    protected $authorAddrBin = null;
-    public function setAuthorAddrBin(string $val) : self {$this->authorAddress = $val; return $this;}
-    public function getAuthorAddrBin() : string {return $this->authorAddrBin;}
-
-    /** @var Address  */
-    protected $authorAddress = null;
-    public function setAuthorAddress(Address $val) : self {$this->authorAddress = $val; return $this;}
-    public function getAuthorAddress() : Address {return $this->authorAddress;}
 
     protected static $fieldLastSet = array(  /* overrided */
         TransactionFieldClassEnum::SIGN =>      'signature',
@@ -51,6 +42,12 @@ abstract class aTransaction extends aFieldSet
     /** @var string  */
     protected $hash = null;
     public function getHash() : string {return $this->hash;}
+
+
+    /** @var string  */
+    protected $data = null;
+    public function setData(string $val) : self {$this->data = $val; return $this;}
+    public function getData() : string {return $this->data;}
 
     /** @var string  */
     protected $signedData = null;
@@ -68,17 +65,6 @@ abstract class aTransaction extends aFieldSet
         }
 
         throw new Exception("Bad code - message-object can be used only in incoming transaction");
-    }
-
-    protected function __construct(aBase $parent)
-    {
-        parent::__construct($parent);
-//        $this->fields = array_diff_key($this->fields, static::$fieldLastSet);
-        $this->fields = array_replace($this->fields, self::$fieldSet);
-        $this->fields = array_replace($this->fields, static::$fieldLastSet);
-
-        $this->dbg($this->getName() .  ' fields:');
-        $this->dbg(var_export($this->fields, true));
     }
 
     public static function create(aBase $parent) : self

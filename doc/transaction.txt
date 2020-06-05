@@ -1,144 +1,168 @@
-AtAAdT  "Address-to-Address with Amount with data Tiny" transaction  (transfer):
+C     "Address-to-Chain without amount without data" transaction (unfreeze all, undelegate all from all nodes):
 
-0    1 byte          type of transaction (255)
-1    25 bytes        author address
+    1 byte          type of transaction (255)
+    25 bytes        author address
 
-2    25 bytes        target address
-3    8 bytes         amount
-5    1 + variable    tiny data (255)
+    variable 71-73  author transaction signature (0-5)
+    16 bytes        transaction ID (MD4 hash of 6)
 
-6    variable 71-73  author transaction signature (0-5)
-7    16 bytes        transaction ID (MD4 hash of 6)
-
-    149 bytes + data
+    115 bytes
 
 
 
+    Ca    "Address-to-Chain with Amount without data"  transaction (freeze amount, unfreeze amount):
 
-AtAA    "Address-To-Address with Amount without data" transaction  (delegate amount to node, undelegate amount from node):
+        1 byte          type of transaction (255)
+        25 bytes        author address
 
-0    1 byte          type of transaction (255)
-1    25 bytes        author address
+        8 bytes         amount
 
-2    25 bytes        target address
-3    8 bytes         amount
+        variable 71-73  author transaction signature (0-5)
+        16 bytes        transaction ID (MD4 hash of 6)
 
-6    variable 71-73  author transaction signature (0-5)
-7    16 bytes        transaction ID (MD4 hash of 6)
-
-    148 bytes
+        123 bytes
 
 
 
+            CaT    "Address-to-Chain with Amount with data Tiny"  transaction (wanna be node, short stop node):
 
-AtA     "Address-To-Address without amount without data" transaction (undelegate all from node):
+                1 byte          type of transaction (255)
+                25 bytes        author address
 
-0    1 byte          type of transaction (255)
-1    25 bytes        author address
+                8 bytes         amount
+                1 + variable    tiny data (may be '') (255)
 
-2    25 bytes        target address
+                variable 71-73  author transaction signature (0-5)
+                16 bytes        transaction ID (MD4 hash of 6)
 
-6    variable 71-73  author transaction signature (0-5)
-7    16 bytes        transaction ID (MD4 hash of 6)
-
-    140 bytes
-
-
-
-
-AtAdT "Address-To-Address without amount with data Tiny" transaction (node alive check directive):
-
-0    1 byte          type of transaction (255)
-1    25 bytes        author address
-
-2    25 bytes        target address
-5    1 + variable    tiny data (255)
-
-6    variable 71-73  author transaction signature (0-5)
-
-7    16 bytes        transaction ID (MD4 hash of 6)
-
-    141 bytes + data
+                124 bytes + data
 
 
 
+    CT   "Address-to-Chain without amount with data Tiny" transaction (blockchain rules):
 
-AtCA    "Address-to-Chain with Amount without data"  transaction (freeze amount, unfreeze amount):
+        1 byte          type of transaction (255)
+        25 bytes        author address
 
-0    1 byte          type of transaction (255)
-1    25 bytes        author address
+        1 + variable    tiny data (may be '') (255)
 
-3    8 bytes         amount
+        variable 71-73  author transaction signature (0-5)
+        16 bytes        transaction ID (MD4 hash of 6)
 
-6    variable 71-73  author transaction signature (0-5)
-7    16 bytes        transaction ID (MD4 hash of 6)
+        116 bytes + data
 
-    123 bytes + data
+
+
+    A     "Address-To-Address without amount without data" transaction (undelegate all from node):
+
+        1 byte          type of transaction (255)
+        25 bytes        author address
+
+        25 bytes        target address
+
+        variable 71-73  author transaction signature (0-5)
+        16 bytes        transaction ID (MD4 hash of 6)
+
+        140 bytes
 
 
 
 
-AtC     "Address-to-Chain without amount without data" transaction (unfreeze all, undelegate all from all nodes):
+        Aa    "Address-To-Address with Amount without data" transaction  (delegate amount to node, undelegate amount from node):
 
-0    1 byte          type of transaction (255)
-1    25 bytes        author address
+            1 byte          type of transaction (255)
+            25 bytes        author address
 
-6    variable 71-73  author transaction signature (0-5)
-7    16 bytes        transaction ID (MD4 hash of 6)
+            25 bytes        target address
+            8 bytes         amount
 
-    115 bytes + data
+            variable 71-73  author transaction signature (0-5)
+            16 bytes        transaction ID (MD4 hash of 6)
+
+            148 bytes
 
 
 
 
+            AaT  "Address-to-Address with Amount with data Tiny" transaction  (transfer):
 
-AtCdT   "Address-to-Chain without amount with data Tiny" transaction (blockchain rules):
+                1 byte          type of transaction (255)
+                25 bytes        author address
 
-0    1 byte          type of transaction (255)
-1    25 bytes        author address
+                25 bytes        target address
+                8 bytes         amount
+                1 + variable    tiny data (255)
 
-5    1 + variable    tiny data (may be '') (255)
+                variable 71-73  author transaction signature (0-5)
+                16 bytes        transaction ID (MD4 hash of 6)
 
-6    variable 71-73  author transaction signature (0-5)
-7    16 bytes        transaction ID (MD4 hash of 6)
+                149 bytes + data
 
-    116 bytes + data
+
+
+        AT "Address-To-Address without amount with data Tiny" transaction (node alive check directive):
+
+            1 byte          type of transaction (255)
+            25 bytes        author address
+
+            25 bytes        target address
+            1 + variable    tiny data (255)
+
+            variable 71-73  author transaction signature (0-5)
+            16 bytes        transaction ID (MD4 hash of 6)
+
+            141 bytes + data
+
+
+        AP   "Address-to-Address without amount with data PubKey" transaction (public keys):
+
+            1 byte          type of transaction (255)
+            25 bytes        author address
+
+            25 bytes        target address
+            248 bytes       public key data
+
+            variable 71-73  author transaction signature (0-5)
+            16 bytes        transaction ID (MD4 hash of 6)
+
+            388 bytes
+
 
 Common fields for all transactions:
 
 F-node block:
-11   1 byte         F-type
-10   4 bytes        F-time
-12   25 bytes       F-addr
-13   variable 71-73 F-sign: author_public_key . transaction . F-type . F-time . F-addr
+    1 byte         F-type
+    4 bytes        F-time
+    25 bytes       F-addr
+    variable 71-73 F-sign: author_public_key . transaction . F-type . F-time . F-addr
 
 P-node block:
-15   1 byte         P-type
-14   4 bytes        P-time
-16   25 bytes       P-addr
-17   variable 71-73 P-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr
+    1 byte         P-type
+    4 bytes        P-time
+    25 bytes       P-addr
+    variable 71-73 P-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr
 
 S-node block:
-19   1 byte         S-type
-18   4 bytes        S-time
-20   25 bytes       S-addr
-21   variable 71-73 S-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr
+    1 byte         S-type
+    4 bytes        S-time
+    25 bytes       S-addr
+    variable 71-73 S-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr
 
 M-node block:
-23   1 byte         M-type
-22   4 bytes        M-time
-24   25 bytes       M-addr
-25   variable 71-73 M-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr . S-sign . M-type . M-time . M-addr
+    1 byte         M-type
+    4 bytes        M-time
+    25 bytes       M-addr
+    variable 71-73 M-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr . S-sign . M-type . M-time . M-addr
 
 Final transaction record:
 transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr . S-sign . M-type . M-time . M-addr . M-sign
 
 Optional field for saving:
 
-248 bytes       author public key
+without data
+    max 560 = 148 + 103 * 4
+    min 527 = 115 + 103 * 4
 
-    w/o public key max 570 = (158 + 103 * 4) + data
-    w/o public key min 527 = (115 + 103 * 4) + data
-
-    wth public key max 818 = (158 + 103 * 4) + data + 248 public key
-    wth public key min 775 = (115 + 103 * 4) + data + 248 public key
+with data
+    max 561 + data = (149 + 103 * 4) + data
+    min 528 + data = (116 + 103 * 4) + data

@@ -11,11 +11,11 @@ abstract class aFieldFormat extends aSpawnedFromEnum
     /** @var int  */
     protected $length = null;
     public function setLength(int $val) : self {$this->length = $val; return $this;}
-    public function getLength() : int {return $this->length;}
+    public function getLength() : ?int {return $this->length;}
 
-    /** @var string  */
+    /** @var int  */
     protected $lengthFormatId = null;
-    public function setLengthFormatId(?string $val) : self {$this->lengthFormatId = $val; return $this;}
+    public function setLengthFormatId(?int $val) : self {$this->lengthFormatId = $val; return $this;}
 
     /** @var bool */
     protected $isLast;
@@ -54,7 +54,7 @@ abstract class aFieldFormat extends aSpawnedFromEnum
         return $me;
     }
 
-    public static function spawn(aField $parent, string $id, int $offset = 0) : self
+    public static function spawn(aField $parent, int $id, int $offset = 0) : self
     {
         /** @var aFieldFormat $className */
 
@@ -79,12 +79,29 @@ abstract class aFieldFormat extends aSpawnedFromEnum
 
     protected function packDataTransform($data) : string
     {
-        return pack($this->id, $data);
+        $maxValue = FieldFormatClassEnum::getMaxValue($this->id);
+
+        if ($maxValue && $data > $maxValue) {
+            throw new Exception("Bad value of " . $this->getName() . ": $data more than $maxValue");
+        }
+
+        return pack(FieldFormatClassEnum::getPackFormat($this->id), $data);
     }
 
     protected function unpackRawTransform()
     {
-        $this->value = unpack($this->id, $this->rawWithoutLength)[1];
+        $this->value = unpack(FieldFormatClassEnum::getPackFormat($this->id), $this->rawWithoutLength)[1];
+
+        $maxValue = FieldFormatClassEnum::getMaxValue($this->id);
+
+        if ($maxValue && $this->value > $maxValue) {
+            $this->dbg("Bad unpack value of " . $this->getName() . ": $this->value more than $maxValue");
+
+            $this->rawWithoutLength = null;
+            $this->length = null;
+            $this->value = null;
+        }
+
         return $this->value;
     }
 }

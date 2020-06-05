@@ -20,7 +20,7 @@ class DbFieldClassEnum extends aFieldClassEnum
     protected static $data = array(
         self::ASIS =>   FieldFormatClassEnum::ASIS,
         self::ADDR =>   FieldFormatClassEnum::ADDR,
-        self::NODE =>   FieldFormatClassEnum::UCHAR,
+        self::NODE =>   FieldFormatClassEnum::UBYTE,
         self::PUBKEY => FieldFormatClassEnum::PUBKEY,
     );
 }

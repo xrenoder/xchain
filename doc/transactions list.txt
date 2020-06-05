@@ -1,46 +1,51 @@
 Transfer (author - client):
 
-AtAa    transfer
+AaT    transfer
 
 Delegation/Undelegation:
 
-AtAa    delegate amount to node
-AtAa    undelegate amount from node (author - delegate)
-AtAa    undelegate amount from node (author - node)
-AtAwa   undelegate all from node (author - delegate)
-AtAwa   undelegate all from node (author - node)
-Gwa     undelegate all from all nodes (author - delegate)
+AaT    delegate amount to node
+AaT    undelegate amount from node (author - delegate)
+AaT    undelegate amount from node (author - node)
+A   undelegate all from node (author - delegate)
+A   undelegate all from node (author - node)
+C     undelegate all from all nodes (author - delegate)
 
 Freeze/Unfreeze:
 
-Ga      freeze amount
-Ga      unfreeze amount
-Gwa     unfreeze all
+Ca      freeze amount
+Ca      unfreeze amount
+C     unfreeze all
 
+Public Key registration (author - signer):
 
+AP  RegisterPublicKeyTransaction (target - address of public key, data - public key)
 
 Node registration (author - client or node):
-GwaTd   register current node host (data - IP, port, name, opt - previous node host) - must worked as client, must have 'node alive check'-transaction
+
+CT   register current node host (data - IP, port, name, opt - previous node host) - must worked as client, must have 'node alive check'-transaction
 
 
 
 Node status (author - node):
-GwaTd   node alive check (data - IP, port)
-GwaTd   register future node host (data - IP, port, current node host) - must worked as client, must be checked twice
-GaTd    wanna be node (amount  - freeze, data - node type) - signer put transaction in block, if aspirant really can be node (but node need have delegations)
-GwaTd   start node (data - node type) - signer put transaction in block, if aspirant really can be node (have delegations)
-GaTd    short stop node (amount - additional freeze, will be pay for every block, data - max time of stopping)
-Gwa     long or forever stop node (automatically unfrozen and undelegation all)
+
+CT   node alive check (data - IP, port)
+CT   register future node host (data - IP, port, current node host) - must worked as client, must be checked twice
+CaT    wanna be node (amount  - freeze, data - node type) - signer put transaction in block, if aspirant really can be node (but node need have delegations)
+CT   start node (data - node type) - signer put transaction in block, if aspirant really can be node (have delegations)
+CaT  short stop node (amount - additional freeze, will be pay for every block, data - max time of stopping)
+C     long or forever stop node (automatically unfrozen and undelegation all)
 
 
 
 Node status (author - signer):
-AtAwa   node alive check directive (data - IP, port, node address)
-node type approved (data - node type) - only after this node can work as node, signer put it after "start node" transaction
+
+AT   node alive check directive (data - IP, port, node address)
+AT  node type approved (data - node type) - only after this node can work as node, signer put it after "start node" transaction
 
 
-GwaTd   set allower                       allower can set/unset allow modes and allows for nodes
-GwaTd   unsetset allower                  allower can set/unset allow modes and allows for nodes
+CT   set allower                       allower can set/unset allow modes and allows for nodes
+CT   unsetset allower                  allower can set/unset allow modes and allows for nodes
 
 set/unset allow mode to M-nodes         if set - only allowed addresses can be M-nodes
 set/unset allow mode to S-nodes         if set - only allowed addresses can be S-nodes

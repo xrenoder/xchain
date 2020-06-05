@@ -3,27 +3,34 @@
 variable 71-74  prev block signature
 25 bytes        address of signer (M-node, who sign this block)
 
-Author: finance transactions (transfer, delegate, undelegate, freeze, unfreeze):
-4 bytes         transactions count
-2 + variable    transaction + optional public key
+Signer: public key transactions:
+2 bytes         transactions count
+
+1 + variable    transaction
 ...
-2 + variable    transaction + optional public key
+1 + variable    transaction
+
+Author: finance transactions (transfer, delegate, undelegate, freeze, unfreeze):
+2 bytes         transactions count
+2 + variable    transaction
+...
+2 + variable    transaction
 
 Author: nodes checking
-4 bytes         transactions count
+2 bytes         transactions count
 2 + variable    node alive check transaction
 
 Author: broadcast transactions (register node, check node, stop node, start node, 'wanna be node'):
-4 bytes         transactions count
+2 bytes         transactions count
 
 Signer: collecting finance transactions - collect reward fund (emissions, penalties, forced comissions, authors comissions)
-4 bytes         transactions count
+2 bytes         transactions count
 1 + variable    transaction
 ...
 1 + variable    transaction
 
 Signer: rewards finance transactions (rewards)
-4 bytes         transactions count
+2 bytes         transactions count
 1 + variable    transaction
 ...
 1 + variable    transaction
@@ -36,7 +43,7 @@ Signer: blockchain rules transactions (nodes frozen limits, emission rules, rewa
 1 + variable    transaction
 
 Signer: change nodes status transactions
-4 bytes         transactions count
+2 bytes         transactions count
 1 + variable    transaction
 ...
 1 + variable    transaction

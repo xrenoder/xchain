@@ -27,14 +27,26 @@ abstract class aVarLengthFieldFormat extends aFieldFormat
             throw new Exception("Bad length of " . $this->getName() . ": $length more than " . FieldFormatClassEnum::getMaxValue($this->lengthFormatId));
         }
 
-        return pack($this->lengthFormatId, $length) . $data;
+        return pack(FieldFormatClassEnum::getPackFormat($this->lengthFormatId), $length) . $data;
     }
 
     private function unpackVariableLength(string $data) : void
     {
         $lengthFormatLen = FieldFormatClassEnum::getLength($this->lengthFormatId);
         $this->rawFieldLength = substr($data, $this->offset, $lengthFormatLen);
-        $fieldLength = unpack($this->lengthFormatId, $this->rawFieldLength)[1];
+        $fieldLength = unpack(FieldFormatClassEnum::getPackFormat($this->lengthFormatId), $this->rawFieldLength)[1];
+
+        $maxLength = FieldFormatClassEnum::getMaxValue($this->lengthFormatId);
+
+        if ($maxLength && $fieldLength > $maxLength) {  // value of length more than max possible value of lengthFormat
+            $this->dbg("Bad unpack length of " . $this->getName() . ": $fieldLength more than $maxLength");
+
+            $this->rawWithoutLength = null;
+            $this->length = null;
+            $this->value = null;
+
+            return;
+        }
 
         $this->rawWithoutLength = substr($data, $this->offset + $lengthFormatLen, $fieldLength);
         $this->length = $fieldLength + $lengthFormatLen;

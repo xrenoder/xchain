@@ -32,13 +32,13 @@ class MessageFieldClassEnum extends aFieldClassEnum
     );
 
     protected static $data = array(
-        self::TYPE =>   FieldFormatClassEnum::UCHAR,          // always must have fixed non-zero length
-        self::LENGTH => FieldFormatClassEnum::ULONG_BE,      // always must have fixed non-zero length
-        self::NODE =>   FieldFormatClassEnum::UCHAR,
-        self::TIME =>   FieldFormatClassEnum::ULONG_BE,
+        self::TYPE =>   FieldFormatClassEnum::UBYTE,          // always must have fixed non-zero length
+        self::LENGTH => FieldFormatClassEnum::ULONG,      // always must have fixed non-zero length
+        self::NODE =>   FieldFormatClassEnum::UBYTE,
+        self::TIME =>   FieldFormatClassEnum::ULONG,
         self::ADDR =>   FieldFormatClassEnum::ADDR,
-        self::DATA =>   FieldFormatClassEnum::ASIS_LBE,
+        self::DATA =>   FieldFormatClassEnum::ASIS_SL,  // max len of message = MAX_ULONG (2**32-1), max len of message data (transaction) = (MAX_ULONG-1024), max len of transaction data = (MAX_ULONG-1024*2)
         self::PUBKEY => FieldFormatClassEnum::PUBKEY,
-        self::SIGN =>   FieldFormatClassEnum::SIGN_LC,
+        self::SIGN =>   FieldFormatClassEnum::ASIS_B,
     );
 }

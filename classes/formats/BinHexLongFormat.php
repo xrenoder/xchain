@@ -11,6 +11,7 @@ class BinHexLongFormat extends aVarLengthFieldFormat
     protected function unpackRawTransform()
     {
         $this->value = bin2hex($this->rawWithoutLength);
+
         return $this->value;
     }
 }

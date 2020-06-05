@@ -23,7 +23,7 @@ abstract class aNode extends aSpawnedFromEnum
     public function setCanConnect($val) : self {$this->canConnect = $val; return $this;}
     public function getCanConnect() : int {return $this->canConnect;}
 
-    public static function create(aLocator $parent) : self
+    public static function create(aBase $parent) : self
     {
         $me = new static($parent);
 
@@ -37,7 +37,7 @@ abstract class aNode extends aSpawnedFromEnum
         return $me;
     }
 
-    public static function spawn(aLocator $parent, $id) : self
+    public static function spawn(aBase $parent, $id) : self
     {
         if (static::$enumClass === null) {
             throw new Exception("Bad code - not defined enumClass");

@@ -15,7 +15,7 @@ abstract class aField extends aSpawnedFromEnum
     public function isLast() : bool {return $this->format->isLast();}
 
     public function setLength(int $val) : self {$this->format->setLength($val); return $this;}
-    public function getLength() : int {return $this->format->getLength();}
+    public function getLength() : ?int {return $this->format->getLength();}
 
     public function getRawWithoutLength() : string {return $this->format->getRawWithoutLength();}
     public function getRawFieldLength() : string {return $this->format->getRawFieldLength();}
@@ -66,7 +66,9 @@ abstract class aField extends aSpawnedFromEnum
         /** @var aFieldClassEnum $enumClass */
         $enumClass = static::$enumClass;
         $formatId = $enumClass::getFormat($this->id);
+
         $this->format = aFieldFormat::spawn($this, $formatId, $offset);
+
         return $this;
     }
 

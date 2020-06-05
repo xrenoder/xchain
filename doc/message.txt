@@ -15,7 +15,7 @@ variable        data
 248 bytes       author (not sender) public key
 
 variable 71-73  data signature (signed by sender)
-                (last field for "aSignMessage")                  max 356 + data
+                (last field for "aSignMessage": "TransactionMessage")           356 + data
 
 
 signed message fields:

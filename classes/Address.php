@@ -56,6 +56,13 @@ class Address extends aBase
         return $me->loadPrivateKey($addressHuman, $walletPath);
     }
 
+    public static function createFromPrivateHex(aLocator $locator, string $privateHex) : self
+    {
+        $me = static::create($locator);
+
+        return $me->createFromPirvate($privateHex);
+    }
+
     public static function createFromPublic(aLocator $locator, string $publicKeyBin) : self
     {
         $me = static::create($locator);
@@ -176,10 +183,6 @@ class Address extends aBase
 
     public function loadPrivateKey(string $addressHuman, string $walletPath) : self
     {
-        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null || $this->address !== null) {
-            throw new RuntimeException('Cannot load new private key - this address-object is already filled');
-        }
-
         if (!is_dir($walletPath)) {
             throw new RuntimeException(sprintf('Directory "%s" was not found', $walletPath));
         }
@@ -200,14 +203,25 @@ class Address extends aBase
 
         $fd = fopen($file, 'rb');
         flock($fd, LOCK_EX);
-        $this->privateKeyHex = fread($fd, $fileSize);
+        $privateKeyHex = fread($fd, $fileSize);
         flock($fd, LOCK_UN);
         fclose($fd);
+
+        return $this->createFromPirvate($privateKeyHex, $addressHuman, $file);
+    }
+
+    public function createFromPirvate($privateHex, $addressHuman = null, $file = null) : self
+    {
+        if ($this->privateKeyHex !== null || $this->publicKeyHex !== null || $this->address !== null) {
+            throw new RuntimeException('Cannot load new private key - this address-object is already filled');
+        }
+
+        $this->privateKeyHex = $privateHex;
 
         $this->privateToPublic();
         $this->publicToAddress();
 
-        if ($this->addressBase16 !== $addressHuman) {
+        if ($file !== null && $addressHuman !== null && $this->addressBase16 !== $addressHuman) {
             throw new RuntimeException("File '$file' contains private key for address $this->addressBase16, not $addressHuman");
         }
 
