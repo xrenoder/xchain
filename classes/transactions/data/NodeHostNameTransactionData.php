@@ -8,8 +8,8 @@ class NodeHostNameTransactionData extends aTransactionData
      * @var array
      */
     protected static $fieldSet = array(
-        'host' =>        TransactionDataFieldClassEnum::HOST,
-        'nodeName' =>    TransactionDataFieldClassEnum::NODE_NAME,
+        TransactionDataFieldClassEnum::HOST => 'host',
+        TransactionDataFieldClassEnum::NODE_NAME => 'nodeName',
     );
 
     /** @var string  */

@@ -8,7 +8,7 @@ class PublicKeyTransactionData extends aTransactionData
      * @var array
      */
     protected static $fieldSet = array(
-        'publicKey' =>        TransactionDataFieldClassEnum::PUBKEY,
+        TransactionDataFieldClassEnum::PUBKEY => 'publicKey',
     );
 
     /** @var string  */
