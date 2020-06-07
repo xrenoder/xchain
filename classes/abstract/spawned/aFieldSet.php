@@ -148,6 +148,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
 
         foreach($this->fields as $fieldId => $property) {
             if ($this->$property === null) {
+                $this->dbg($this->getName() . " field $property is null");
                 $this->raw = null;
                 $this->rawLength = null;
                 return $this->raw;
