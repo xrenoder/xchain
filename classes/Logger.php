@@ -123,7 +123,7 @@ class Logger extends aBase
         } else if ($isDebug) {
             $record .= '[dbg ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else {
-            $record .= self::$flags[$dbgLevel] . "\t";
+            $record .= self::$flags[$dbgLevel] . "\t\t";
         }
 
         $record .= $message . "\n";
