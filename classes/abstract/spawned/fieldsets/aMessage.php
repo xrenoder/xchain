@@ -154,7 +154,7 @@ abstract class aMessage extends aFieldSet
     protected function compositeRaw() : string
     {
         $rawType = TypeMessageField::pack($this,$this->id);
-        $fullLength = strlen($rawType) + aMessageField::getStatLength(MessageFieldClassEnum::LENGTH) + strlen($this->raw);
+        $fullLength = strlen($rawType) + aMessageField::getStaticLength(MessageFieldClassEnum::LENGTH) + strlen($this->raw);
         $rawLength = LengthMessageField::pack($this,$fullLength);
 
         $this->raw = $rawType . $rawLength . $this->raw;

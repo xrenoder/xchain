@@ -138,7 +138,7 @@ abstract class aTransaction extends aFieldSet
         $this->rawLength = strlen($this->raw);
         $this->calcInternalHash();
 
-        $this->dbg(get_class($this) . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
+        $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
 
         return $this->raw;
     }

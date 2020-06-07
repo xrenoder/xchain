@@ -22,12 +22,16 @@ class Zero extends aBase
             = RegisterPublicKeyTransaction::create($app)
                 ->setAuthorAddress($firstMnodeAddress)
                 ->setTargetAddrBin($firstMnodeAddress->getAddressBin())
-                ->setPublicKey($firstMnodeAddress->getPublicKeyBin());
+                ->setPublicKey($firstMnodeAddress->getPublicKeyBin())
+                ->createRaw()
+        ;
 
         $registerNodeHostTransaction
             = RegisterNodeHostTransaction::create($app)
                 ->setAuthorAddress($firstMnodeAddress)
                 ->setHost(FIRST_M_NODE_HOST)
-                ->setNodeName(FIRST_M_NODE_NAME);
+                ->setNodeName(FIRST_M_NODE_NAME)
+                ->createRaw()
+        ;
     }
 }

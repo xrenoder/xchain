@@ -10,7 +10,7 @@ trait tTransactionConstructor
         $this->fields = array_replace($this->fields, self::$fieldSet);
         $this->fields = array_replace($this->fields, static::$fieldLastSet);
 
-        $this->dbg($this->getName() .  ' fields:');
-        $this->dbg(var_export($this->fields, true));
+//        $this->dbg($this->getName() .  ' fields:');
+//        $this->dbg(var_export($this->fields, true));
     }
 }

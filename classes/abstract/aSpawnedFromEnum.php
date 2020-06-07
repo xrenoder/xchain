@@ -6,6 +6,7 @@ class aSpawnedFromEnum extends aBase
     /** @var string  */
     protected static $enumClass = null; /* override me */
     public function getEnumClass() : string {return static::$enumClass;}
+    public static function getStaticEnumClass() : string {return static::$enumClass;}
 
     protected $id = null;
     public function setId($val) {if ($this->id === null) $this->id = $val; return $this;}

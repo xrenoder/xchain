@@ -15,5 +15,5 @@ abstract class aMessageField extends aField
     public function getMessage() : aMessage {return $this->getParent();}
     public function getLegate() : SocketLegate {return $this->getMessage()->getLegate();}
 
-    public static function getStatLength($id) : int {return MessageFieldClassEnum::getLength($id);}
+    public static function getStaticLength($id) : int {return MessageFieldClassEnum::getLength($id);}
 }

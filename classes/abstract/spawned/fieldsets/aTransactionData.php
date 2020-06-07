@@ -26,22 +26,4 @@ abstract class aTransactionData extends aFieldSet
 
         return $me;
     }
-
-    public function createRaw() : string
-    {
-        $this->raw = '';
-
-        foreach($this->fields as $fieldId => $property) {
-            if ($this->$property === null) {
-                $this->raw = null;
-                return $this->raw;
-            }
-
-            /** @var aTransactionDataField $fieldClassName */
-            $fieldClassName = TransactionDataFieldClassEnum::getItem($fieldId);
-            $this->raw .= $fieldClassName::pack($this, $this->$property);
-        }
-
-        return $this->raw;
-    }
 }

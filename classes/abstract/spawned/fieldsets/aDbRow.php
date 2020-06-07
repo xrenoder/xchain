@@ -100,22 +100,4 @@ abstract class aDbRow extends aFieldSet
 
         return $this;
     }
-
-    public function createRaw() : string
-    {
-        $this->raw = '';
-
-        foreach($this->fields as $fieldId => $property) {
-            if ($this->$property === null) {
-                $this->raw = null;
-                return $this->raw;
-            }
-
-            /** @var aDbField $fieldClassName */
-            $fieldClassName = DbFieldClassEnum::getItem($fieldId);
-            $this->raw .= $fieldClassName::pack($this, $this->$property);
-        }
-
-        return $this->raw;
-    }
 }

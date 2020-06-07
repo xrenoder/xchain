@@ -33,7 +33,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
     protected $fieldOffset = 0;
     public function setFieldOffset(int $val) : self {$this->fieldOffset = $val; return $this;}
 
-    abstract public function createRaw() : string;
+//    abstract public function createRaw() : string;
 
     protected function __construct(aBase $parent)
     {
@@ -60,7 +60,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
     protected function spawnField(int $fieldId) : aField
     {
         if ($this->fieldClass === null) {
-            throw new Exception("Bad code - not defined fieldClass");
+            throw new Exception($this->getName() . " Bad code - not defined fieldClass");
         }
 
         /** @var aField $fieldClass */
@@ -130,6 +130,38 @@ abstract class aFieldSet extends aSpawnedFromEnum
         }
 
         return false;
+    }
+
+    public function createRaw() : string
+    {
+        if ($this->fieldClass === null) {
+            throw new Exception($this->getName() . " Bad code - not defined fieldClass");
+        }
+
+        /** @var aField $fieldClass */
+        $fieldClass = $this->fieldClass;
+
+        /** @var aFieldClassEnum $fieldClassEnum */
+        $fieldClassEnum = $fieldClass::getStaticEnumClass();
+
+        $this->raw = '';
+
+        foreach($this->fields as $fieldId => $property) {
+            if ($this->$property === null) {
+                $this->raw = null;
+                $this->rawLength = null;
+                return $this->raw;
+            }
+
+            /** @var aField $fieldClassName */
+            $fieldClassName = $fieldClassEnum::getItem($fieldId);
+            $this->raw .= $fieldClassName::pack($this, $this->$property);
+        }
+
+        $this->rawLength = strlen($this->raw);
+        $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
+
+        return $this->raw;
     }
 
     protected function postPrepareField(int $fieldId, string $property) : void
