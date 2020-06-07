@@ -11,25 +11,37 @@ class HostFormat extends aFixLengthFieldFormat
             throw new Exception("Bad value of " . $this->getName() . ": $data must have format 'IP:port'");
         }
 
-        $port = trim($tmp[1]);
+        $portTmp = trim($tmp[1]);
 
-        if (!is_int($port) || $port < 1 || $port > 65535) {
-            throw new Exception("Bad value of " . $this->getName() . ": $data - wrong port'");
+        if (!is_numeric($portTmp)) {
+            throw new Exception("Bad value of " . $this->getName() . ": $data - wrong port (not numeric)");
+        }
+
+        $port = (int) $portTmp;
+
+        if ($port != $portTmp || $port < 1 || $port > 65535) {
+            throw new Exception("Bad value of " . $this->getName() . ": $data - wrong port");
         }
 
         $tmp = explode('.', trim($tmp[0]));
 
         if (count($tmp) !== 4) {
-            throw new Exception("Bad value of " . $this->getName() . ": $data - wrong IP'");
+            throw new Exception("Bad value of " . $this->getName() . ": $data - wrong IP");
         }
 
         $result = '';
 
         for ($i = 0; $i < 4; $i++) {
-            $ipPart = trim($tmp[$i]);
+            $ipPartTmp = trim($tmp[$i]);
 
-            if (!is_int($ipPart) || $ipPart < 0 || $ipPart > 255) {
-                throw new Exception("Bad value of " . $this->getName() . ": $data - wrong IP'");
+            if (!is_numeric($ipPartTmp)) {
+                throw new Exception("Bad value of " . $this->getName() . ": $data - wrong IP (not numeric part");
+            }
+
+            $ipPart = (int) $ipPartTmp;
+
+            if ($ipPart != $ipPartTmp || $ipPart < 0 || $ipPart > 255) {
+                throw new Exception("Bad value of " . $this->getName() . ": $data - wrong IP");
             }
 
             $result .= pack('C', $ipPart);
