@@ -21,6 +21,11 @@ $debugMode =
     | Logger::DBG_DB_MROW
     | Logger::DBG_DB_RSET
     | Logger::DBG_TRANSACT
+    | Logger::DBG_TRANS_FLD
+    | Logger::DBG_BLOCK
+    | Logger::DBG_TRANSACT
+    | Logger::DBG_TRANS_DATA_FLD
+    | Logger::DBG_TRANS_DATA
 ;
 //*/
 /*
