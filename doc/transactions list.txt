@@ -19,11 +19,11 @@ C     unfreeze all
 
 Public Key registration (author - signer):
 
-AP  RegisterPublicKeyTransaction (target - address of public key, data - public key)
+AT  RegisterPublicKeyTransaction (target - address of public key, data - public key)
 
 Node registration (author - client or node):
 
-CT   register current node host (data - IP, port, name, opt - previous node host) - must worked as client, must have 'node alive check'-transaction
+CT   RegisterNodeHostTransaction (author - node address, data - node IP:port, node name) - must worked as client, must have 'node alive check'-transaction
 
 
 
@@ -40,7 +40,7 @@ C     long or forever stop node (automatically unfrozen and undelegation all)
 
 Node status (author - signer):
 
-AT   node alive check directive (data - IP, port, node address)
+AT   node alive check directive (data - IP:port, node address)
 AT  node type approved (data - node type) - only after this node can work as node, signer put it after "start node" transaction
 
 

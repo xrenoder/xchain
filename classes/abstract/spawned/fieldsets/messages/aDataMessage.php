@@ -28,25 +28,25 @@ abstract class aDataMessage extends aSimpleAddressMessage
     /**
      * @return string
      */
-    public function createMessageString() : string
+    public function createRaw() : string
     {
-        $body = $this->bodyData();
+        $this->rawDataMessage();
 
-        return $this->compositeMessage($body);
+        return $this->compositeRaw();
     }
 
-    protected function bodyData() : string
+    protected function rawDataMessage() : void
     {
         if ($this->data === null) {
             $this->data = '';
         }
 
-        $bodyParent = $this->bodySimpleAddress();
+        $this->rawSimpleAddressMessage();
 
-        $dataField = DataMessageField::pack($this,$this->data);
+        $rawData = DataMessageField::pack($this,$this->data);
 
-        $this->signedData = $dataField . $this->signedData;
+        $this->signedData = $rawData . $this->signedData;
 
-        return $bodyParent . $dataField;
+        $this->raw .= $rawData;
     }
 }

@@ -14,16 +14,20 @@ class Zero extends aBase
     {
         $app = $this->getApp();
 
-        $firstMNodeAddress = Address::createFromPrivateHex($app, FIRST_M_NODE_KEY);
+        $firstMnodeAddress = Address::createFromPrivateHex($app, FIRST_M_NODE_KEY);
 
         $dbTransaction = $this->dbTrans();
 
         $registerPublicKeyTransaction
             = RegisterPublicKeyTransaction::create($app)
-                ->setAuthorAddress($firstMNodeAddress)
-                ->setTargetAddrBin($firstMNodeAddress->getAddressBin())
-                ->setData($firstMNodeAddress->getPublicKeyBin());
+                ->setAuthorAddress($firstMnodeAddress)
+                ->setTargetAddrBin($firstMnodeAddress->getAddressBin())
+                ->setPublicKey($firstMnodeAddress->getPublicKeyBin());
 
-        $registerNodeHostTransaction = RegisterNodeHostTransaction::create($app);
+        $registerNodeHostTransaction
+            = RegisterNodeHostTransaction::create($app)
+                ->setAuthorAddress($firstMnodeAddress)
+                ->setHost(FIRST_M_NODE_HOST)
+                ->setNodeName(FIRST_M_NODE_NAME);
     }
 }

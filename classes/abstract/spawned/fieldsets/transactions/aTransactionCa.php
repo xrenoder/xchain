@@ -19,5 +19,22 @@ abstract class aTransactionCa extends aTransactionC
     public function getAmount() : string {return $this->amount;}
 
 
+    /**
+     * @return string
+     */
+    public function createRaw() : string
+    {
+        $this->rawTransactionCa();
+
+        return $this->compositeRaw();
+    }
+
+    protected function rawTransactionCa() : void
+    {
+        $rawAmount = AmountTransactionField::pack($this, $this->amount);
+
+        $this->signedData = $rawAmount;
+        $this->raw = $rawAmount;
+    }
 
 }

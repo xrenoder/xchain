@@ -18,8 +18,6 @@ class Address extends aBase
     public const ADDRESS_HUM_LEN = 52;
     public const ADDRESS_BIN_LEN = 25;
 
-    public const HASH_BIN_LEN = 16;
-
     private $publicKey = null;      // bin  248 bytes
     private $address = null;        // bin  25 bytes
 
@@ -33,9 +31,9 @@ class Address extends aBase
     public function getAddressBin() : string {return $this->address;}
     public function getAddressHuman() : string {return $this->addressBase16;}
 
-    /** @var bool */
-    private $addrOnly = false;
-    public function isAddressOnly() : bool {return $this->addrOnly;}
+    public function isAddressOnly() : bool {return ($this->publicKey === null);}
+    public function isPubKeyOnly() : bool {return ($this->privateKeyHex === null);}
+    public function isFull() : bool {return ($this->privateKeyHex !== null);}
 
     public static function createNew(aLocator $locator, string $walletPath = null) : self
     {

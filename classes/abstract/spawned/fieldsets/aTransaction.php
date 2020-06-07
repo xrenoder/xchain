@@ -10,6 +10,10 @@
 abstract class aTransaction extends aFieldSet
 {
     use tTransactionConstructor;
+    public const HASH_ALGO = 'md4';
+    public const HASH_BIN_LEN = 16;
+
+    protected const DATA_PROPERTY = 'rawData';
 
     protected static $dbgLvl = Logger::DBG_TRANSACT;
 
@@ -28,7 +32,17 @@ abstract class aTransaction extends aFieldSet
      */
     protected static $fieldSet = array(      /* overrided */
         TransactionFieldClassEnum::TYPE =>      'id',              // must be always first field in message
+        TransactionFieldClassEnum::AUTHOR =>    'authorAddrBin',
     );
+
+    /** @var string  */
+    protected $authorAddrBin = null;
+    public function getAuthorAddrBin() : string {return $this->authorAddrBin;}
+
+    /** @var Address  */
+    protected $authorAddress = null;
+    public function setAuthorAddress(Address $val) : self {$this->authorAddress = $val; $this->authorAddrBin = $val->getAddressBin(); return $this;}
+    public function getAuthorAddress() : Address {return $this->authorAddress;}
 
     protected static $fieldLastSet = array(  /* overrided */
         TransactionFieldClassEnum::SIGN =>      'signature',
@@ -43,14 +57,22 @@ abstract class aTransaction extends aFieldSet
     protected $hash = null;
     public function getHash() : string {return $this->hash;}
 
-
     /** @var string  */
+    protected $internalHash = null;
+    public function getInternalHash() : string {return $this->internalHash;}
+
+    /** @var aTransactionData  */
     protected $data = null;
-    public function setData(string $val) : self {$this->data = $val; return $this;}
-    public function getData() : string {return $this->data;}
+    public function getData() : aTransactionData {return $this->data;}
+
+    /** @var int  */
+    protected $dataClassId = null; /* override me */
 
     /** @var string  */
-    protected $signedData = null;
+    protected $rawData = null;
+
+    /** @var string  */
+    protected $signedData = '';
     public function getSignedData() : string {return $this->signedData;}
 
     /** @var bool  */
@@ -73,7 +95,8 @@ abstract class aTransaction extends aFieldSet
 
         $me
             ->setIdFromEnum()
-            ->setFieldOffset(TransactionFieldClassEnum::getLength(TransactionFieldClassEnum::TYPE));
+            ->setFieldOffset(TransactionFieldClassEnum::getLength(TransactionFieldClassEnum::TYPE))
+            ->setData();
 
         if ($parent instanceof aTransactionMessage) {
 // if parent object is "aTransactionMessage" - this is incoming message,
@@ -86,5 +109,72 @@ abstract class aTransaction extends aFieldSet
         }
 
         return $me;
+    }
+
+    public function setData() : self
+    {
+        if ($this->dataClassId !== null) {
+            $this->data = aTransactionData::spawn($this, $this->dataClassId);
+        }
+
+        return $this;
+    }
+
+    protected function compositeRaw() : string
+    {
+        $rawType = TypeTransactionField::pack($this, $this->id);
+        $rawAuthor = AuthorTransactionField::pack($this, $this->authorAddrBin);
+
+        $this->raw = $rawType . $rawAuthor . $this->raw;
+        $this->signedData = $rawType . $rawAuthor . $this->signedData;
+
+        if ($this->getAuthorAddress()->isFull()) {
+            $this->signature = $this->getAuthorAddress()->signBin($this->signedData);
+            $this->calcHash();
+
+            $this->raw .= $this->signature . $this->hash;
+        }
+
+        $this->rawLength = strlen($this->raw);
+        $this->calcInternalHash();
+
+        $this->dbg(get_class($this) . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
+
+        return $this->raw;
+    }
+
+    protected function calcHash()
+    {
+        $this->hash = hash(self::HASH_ALGO, $this->signature, true);
+    }
+
+    protected function calcInternalHash()
+    {
+        $this->internalHash = hash(self::HASH_ALGO, $this->signedData, true);
+    }
+
+    protected function createRawData() : void
+    {
+        if ($this->data === null) {
+            throw new Exception($this->getName() . " Bad code - dataClassId must be defined (for ID $this->id)");
+        }
+
+        $this->rawData = $this->data->createRaw();
+
+        if ($this->rawData === null) {
+            throw new Exception($this->getName() . " Bad code - all data fields must be filled (for ID $this->id)");
+        }
+    }
+
+    protected function postPrepareField(int $fieldId, string $property) : void /* overrided */
+    {
+        if ($property !== self::DATA_PROPERTY) return;
+
+        if ($this->data === null) {
+            throw new Exception($this->getName() . " Bad code - dataClassId must be defined (for ID $this->id)");
+        }
+
+        $this->data->setRaw($this->raw);
+        $this->data->parseRawString();
     }
 }

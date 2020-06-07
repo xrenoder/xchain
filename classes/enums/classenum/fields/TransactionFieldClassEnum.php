@@ -15,10 +15,9 @@ class TransactionFieldClassEnum extends aFieldClassEnum
     public const TINY_DATA =    4;
     public const SHORT_DATA =   5;
     public const LONG_DATA =    6;
-    public const PUBKEY_DATA =  7;
 
-    public const SIGN =         8;
-    public const HASH =         9;
+    public const SIGN =         7;
+    public const HASH =         8;
 
     protected static $items = array(
         self::TYPE =>   'TypeTransactionField',
@@ -29,7 +28,6 @@ class TransactionFieldClassEnum extends aFieldClassEnum
         self::TINY_DATA => 'TinyDataTransactionField',
         self::SHORT_DATA => 'ShortDataTransactionField',
         self::LONG_DATA => 'LongDataTransactionField',
-        self::PUBKEY_DATA => 'PubKeyDataTransactionField',
 
         self::SIGN =>   'SignTransactionField',
         self::HASH =>   'HashTransactionField',
@@ -44,7 +42,6 @@ class TransactionFieldClassEnum extends aFieldClassEnum
         self::TINY_DATA => FieldFormatClassEnum::ASIS_B,
         self::SHORT_DATA => FieldFormatClassEnum::ASIS_S,
         self::LONG_DATA => FieldFormatClassEnum::ASIS_SSL,  // max len of message = MAX_ULONG (2**32-1), max len of message data (transaction) = (MAX_ULONG-1024), max len of transaction data = (MAX_ULONG-1024*2)
-        self::PUBKEY_DATA => FieldFormatClassEnum::PUBKEY,
 
         self::SIGN => FieldFormatClassEnum::ASIS_B,
         self::HASH => FieldFormatClassEnum::MD4_RAW,

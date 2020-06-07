@@ -37,23 +37,23 @@ abstract class aSimpleMessage extends aMessage
     /**
      * @return string
      */
-    public function createMessageString() : string
+    public function createRaw() : string
     {
-        $body = $this->bodySimple();
+        $this->rawSimpleMessage();
 
-        return $this->compositeMessage($body);
+        return $this->compositeRaw();
     }
 
-    protected function bodySimple() : string
+    protected function rawSimpleMessage() : void
     {
         $myNodeId = $this->getLocator()->getMyNodeId();
         $time = time();
 
-        $nodeField = NodeMessageField::pack($this,$myNodeId);
-        $timeField = TimeMessageField::pack($this,$time);
+        $rawNode = NodeMessageField::pack($this,$myNodeId);
+        $rawTime = TimeMessageField::pack($this,$time);
 
-        $this->signedData = $nodeField . $timeField;
+        $this->signedData = $rawNode . $rawTime;
 
-        return $nodeField . $timeField;
+        $this->raw = $rawNode . $rawTime;
     }
 }

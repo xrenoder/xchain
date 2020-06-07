@@ -104,23 +104,23 @@ abstract class aMessage extends aFieldSet
             return self::MESSAGE_PARSED;
         }
 
-        $this->rawString .= $packet;
-        $this->rawStringLen = strlen($this->rawString);
+        $this->raw .= $packet;
+        $this->rawLength = strlen($this->raw);
 
         if ($this->declaredLen) {
-            $legate->setReadBufferSize($this->declaredLen - $this->rawStringLen + 1);
+            $legate->setReadBufferSize($this->declaredLen - $this->rawLength + 1);
         }
 
 // check message len for maximum len
-        if ($this->maxLen && $this->rawStringLen > $this->maxLen) {
-            $this->dbg("BAD DATA length $this->rawStringLen more than maximum $this->maxLen for " . $this->getName());
+        if ($this->maxLen && $this->rawLength > $this->maxLen) {
+            $this->dbg("BAD DATA length $this->rawLength more than maximum $this->maxLen for " . $this->getName());
             $legate->setBadData();
             return self::MESSAGE_PARSED;
         }
 
 // check message len for declared len
-        if ($this->declaredLen !== null && $this->rawStringLen > $this->declaredLen) {
-            $this->dbg("BAD DATA length $this->rawStringLen more than declared length $this->declaredLen for " . $this->getName() ." (1)");
+        if ($this->declaredLen !== null && $this->rawLength > $this->declaredLen) {
+            $this->dbg("BAD DATA length $this->rawLength more than declared length $this->declaredLen for " . $this->getName() ." (1)");
             $legate->setBadData();
             return self::MESSAGE_PARSED;
         }
@@ -139,7 +139,7 @@ abstract class aMessage extends aFieldSet
             return self::MESSAGE_PARSED;
         }
 
-        if ($this->declaredLen === null || $this->rawStringLen < $this->declaredLen) {
+        if ($this->declaredLen === null || $this->rawLength < $this->declaredLen) {
             return self::MESSAGE_NOT_PARSED;
         }
 
@@ -151,24 +151,26 @@ abstract class aMessage extends aFieldSet
         return $this->declaredLen - $this->fieldOffset;
     }
 
-    protected function compositeMessage(string $body) : string
+    protected function compositeRaw() : string
     {
-        $typeField = TypeMessageField::pack($this,$this->id);
-        $messageStringLength = strlen($typeField) + aMessageField::getStatLength(MessageFieldClassEnum::LENGTH) + strlen($body);
-        $lenField = LengthMessageField::pack($this,$messageStringLength);
+        $rawType = TypeMessageField::pack($this,$this->id);
+        $fullLength = strlen($rawType) + aMessageField::getStatLength(MessageFieldClassEnum::LENGTH) + strlen($this->raw);
+        $rawLength = LengthMessageField::pack($this,$fullLength);
 
-        $messageString = $typeField . $lenField . $body;
+        $this->raw = $rawType . $rawLength . $this->raw;
+        $this->rawLength = strlen($this->raw);
 
-        $this->dbg(get_class($this) . " string created:\n" . bin2hex($messageString) . "\n");
+        $this->dbg(get_class($this) . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
 
-        return $messageString;
+        return $this->raw;
     }
 
     /**
      * @return string
      */
-    public function createMessageString() : string
+    public function createRaw() : string
     {
-        return $this->compositeMessage('');
+        $this->raw = '';
+        return $this->compositeRaw();
     }
 }

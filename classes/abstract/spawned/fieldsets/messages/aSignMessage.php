@@ -27,21 +27,21 @@ abstract class aSignMessage extends aAuthorPublicKeyMessage
     /**
      * @return string
      */
-    public function createMessageString() : string
+    public function createRaw() : string
     {
-        $body = $this->bodySign();
+        $this->rawSignMessage();
 
-        return $this->compositeMessage($body);
+        return $this->compositeRaw();
     }
 
-    protected function bodySign() : string
+    protected function rawSignMessage() : void
     {
-        $bodyParent = $this->bodyAuthorPublicKey();
+        $this->rawAuthorPublicKeyMessage();
 
         $this->dbg($this->getName() . " signed data: " . bin2hex($this->signedData));
 
-        $signField = SignMessageField::pack($this,$this->getLocator()->getMyAddress()->signBin($this->signedData));
+        $rawSignature = SignMessageField::pack($this,$this->getLocator()->getMyAddress()->signBin($this->signedData));
 
-        return $bodyParent . $signField;
+        $this->raw .= $rawSignature;
     }
 }

@@ -4,47 +4,51 @@
  */
 class Logger extends aBase
 {
-    public const DBG_LOCATOR  = 1;
-    public const DBG_DAEMON =   2;
-    public const DBG_SERVER =   4;
-    public const DBG_SOCKET =   8;
-    public const DBG_FLD_FMT =  16384;
-    public const DBG_MESSAGE =  16;
-    public const DBG_POOL =     32;
-    public const DBG_TASK =     64;
-    public const DBG_NODE =     128;
-    public const DBG_ADDRESS =  256;
-    public const DBG_DBA =      512;
-    public const DBG_MSG_FLD =  1024;
-    public const DBG_DB_FLD =   32768;
-    public const DBG_DB_FROW =  2048;
-    public const DBG_DB_MROW =  65536;
-    public const DBG_DB_RSET =  4096;
-    public const DBG_TRANSACT = 8192;
-    public const DBG_TRANS_FLD = 131072;
-    public const DBG_BLOCK =    262144;
+    public const DBG_LOCATOR  =         1;              // 1
+    public const DBG_DAEMON =           2;              // 2
+    public const DBG_SERVER =           4;              // 3
+    public const DBG_SOCKET =           8;              // 4
+    public const DBG_FLD_FMT =          16384;          // 5
+    public const DBG_MESSAGE =          16;             // 6
+    public const DBG_POOL =             32;             // 7
+    public const DBG_TASK =             64;             // 8
+    public const DBG_NODE =             128;            // 9
+    public const DBG_ADDRESS =          256;            // 10
+    public const DBG_DBA =              512;            // 11
+    public const DBG_MSG_FLD =          1024;           // 12
+    public const DBG_DB_FLD =           32768;          // 13
+    public const DBG_DB_FROW =          2048;           // 14
+    public const DBG_DB_MROW =          65536;          // 15
+    public const DBG_DB_RSET =          4096;           // 16
+    public const DBG_TRANSACT =         8192;           // 17
+    public const DBG_TRANS_FLD =        131072;         // 18
+    public const DBG_BLOCK =            262144;         // 19
+    public const DBG_TRANS_DATA_FLD =   524288;         // 20
+    public const DBG_TRANS_DATA =       1048576;        // 21
 
 
     private static $flags = array(
-        self::DBG_LOCATOR =>    'Locator  ',
-        self::DBG_DAEMON =>     'Daemon   ',
-        self::DBG_SERVER =>     'Server   ',
-        self::DBG_SOCKET =>     'Socket   ',
-        self::DBG_FLD_FMT =>    'Field Fmt',
-        self::DBG_MESSAGE =>    'Message  ',
-        self::DBG_POOL =>       'Pool     ',
-        self::DBG_TASK =>       'Task     ',
-        self::DBG_NODE =>       'Node     ',
-        self::DBG_ADDRESS =>    'Address  ',
-        self::DBG_DBA =>        'DBA      ',
-        self::DBG_MSG_FLD =>    'Msg Field',
-        self::DBG_DB_FLD =>     'DB Field ',
-        self::DBG_DB_FROW =>    'DB fixRow',
-        self::DBG_DB_MROW =>    'DB dynRow',
-        self::DBG_DB_RSET =>    'DB recSet',
-        self::DBG_TRANSACT =>   'Transact ',
-        self::DBG_TRANS_FLD =>  'Trans Fld',
-        self::DBG_BLOCK =>      'Block ',
+        self::DBG_LOCATOR =>        'Locator   ',
+        self::DBG_DAEMON =>         'Daemon    ',
+        self::DBG_SERVER =>         'Server    ',
+        self::DBG_SOCKET =>         'Socket    ',
+        self::DBG_FLD_FMT =>        'Fld Format',
+        self::DBG_MESSAGE =>        'Message   ',
+        self::DBG_POOL =>           'Pool      ',
+        self::DBG_TASK =>           'Task      ',
+        self::DBG_NODE =>           'Node      ',
+        self::DBG_ADDRESS =>        'Address   ',
+        self::DBG_DBA =>            'DBA       ',
+        self::DBG_MSG_FLD =>        'Msg Field ',
+        self::DBG_DB_FLD =>         'DB Field  ',
+        self::DBG_DB_FROW =>        'DB fixRow ',
+        self::DBG_DB_MROW =>        'DB dynaRow',
+        self::DBG_DB_RSET =>        'DB recSet ',
+        self::DBG_TRANSACT =>       'Transact  ',
+        self::DBG_TRANS_FLD =>      'Trans Fld ',
+        self::DBG_BLOCK =>          'Block     ',
+        self::DBG_TRANS_DATA_FLD => 'Trn Dt Fld',
+        self::DBG_TRANS_DATA =>     'Trans Data',
     );
 
     /** @var string */

@@ -7,11 +7,12 @@ abstract class aFieldSet extends aSpawnedFromEnum
     protected $fieldClass = null; /* override me */
 
     /** @var string */
-    protected $rawString;
+    protected $raw = null;
+    public function setRaw(string $val) : self {$this->raw = $val; $this->rawLength = strlen($val); return $this;}
 
     /** @var int  */
-    protected $rawStringLen = null;
-    public function getRawStringLen() : ?int {return $this->rawStringLen;}
+    protected $rawLength = null;
+    public function getRawLength() : ?int {return $this->rawLength;}
 
     /**
      * fieldId => 'propertyName'
@@ -31,6 +32,8 @@ abstract class aFieldSet extends aSpawnedFromEnum
     /** @var int  */
     protected $fieldOffset = 0;
     public function setFieldOffset(int $val) : self {$this->fieldOffset = $val; return $this;}
+
+    abstract public function createRaw() : string;
 
     protected function __construct(aBase $parent)
     {
@@ -68,10 +71,10 @@ abstract class aFieldSet extends aSpawnedFromEnum
 
     protected function getLengthForLast() : int
     {
-        return $this->rawStringLen - $this->fieldOffset;
+        return $this->rawLength - $this->fieldOffset;
     }
 
-    protected function parseRawString() : void
+    public function parseRawString() : void
     {
         foreach ($this->fields as $fieldId => $property) {
             if ($this->fieldPointer > $fieldId) {
@@ -100,8 +103,8 @@ abstract class aFieldSet extends aSpawnedFromEnum
             }
         }
 
-        if ($this->rawStringLen >= $field->getParsingPoint()) {
-            $this->$property = $field->unpack($this->rawString);
+        if ($this->rawLength >= $field->getParsingPoint()) {
+            $this->$property = $field->unpack($this->raw);
 
             if ($this->$property === null) {
                 if ($field->getLength() === null) {  // unpack maxLength or maxValue or fixLength error
@@ -111,6 +114,8 @@ abstract class aFieldSet extends aSpawnedFromEnum
                 $this->dbg("Prepare field " . $field->getName() . ": field length = " . $field->getLength());
                 return $this->prepareField($fieldId, $property);
             }
+
+            $this->postPrepareField($fieldId, $property);
 
             $this->dbg("Prepared field " . $field->getName() . ": $property = " . $this->$property);
             $this->dbg(bin2hex($field->getRawFieldLength()) . " " . bin2hex($field->getRawWithoutLength()));
@@ -125,5 +130,10 @@ abstract class aFieldSet extends aSpawnedFromEnum
         }
 
         return false;
+    }
+
+    protected function postPrepareField(int $fieldId, string $property) : void
+    {
+        /* nothing to do, can be overrided */
     }
 }

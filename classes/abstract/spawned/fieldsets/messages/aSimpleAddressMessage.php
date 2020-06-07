@@ -32,21 +32,21 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
     /**
      * @return string
      */
-    public function createMessageString() : string
+    public function createRaw() : string
     {
-        $body = $this->bodySimpleAddress();
+        $this->rawSimpleAddressMessage();
 
-        return $this->compositeMessage($body);
+        return $this->compositeRaw();
     }
 
-    protected function bodySimpleAddress() : string
+    protected function rawSimpleAddressMessage() : void
     {
-        $bodyParent = $this->bodySimple();
+        $this->rawSimpleMessage();
 
-        $addrField = AddrMessageField::pack($this,$this->getLocator()->getMyAddress()->getAddressBin());
+        $rawAddress = AddrMessageField::pack($this,$this->getLocator()->getMyAddress()->getAddressBin());
 
-        $this->signedData .= $addrField;
+        $this->signedData .= $rawAddress;
 
-        return  $bodyParent . $addrField;
+        $this->raw .=  $rawAddress;
     }
 }

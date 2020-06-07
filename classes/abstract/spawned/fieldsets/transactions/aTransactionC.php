@@ -12,23 +12,14 @@ abstract class aTransactionC extends aTransaction
 {
     use tTransactionConstructor;
 
+
     /**
-     * fieldId => 'propertyName'
-     * @var string[]
+     * @return string
      */
-    protected static $fieldSet = array(      /* overrided */
-        TransactionFieldClassEnum::AUTHOR =>    'authorAddrBin',
-    );
-
-    /** @var string  */
-    protected $authorAddrBin = null;
-    public function getAuthorAddrBin() : string {return $this->authorAddrBin;}
-
-    /** @var Address  */
-    protected $authorAddress = null;
-    public function setAuthorAddress(Address $val) : self {$this->authorAddress = $val; $this->authorAddrBin = $val->getAddressBin(); return $this;}
-    public function getAuthorAddress() : Address {return $this->authorAddress;}
-
-
+    public function createRaw() : string
+    {
+        $this->raw = '';
+        return $this->compositeRaw();
+    }
 
 }

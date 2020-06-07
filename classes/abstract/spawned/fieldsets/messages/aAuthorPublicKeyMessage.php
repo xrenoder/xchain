@@ -28,14 +28,14 @@ abstract class aAuthorPublicKeyMessage extends aDataMessage
     /**
      * @return string
      */
-    public function createMessageString() : string
+    public function createRaw() : string
     {
-        $body = $this->bodyAuthorPublicKey();
+        $this->rawAuthorPublicKeyMessage();
 
-        return $this->compositeMessage($body);
+        return $this->compositeRaw();
     }
 
-    protected function bodyAuthorPublicKey() : string
+    protected function rawAuthorPublicKeyMessage() : void
     {
         if ($this->authorPublicKey === null) {
             throw new Exception("Bad coding: author public key must be here!!!");
@@ -45,12 +45,12 @@ abstract class aAuthorPublicKeyMessage extends aDataMessage
             throw new Exception("Bad coding: author public key bad length!!!");
         }
 
-        $bodyParent = $this->bodyData();
+        $this->rawDataMessage();
 
-        $pubkeyField = AuthorPublicKeyMessageField::pack($this,$this->authorPublicKey);
+        $rawPublicKey = AuthorPublicKeyMessageField::pack($this,$this->authorPublicKey);
 
-        $this->signedData = $pubkeyField . $this->signedData;
+        $this->signedData = $rawPublicKey . $this->signedData;
 
-        return $bodyParent . $pubkeyField;
+        $this->raw .= $rawPublicKey;
     }
 }

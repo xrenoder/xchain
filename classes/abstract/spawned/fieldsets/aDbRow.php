@@ -17,10 +17,6 @@ abstract class aDbRow extends aFieldSet
     /** @var aDbField  */
     protected $internalId = null;
 
-    /** @var string  */
-    protected $rawString = null;
-    public function getRawString() : ?string {return $this->rawString;}
-
     /** @var bool  */
     protected $isChanged = false;
 
@@ -46,10 +42,10 @@ abstract class aDbRow extends aFieldSet
 
     public function load() : self
     {
-        $this->rawString = $this->getLocator()->getDba()->fetch($this->table, $this->internalId);
-        $this->rawStringLen = strlen($this->rawString);
+        $this->raw = $this->getLocator()->getDba()->fetch($this->table, $this->internalId);
+        $this->rawLength = strlen($this->raw);
 
-        if ($this->rawString !== null) {
+        if ($this->raw !== null) {
             $this->parseRawString();
             $this->dbg(get_class($this) . " loaded");
         } else {
@@ -65,16 +61,16 @@ abstract class aDbRow extends aFieldSet
             return $this;
         }
 
-        $this->packFields();
+        $this->createRaw();
 
-        if ($this->rawString === null) {
+        if ($this->raw === null) {
             return $this;
         }
 
         if ($replace && $this->check()) {
-            $this->getLocator()->getDba()->update($this->table, $this->internalId, $this->rawString);
+            $this->getLocator()->getDba()->update($this->table, $this->internalId, $this->raw);
         } else {
-            $this->getLocator()->getDba()->insert($this->table, $this->internalId, $this->rawString);
+            $this->getLocator()->getDba()->insert($this->table, $this->internalId, $this->raw);
         }
 
         $this->dbg(get_class($this) . " saved");
@@ -105,21 +101,21 @@ abstract class aDbRow extends aFieldSet
         return $this;
     }
 
-    private function packFields() : self
+    public function createRaw() : string
     {
-        $this->rawString = '';
+        $this->raw = '';
 
         foreach($this->fields as $fieldId => $property) {
             if ($this->$property === null) {
-                $this->rawString = null;
-                return $this;
+                $this->raw = null;
+                return $this->raw;
             }
 
             /** @var aDbField $fieldClassName */
             $fieldClassName = DbFieldClassEnum::getItem($fieldId);
-            $this->rawString .= $fieldClassName::pack($this, $this->$property);
+            $this->raw .= $fieldClassName::pack($this, $this->$property);
         }
 
-        return $this;
+        return $this->raw;
     }
 }

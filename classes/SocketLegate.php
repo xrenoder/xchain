@@ -114,7 +114,7 @@ class SocketLegate extends aBase
 
     public function createResponseString(aMessage $message) : void
     {
-        $this->responseString = $message->createMessageString();
+        $this->responseString = $message->createRaw();
     }
 
     public function serializeInSocket() : string
