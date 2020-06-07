@@ -21,7 +21,7 @@ abstract class aTransactionAa extends aTransactionA
     /**
      * @return string
      */
-    public function createRaw() : string
+    public function createRaw() : ?string
     {
         $this->rawTransactionAa();
 

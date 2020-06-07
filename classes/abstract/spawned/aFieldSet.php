@@ -132,7 +132,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
         return false;
     }
 
-    public function createRaw() : string
+    public function createRaw() : ?string
     {
         if ($this->fieldClass === null) {
             throw new Exception($this->getName() . " Bad code - not defined fieldClass");

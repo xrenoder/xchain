@@ -27,7 +27,7 @@ abstract class aSignMessage extends aAuthorPublicKeyMessage
     /**
      * @return string
      */
-    public function createRaw() : string
+    public function createRaw() : ?string
     {
         $this->rawSignMessage();
 

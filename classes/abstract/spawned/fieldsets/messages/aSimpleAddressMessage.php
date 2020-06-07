@@ -32,7 +32,7 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
     /**
      * @return string
      */
-    public function createRaw() : string
+    public function createRaw() : ?string
     {
         $this->rawSimpleAddressMessage();
 

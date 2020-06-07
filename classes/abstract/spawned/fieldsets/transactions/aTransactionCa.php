@@ -22,7 +22,7 @@ abstract class aTransactionCa extends aTransactionC
     /**
      * @return string
      */
-    public function createRaw() : string
+    public function createRaw() : ?string
     {
         $this->rawTransactionCa();
 

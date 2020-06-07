@@ -168,7 +168,7 @@ abstract class aMessage extends aFieldSet
     /**
      * @return string
      */
-    public function createRaw() : string
+    public function createRaw() : ?string
     {
         $this->raw = '';
         return $this->compositeRaw();

@@ -16,7 +16,7 @@ abstract class aTransactionC extends aTransaction
     /**
      * @return string
      */
-    public function createRaw() : string
+    public function createRaw() : ?string
     {
         $this->raw = '';
         return $this->compositeRaw();

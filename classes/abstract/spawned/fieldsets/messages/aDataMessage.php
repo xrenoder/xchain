@@ -28,7 +28,7 @@ abstract class aDataMessage extends aSimpleAddressMessage
     /**
      * @return string
      */
-    public function createRaw() : string
+    public function createRaw() : ?string
     {
         $this->rawDataMessage();
 
