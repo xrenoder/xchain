@@ -48,3 +48,5 @@
 
 9   Chain of votes about new rules
 
+10  Chain of bad signed data (bad blocks, bad transactions, bad messages)
+

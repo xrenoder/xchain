@@ -9,17 +9,17 @@ class TransactionClassEnum extends aClassEnum
     public const REGISTER_NODE_HOST = 1;
 
     protected static $items = array(
-        self::REGISTER_PUBLIC_KEY => 'RegisterPublicKeyTransaction', // AP
-        self::REGISTER_NODE_HOST => 'RegisterNodeHostTransaction', // CT
-
+        self::REGISTER_PUBLIC_KEY =>    'RegisterPublicKeyTransaction',     // AT
+        self::REGISTER_NODE_HOST =>     'RegisterNodeHostTransaction',      // CT
     );
 
     /* 'transactionId' => 'blockSectionId' */
     protected static $data = array(
         self::REGISTER_PUBLIC_KEY => BlockSectionClassEnum::SIGNER_PUBLIC_KEYS,
+        self::REGISTER_NODE_HOST => BlockSectionClassEnum::AUTHOR_BROADCAST,
     );
 
-    public static function getSection(int $id) : int
+    public static function getBlockSectionId(int $id) : int
     {
         return self::$data[$id];
     }

@@ -1,7 +1,7 @@
 <?php
 
 
-abstract class aTransactionAaT extends aTransactionAa
+abstract class aTransactionAS extends aTransactionA
 {
     use tTransactionConstructor;
 
@@ -10,7 +10,7 @@ abstract class aTransactionAaT extends aTransactionAa
      * @var string[]
      */
     protected static $fieldSet = array(      /* overrided */
-        TransactionFieldClassEnum::TINY_DATA =>    self::DATA_PROPERTY,
+        TransactionFieldClassEnum::SHORT_DATA =>    self::DATA_PROPERTY,
     );
 
     /**
@@ -18,18 +18,18 @@ abstract class aTransactionAaT extends aTransactionAa
      */
     public function createRaw() : ?string
     {
-        $this->rawTransactionAaT();
+        $this->rawTransactionAS();
 
         return $this->compositeRaw();
     }
 
-    protected function rawTransactionAaT() : void
+    protected function rawTransactionAS() : void
     {
         $this->createRawData();
 
-        $this->rawTransactionAa();
+        $this->rawTransactionA();
 
-        $rawData = TinyDataTransactionField::pack($this, $this->rawData);
+        $rawData = ShortDataTransactionField::pack($this, $this->rawData);
 
         $this->signedData .= $rawData;
         $this->raw .= $rawData;

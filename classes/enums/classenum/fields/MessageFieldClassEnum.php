@@ -16,9 +16,9 @@ class MessageFieldClassEnum extends aFieldClassEnum
     public const SIGN =    7;
 
     public const UNKNOWN_LEN  = 0;
-    public const BASE_MAX_LEN  = 1 + 4; // type + length
-    public const SIMPLE_MAX_LEN  = 1 + 4 + 1 + 4; // type + length + node + time
-    public const SIMPLE_ADDR_MAX_LEN  = 1 + 4 + 1 + 4 + 25; // type + length + node + time + addr
+    public const BASE_MAX_LEN  = 1 + 8; // type + length
+    public const SIMPLE_MAX_LEN  = 1 + 8 + 1 + 4; // type + length + node + time
+    public const SIMPLE_ADDR_MAX_LEN  = 1 + 8 + 1 + 4 + 25; // type + length + node + time + addr
 
     protected static $items = array(
         self::TYPE =>   'TypeMessageField',
@@ -32,13 +32,13 @@ class MessageFieldClassEnum extends aFieldClassEnum
     );
 
     protected static $data = array(
-        self::TYPE =>   FieldFormatClassEnum::UBYTE,          // always must have fixed non-zero length
-        self::LENGTH => FieldFormatClassEnum::ULONG,      // always must have fixed non-zero length
+        self::TYPE =>   FieldFormatClassEnum::UBYTE,        // always must have fixed non-zero length
+        self::LENGTH => FieldFormatClassEnum::UBIG,         // always must have fixed non-zero length
         self::NODE =>   FieldFormatClassEnum::UBYTE,
         self::TIME =>   FieldFormatClassEnum::ULONG,
         self::ADDR =>   FieldFormatClassEnum::ADDR,
-        self::DATA =>   FieldFormatClassEnum::ASIS_SL,  // max len of message = MAX_ULONG (2**32-1), max len of message data (transaction) = (MAX_ULONG-1024), max len of transaction data = (MAX_ULONG-1024*2)
+        self::DATA =>   FieldFormatClassEnum::ASIS_SBIG,    // max len of message = MAX_UBIG (2**64-1), max len of block message data = MAX_USBIG (2**64-1-1024)
         self::PUBKEY => FieldFormatClassEnum::PUBKEY,
-        self::SIGN =>   FieldFormatClassEnum::ASIS_B,
+        self::SIGN =>   FieldFormatClassEnum::ASIS_BYTE,
     );
 }

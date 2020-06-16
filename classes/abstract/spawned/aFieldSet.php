@@ -49,7 +49,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
         /** @var aClassEnum $enumClass */
         $enumClass = static::$enumClass;
 
-        /** @var aFieldSet $className */
+        /** @var self $className */
         if ($className = $enumClass::getClassName($id)) {
             return $className::create($parent);
         }

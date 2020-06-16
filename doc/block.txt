@@ -1,55 +1,76 @@
 8 bytes         block number
+4 bytes         chain number
 4 bytes         time
 variable 71-74  prev block signature
-25 bytes        address of signer (M-node, who sign this block)
+25 bytes        address of signer (node, who sign this block)
 
-Signer: public key transactions:
-2 bytes         transactions count
+Signer: public key transactions (short data transactions):
+4 bytes         transactions count (USLONG)
 
-1 + variable    transaction
+2 + variable    transaction ()
 ...
-1 + variable    transaction
+2 + variable    transaction
 
-Author: finance transactions (transfer, delegate, undelegate, freeze, unfreeze):
-2 bytes         transactions count
+Author: finance transactions (short data transactions - transfer, delegate, undelegate, freeze, unfreeze):
+4 bytes         transactions count (MILLION)
+
 2 + variable    transaction
 ...
 2 + variable    transaction
+
+Author: long data transactions (only for sidechains):
+4 bytes         transactions count (MILLION)
+
+4 + variable    transaction
+...
+4 + variable    transaction
 
 Author: nodes checking
-2 bytes         transactions count
+4 bytes         transactions count (MILLION)
+
+2 + variable    node alive check transaction
+...
 2 + variable    node alive check transaction
 
 Author: broadcast transactions (register node, check node, stop node, start node, 'wanna be node'):
-2 bytes         transactions count
+4 bytes         transactions count (MILLION)
 
-Signer: collecting finance transactions - collect reward fund (emissions, penalties, forced comissions, authors comissions)
-2 bytes         transactions count
+2 + variable    transaction
+...
+2 + variable    transaction
+
+Auto Signer: collecting finance transactions - collect reward fund (emissions, penalties, forced comissions, authors comissions)
+4 bytes         transactions count (USLONG)
+
 1 + variable    transaction
 ...
 1 + variable    transaction
 
-Signer: rewards finance transactions (rewards)
-2 bytes         transactions count
+Auto Signer: rewards finance transactions (rewards)
+4 bytes         transactions count (USLONG)
+
 1 + variable    transaction
 ...
 1 + variable    transaction
 
 
-Signer: blockchain rules transactions (nodes frozen limits, emission rules, rewards rulrs, penalty rules)
-2 bytes         transactions count
+Auto Signer: blockchain rules transactions (nodes frozen limits, emission rules, rewards rules, penalty rules)
+4 bytes         transactions count (USLONG)
+
 1 + variable    transaction
 ...
 1 + variable    transaction
 
-Signer: change nodes status transactions
-2 bytes         transactions count
+Auto Signer: change nodes status transactions
+4 bytes         transactions count (USLONG)
+
 1 + variable    transaction
 ...
 1 + variable    transaction
 
-Signer: next signers queue:
+Auto Signer: next signers queue:
 1 byte      count
+
 25 bytes    M-node address
 ...
 25 bytes    M-node address

@@ -16,22 +16,23 @@ class Zero extends aBase
 
         $firstMnodeAddress = Address::createFromPrivateHex($app, FIRST_M_NODE_KEY);
 
-        $dbTransaction = $this->dbTrans();
+        $block = Block::createNew($app, $firstMnodeAddress,  null, 0);
 
-        $registerPublicKeyTransaction
-            = RegisterPublicKeyTransaction::create($app)
-                ->setAuthorAddress($firstMnodeAddress)
-                ->setTargetAddrBin($firstMnodeAddress->getAddressBin())
-                ->setPublicKey($firstMnodeAddress->getPublicKeyBin())
-                ->createRaw()
+        $block
+            ->addTransaction(
+                RegisterPublicKeyTransaction::create($app)
+                    ->setAuthorAddress($firstMnodeAddress)
+                    ->setTargetAddrBin($firstMnodeAddress->getAddressBin())
+                    ->setPublicKey($firstMnodeAddress->getPublicKeyBin())
+            )
+            ->addTransaction(
+                RegisterNodeHostTransaction::create($app)
+                    ->setAuthorAddress($firstMnodeAddress)
+                    ->setHost(FIRST_M_NODE_HOST)
+                    ->setNodeName(FIRST_M_NODE_NAME)
+            )
         ;
 
-        $registerNodeHostTransaction
-            = RegisterNodeHostTransaction::create($app)
-                ->setAuthorAddress($firstMnodeAddress)
-                ->setHost(FIRST_M_NODE_HOST)
-                ->setNodeName(FIRST_M_NODE_NAME)
-                ->createRaw()
-        ;
+
     }
 }

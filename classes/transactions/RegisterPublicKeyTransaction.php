@@ -1,7 +1,7 @@
 <?php
 
 
-class RegisterPublicKeyTransaction extends aTransactionAT
+class RegisterPublicKeyTransaction extends aTransactionAS
 {
     /** @var int  */
     protected $dataClassId = TransactionDataClassEnum::PUBLIC_KEY; /* overrided */

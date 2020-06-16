@@ -1,0 +1,19 @@
+MESSAGE WITH BLOCK
+    UBIG (2**64 - 1) = 360 + USBIG message data (block)
+
+TRANSACTION WITH TINY DATA (signer only)
+    UBYTE (2**8 - 1) = 150 + USBYTE transaction tiny data (255 - 150 = 105 bytes)
+TRANSACTION WITH SHORT DATA
+    USHORT (2**16 - 1) = 562 + USSHORT transaction short data (65535 - 1024 = 64511 bytes)
+TRANSACTION WITH LONG DATA
+    ULONG (2**32 - 1) = 564 + USLONG transaction long data
+TRANSACTION LONG DATA
+    USLONG (2**32 - 1 - 1024)
+
+
+TRANSACTION WITH TINY DATA (signer only) RECORD IN BLOCK
+    UBYTE (2**8 - 1) = 150 + USBYTE transaction tiny data (255 - 150 = 105 bytes)
+TRANSACTION WITH SHORT DATA RECORD IN BLOCK
+    USHORT (2**16 - 1) = 561 + USSHORT transaction short data (65535 - 1024 = 64511 bytes)
+TRANSACTION WITH LONG DATA RECORD IN BLOCK
+    ULONG (2**32 - 1) = 563 + USLONG transaction long data

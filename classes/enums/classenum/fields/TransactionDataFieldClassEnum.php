@@ -19,6 +19,6 @@ class TransactionDataFieldClassEnum extends aFieldClassEnum
     protected static $data = array(
         self::PUBKEY =>         FieldFormatClassEnum::PUBKEY,
         self::HOST =>           FieldFormatClassEnum::HOST,
-        self::NODE_NAME =>      FieldFormatClassEnum::ASIS_SB,
+        self::NODE_NAME =>      FieldFormatClassEnum::ASIS_64,
     );
 }

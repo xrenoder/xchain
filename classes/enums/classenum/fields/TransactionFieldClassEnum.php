@@ -25,6 +25,7 @@ class TransactionFieldClassEnum extends aFieldClassEnum
 
         self::TARGET => 'TargetTransactionField',
         self::AMOUNT => 'AmountTransactionField',
+
         self::TINY_DATA => 'TinyDataTransactionField',
         self::SHORT_DATA => 'ShortDataTransactionField',
         self::LONG_DATA => 'LongDataTransactionField',
@@ -39,11 +40,12 @@ class TransactionFieldClassEnum extends aFieldClassEnum
 
         self::TARGET => FieldFormatClassEnum::ADDR,
         self::AMOUNT => FieldFormatClassEnum::UBIG,
-        self::TINY_DATA => FieldFormatClassEnum::ASIS_B,
-        self::SHORT_DATA => FieldFormatClassEnum::ASIS_S,
-        self::LONG_DATA => FieldFormatClassEnum::ASIS_SSL,  // max len of message = MAX_ULONG (2**32-1), max len of message data (transaction) = (MAX_ULONG-1024), max len of transaction data = (MAX_ULONG-1024*2)
 
-        self::SIGN => FieldFormatClassEnum::ASIS_B,
+        self::TINY_DATA => FieldFormatClassEnum::ASIS_SBYTE,
+        self::SHORT_DATA => FieldFormatClassEnum::ASIS_SSHORT,
+        self::LONG_DATA => FieldFormatClassEnum::ASIS_SLONG,  // max len of message = MAX_UBIG (2**64-1), max len of transaction message data = MAX_ULONG (2**32-1), max len of transaction data = MAX_USLONG (MAX_ULONG-1024)
+
+        self::SIGN => FieldFormatClassEnum::ASIS_BYTE,
         self::HASH => FieldFormatClassEnum::MD4_RAW,
     );
 }

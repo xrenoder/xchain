@@ -46,7 +46,7 @@ abstract class aNode extends aSpawnedFromEnum
         /** @var aClassEnum $enumClass */
         $enumClass = static::$enumClass;
 
-        /** @var aNode $className */
+        /** @var self $className */
         if ($className = $enumClass::getClassName($id)) {
             return $className::create($parent);
         }

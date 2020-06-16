@@ -1,7 +1,7 @@
 <?php
 
 
-class RegisterNodeHostTransaction extends aTransactionCT
+class RegisterNodeHostTransaction extends aTransactionCS
 {
     /** @var int  */
     protected $dataClassId = TransactionDataClassEnum::NODE_HOST_NAME; /* overrided */

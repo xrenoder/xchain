@@ -24,27 +24,27 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
 
 
 
-            CaT    "Address-to-Chain with Amount with data Tiny"  transaction (wanna be node, short stop node):
+            CaS    "Address-to-Chain with Amount with data Short"  transaction (wanna be node, short stop node):
 
                 1 byte          type of transaction (255)
                 25 bytes        author address
 
                 8 bytes         amount
-                1 + variable    tiny data (may be '') (255)
+                2 + variable    short data (64511 bytes)
 
                 variable 71-73  author transaction signature (0-5)
                 16 bytes        transaction ID (MD4 hash of 6)
 
-                124 bytes + data
+                125 bytes + data
 
 
 
-    CT   "Address-to-Chain without amount with data Tiny" transaction (blockchain rules):
+    CS   "Address-to-Chain without amount with data Short" transaction (register node host, blockchain rules):
 
         1 byte          type of transaction (255)
         25 bytes        author address
 
-        1 + variable    tiny data (may be '') (255)
+        2 + variable    short data (64511 bytes)
 
         variable 71-73  author transaction signature (0-5)
         16 bytes        transaction ID (MD4 hash of 6)
@@ -84,29 +84,29 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
 
 
 
-            AaT  "Address-to-Address with Amount with data Tiny" transaction  (transfer):
+            AaS  "Address-to-Address with Amount with data Short" transaction  (transfer with short data):
 
                 1 byte          type of transaction (255)
                 25 bytes        author address
 
                 25 bytes        target address
                 8 bytes         amount
-                1 + variable    tiny data (255)
+                2 + variable    short data (65535-)
 
                 variable 71-73  author transaction signature (0-5)
                 16 bytes        transaction ID (MD4 hash of 6)
 
-                149 bytes + data
+                150 bytes + data
 
 
 
-        AT "Address-To-Address without amount with data Tiny" transaction (node alive check directive):
+        AT "Address-To-Address without amount with data Short" transaction (node alive check directive, node type approved):
 
             1 byte          type of transaction (255)
             25 bytes        author address
 
             25 bytes        target address
-            1 + variable    tiny data (255)
+            1 + variable    tiny data (105 bytes)
 
             variable 71-73  author transaction signature (0-5)
             16 bytes        transaction ID (MD4 hash of 6)
@@ -114,21 +114,21 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
             141 bytes + data
 
 
-        AP   "Address-to-Address without amount with data PubKey" transaction (public keys):
+
+        AS "Address-To-Address without amount with data Short" transaction (register public key):
 
             1 byte          type of transaction (255)
             25 bytes        author address
 
             25 bytes        target address
-            248 bytes       public key data
+            2 + variable    short data (65535-)
 
             variable 71-73  author transaction signature (0-5)
             16 bytes        transaction ID (MD4 hash of 6)
 
-            388 bytes
+            142 bytes + data
 
-
-Common fields for all transactions:
+Common fields for author transactions:
 
 F-node block:
     1 byte         F-type
@@ -154,15 +154,28 @@ M-node block:
     25 bytes       M-addr
     variable 71-73 M-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr . S-sign . M-type . M-time . M-addr
 
-Final transaction record:
+Final author transaction record:
 transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr . S-sign . M-type . M-time . M-addr . M-sign
 
-Optional field for saving:
+Final signer transaction record:
+transaction
+
+Signer transactions:
+
+without data
+    max 148
+    min 115
+
+with data
+    max 150 + data (max 105 for summary max len 255)
+    min 116 + data
+
+Author transactions:
 
 without data
     max 560 = 148 + 103 * 4
     min 527 = 115 + 103 * 4
 
 with data
-    max 561 + data = (149 + 103 * 4) + data
+    max 562 + data = (150 + 103 * 4) + data
     min 528 + data = (116 + 103 * 4) + data
