@@ -34,16 +34,17 @@ class FieldFormatClassEnum extends aClassEnum
                                 // followed values must be formats from PHP-function pack()
     public const UBYTE =    15; // aFieldFormat (uchar)
     public const USBYTE =   16; // aFieldFormat (uchar)
-    public const SIXTY_FOUR =   17; // aFieldFormat (uchar)
+    public const SIXTY_FOUR =   17; // aFieldFormat (uchar) 64 max
     public const USHORT =   18; // aFieldFormat (ushort big-endian)
     public const USSHORT =  19; // aFieldFormat (ushort big-endian)
-    public const ULONG =    20; // aFieldFormat (ulong big-endian)
-    public const USLONG =   21; // aFieldFormat  (ulong big-endian)
-    public const MILLION =  22; // aFieldFormat  (ulong big-endian)
-    public const UBIG =     23; // aFieldFormat (ulong-long big-endian)
-    public const USBIG =    24; // aFieldFormat (ulong-long big-endian)
+    public const UHLONG =   20; // aFieldFormat  (ulong big-endian 3 bytes) 16 777 215 max
+    public const MILLION =  21; // aFieldFormat  (ulong big-endian 3 bytes) 1 000 000 max
+    public const ULONG =    22; // aFieldFormat (ulong big-endian)
+    public const USLONG =   23; // aFieldFormat  (ulong big-endian)
+    public const UBIG =     24; // aFieldFormat (ulong-long big-endian)
+    public const USBIG =    25; // aFieldFormat (ulong-long big-endian)
 
-    public const HOST =     25; // aFixLengthFieldFormat
+    public const HOST =     26; // aFixLengthFieldFormat
 
 
     protected static $items = array(
@@ -58,7 +59,7 @@ class FieldFormatClassEnum extends aClassEnum
 
         self::ASIS_BYTE =>     'AsIsByteFormat',  // 'Not packed with declared length as first 1 bytes UBYTE (variable bytes)',
         self::ASIS_SBYTE =>    'AsIsSubByteFormat',  // 'Not packed with declared length as first 1 bytes USBYTE (variable bytes)',
-        self::ASIS_64 =>    'AsIsSixtyFourFormat',  // 'Not packed with declared length as first 1 bytes SIXTY_FOUR (variable bytes)',
+        self::ASIS_64 =>       'AsIsSixtyFourFormat',  // 'Not packed with declared length as first 1 bytes SIXTY_FOUR (variable bytes)',
         self::ASIS_SHORT =>     'AsIsShortFormat',  // 'Not packed with declared length as first 2 bytes USHORT (variable bytes)',
         self::ASIS_SSHORT =>     'AsIsSubShortFormat',  // 'Not packed with declared length as first 2 bytes USSHORT (variable bytes)',
         self::ASIS_LONG =>     'AsIsLongFormat',  // 'Not packed with declared length as first 4 bytes ULONG (variable bytes)',
@@ -71,9 +72,10 @@ class FieldFormatClassEnum extends aClassEnum
         self::SIXTY_FOUR => 'SixtyFourFormat', // 'Unsigned char (1 byte) 64 maximal value',
         self::USHORT =>     'ShortFormat', // 'Unsigned short big-endian (2 bytes)',
         self::USSHORT =>    'SubShortFormat', // 'Unsigned short big-endian (2 bytes) - SUBSHORT_DEC maximal value',
+        self::UHLONG =>     'HalfLongFormat', // 'Unsigned half-long big-endian (3 bytes)',
+        self::MILLION =>    'MillionFormat', // 'Unsigned half-long big-endian (3 bytes) one million maximal value',
         self::ULONG =>      'LongFormat', // 'Unsigned long big-endian (4 bytes)',
         self::USLONG =>     'SubLongFormat', // 'Unsigned long big-endian (4 bytes) - SUBLONG_DEC maximal value',
-        self::MILLION =>    'MillionFormat', // 'Unsigned long big-endian (4 bytes) one million maximal value',
         self::UBIG =>       'BigFormat', // 'Unsigned long long big-endian (8 bytes)',
         self::USBIG =>      'SubBigFormat', // 'Unsigned long long big-endian (8 bytes) - SUBBIG_DEC maximal value',
 
@@ -110,9 +112,10 @@ class FieldFormatClassEnum extends aClassEnum
         self::SIXTY_FOUR =>     [1, null, 64, false, 'C'],
         self::USHORT =>         [2, null, 2**16 - 1, false, 'n'],
         self::USSHORT =>        [2, null, 2**16 - self::SUBSHORT_DEC - 1, false, 'n'],
+        self::UHLONG =>         [3, null, 2**24 - 1, false, 'N'],
+        self::MILLION =>        [3, null, 1000000, false, 'N'],
         self::ULONG =>          [4, null, 2**32 - 1, false, 'N'],
         self::USLONG =>         [4, null, 2**32 - self::SUBLONG_DEC - 1, false, 'N'],
-        self::MILLION =>        [4, null, 1000000, false, 'N'],
         self::UBIG =>           [8, null, 2**64 - 1, false, 'J'],
         self::USBIG =>          [8, null, 2**64 - self::SUBBIG_DEC - 1, false, 'J'],
 

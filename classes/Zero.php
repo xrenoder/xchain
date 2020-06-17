@@ -16,7 +16,7 @@ class Zero extends aBase
 
         $firstMnodeAddress = Address::createFromPrivateHex($app, FIRST_M_NODE_KEY);
 
-        $block = Block::createNew($app, $firstMnodeAddress,  null, 0);
+        $block = Block::create($app, $firstMnodeAddress,  null, 0);
 
         $block
             ->addTransaction(

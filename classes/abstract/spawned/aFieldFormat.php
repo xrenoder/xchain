@@ -5,6 +5,8 @@ abstract class aFieldFormat extends aSpawnedFromEnum
 {
     protected static $dbgLvl = Logger::DBG_FLD_FMT;
 
+    public function getField() : aField {return $this->getParent();}
+
     /** @var string  */
     protected static $enumClass = 'FieldFormatClassEnum';
 
@@ -79,19 +81,29 @@ abstract class aFieldFormat extends aSpawnedFromEnum
 
     protected function packDataTransform($data) : string
     {
+        $this->packDataCommon($data);
+
+        return pack(FieldFormatClassEnum::getPackFormat($this->id), $data);
+    }
+
+    protected function packDataCommon($data) : void
+    {
         $maxValue = FieldFormatClassEnum::getMaxValue($this->id);
 
         if ($maxValue && $data > $maxValue) {
             throw new Exception("Bad value of " . $this->getName() . ": $data more than $maxValue");
         }
-
-        return pack(FieldFormatClassEnum::getPackFormat($this->id), $data);
     }
 
     protected function unpackRawTransform()
     {
         $this->value = unpack(FieldFormatClassEnum::getPackFormat($this->id), $this->rawWithoutLength)[1];
 
+        return $this->unpackRawCommon();
+    }
+
+    protected function unpackRawCommon()
+    {
         $maxValue = FieldFormatClassEnum::getMaxValue($this->id);
 
         if ($maxValue && $this->value > $maxValue) {

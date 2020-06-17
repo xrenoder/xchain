@@ -4,12 +4,16 @@
 variable 71-74  prev block signature
 25 bytes        address of signer (node, who sign this block)
 
+
+
 Signer: public key transactions (short data transactions):
 4 bytes         transactions count (USLONG)
 
 2 + variable    transaction ()
 ...
 2 + variable    transaction
+
+
 
 Author: finance transactions (short data transactions - transfer, delegate, undelegate, freeze, unfreeze):
 4 bytes         transactions count (MILLION)
@@ -18,12 +22,16 @@ Author: finance transactions (short data transactions - transfer, delegate, unde
 ...
 2 + variable    transaction
 
+
+
 Author: long data transactions (only for sidechains):
 4 bytes         transactions count (MILLION)
 
 4 + variable    transaction
 ...
 4 + variable    transaction
+
+
 
 Author: nodes checking
 4 bytes         transactions count (MILLION)
@@ -32,12 +40,16 @@ Author: nodes checking
 ...
 2 + variable    node alive check transaction
 
+
+
 Author: broadcast transactions (register node, check node, stop node, start node, 'wanna be node'):
 4 bytes         transactions count (MILLION)
 
 2 + variable    transaction
 ...
 2 + variable    transaction
+
+
 
 Auto Signer: collecting finance transactions - collect reward fund (emissions, penalties, forced comissions, authors comissions)
 4 bytes         transactions count (USLONG)
@@ -46,34 +58,42 @@ Auto Signer: collecting finance transactions - collect reward fund (emissions, p
 ...
 1 + variable    transaction
 
+
+
 Auto Signer: rewards finance transactions (rewards)
 4 bytes         transactions count (USLONG)
 
-1 + variable    transaction
+1 + variable    AaT-transaction (data - rewarded transaction hash)
 ...
-1 + variable    transaction
+1 + variable    AaT-transaction (data - rewarded transaction hash)
+
 
 
 Auto Signer: blockchain rules transactions (nodes frozen limits, emission rules, rewards rules, penalty rules)
 4 bytes         transactions count (USLONG)
 
-1 + variable    transaction
+1 + variable    C-transaction
 ...
-1 + variable    transaction
+1 + variable    C-transaction
+
+
 
 Auto Signer: change nodes status transactions
 4 bytes         transactions count (USLONG)
 
-1 + variable    transaction
+1 + variable    CT-transaction
 ...
-1 + variable    transaction
+1 + variable    CT-transaction
+
+
 
 Auto Signer: next signers queue:
 1 byte      count
 
-25 bytes    M-node address
+1 + variable    A-transaction (target - M-node address)
 ...
-25 bytes    M-node address
+1 + variable    A-transaction (target - M-node address)
+
 
 
 variable 71-74  block signature

@@ -24,7 +24,7 @@ abstract class aTransaction extends aFieldSet
     protected $fieldClass = 'aTransactionField'; /* overrided */
 
     /** @var int  */
-    protected $fieldPointer = TransactionFieldClassEnum::AUTHOR;  /* overrided */    // first fieldId prepared inside ttransaction-object (field 'Author')
+    protected $fieldPointer = TransactionFieldClassEnum::AUTHOR;  /* overrided */    // first fieldId prepared inside transaction-object (field 'Author')
 
     /**
      * fieldId => 'propertyName'
@@ -122,18 +122,21 @@ abstract class aTransaction extends aFieldSet
 
     protected function compositeRaw() : string
     {
+        if (!$this->getAuthorAddress()->isFull()) {
+            throw new Exception($this->getName() . " Bad code - address must be full for sign transaction");
+        }
+
         $rawType = TypeTransactionField::pack($this, $this->id);
         $rawAuthor = AuthorTransactionField::pack($this, $this->authorAddrBin);
 
         $this->raw = $rawType . $rawAuthor . $this->raw;
         $this->signedData = $rawType . $rawAuthor . $this->signedData;
 
-        if ($this->getAuthorAddress()->isFull()) {
-            $this->signature = $this->getAuthorAddress()->signBin($this->signedData);
-            $this->calcHash();
+        $this->signature = $this->getAuthorAddress()->signBin($this->signedData);
+        $rawSignature = SignTransactionField::pack($this, $this->signature);
+        $rawHash = $this->calcHash();
 
-            $this->raw .= $this->signature . $this->hash;
-        }
+        $this->raw .= $rawSignature . $rawHash;
 
         $this->rawLength = strlen($this->raw);
         $this->calcInternalHash();
@@ -143,9 +146,11 @@ abstract class aTransaction extends aFieldSet
         return $this->raw;
     }
 
-    protected function calcHash()
+    protected function calcHash() : string
     {
         $this->hash = hash(self::HASH_ALGO, $this->signature, true);
+
+        return HashTransactionField::pack($this, $this->hash);
     }
 
     protected function calcInternalHash()

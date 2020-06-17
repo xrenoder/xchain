@@ -81,7 +81,7 @@ abstract class aField extends aSpawnedFromEnum
     {
         $field = static::create($parent);
         $result = $field->getFormat()->packField($val);
-        $field->dbg($val);
+        $field->dbg($val .  ' packed to');
         $field->dbg(bin2hex($result));
         unset($field);
         return $result;

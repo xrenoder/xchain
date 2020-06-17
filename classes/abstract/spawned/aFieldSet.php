@@ -8,6 +8,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
 
     /** @var string */
     protected $raw = null;
+    public function getRaw() : ?string {return $this->raw;}
     public function setRaw(string $val) : self {$this->raw = $val; $this->rawLength = strlen($val); return $this;}
 
     /** @var int  */
@@ -32,8 +33,6 @@ abstract class aFieldSet extends aSpawnedFromEnum
     /** @var int  */
     protected $fieldOffset = 0;
     public function setFieldOffset(int $val) : self {$this->fieldOffset = $val; return $this;}
-
-//    abstract public function createRaw() : string;
 
     protected function __construct(aBase $parent)
     {

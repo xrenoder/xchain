@@ -1,7 +1,7 @@
 <?php
 
 
-class aTransactionDataField extends aField
+abstract class aTransactionDataField extends aField
 {
     protected static $dbgLvl = Logger::DBG_TRANS_DATA_FLD;
 

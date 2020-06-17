@@ -1,7 +1,7 @@
 <?php
 
 
-class MillionFormat extends aFieldFormat
+class MillionFormat extends aHalfLongFieldFormat
 {
 
 }

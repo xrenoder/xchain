@@ -3,6 +3,8 @@
 
 abstract class aVarLengthFieldFormat extends aFieldFormat
 {
+    protected $fieldLength = null;
+
     public function packField($data) : string
     {
         return $this->packVariableLength($this->packDataTransform($data));
@@ -23,35 +25,45 @@ abstract class aVarLengthFieldFormat extends aFieldFormat
     {
         $length = strlen($data);
 
-        if ($length > FieldFormatClassEnum::getMaxValue($this->lengthFormatId)) {
-            throw new Exception("Bad length of " . $this->getName() . ": $length more than " . FieldFormatClassEnum::getMaxValue($this->lengthFormatId));
+        if (FieldFormatClassEnum::getPackFormat($this->lengthFormatId) === null) {
+            throw new Exception($this->getName() . " Bad code: format $this->lengthFormatId cannot be used as length of data");
         }
 
-        return pack(FieldFormatClassEnum::getPackFormat($this->lengthFormatId), $length) . $data;
+        $lengthFieldFormatObject = aFieldFormat::spawn($this->getField(), $this->lengthFormatId);
+        return $lengthFieldFormatObject->packField($length) . $data;
+
+//        return pack(FieldFormatClassEnum::getPackFormat($this->lengthFormatId), $length) . $data;
     }
 
     private function unpackVariableLength(string $data) : void
     {
         $lengthFormatLen = FieldFormatClassEnum::getLength($this->lengthFormatId);
-        $this->rawFieldLength = substr($data, $this->offset, $lengthFormatLen);
-        $fieldLength = unpack(FieldFormatClassEnum::getPackFormat($this->lengthFormatId), $this->rawFieldLength)[1];
 
-        $maxLength = FieldFormatClassEnum::getMaxValue($this->lengthFormatId);
+        if ($this->fieldLength === null) {
+            if (FieldFormatClassEnum::getPackFormat($this->lengthFormatId) === null) {
+                throw new Exception($this->getName() . " Bad code: format $this->lengthFormatId cannot be used as length of data");
+            }
 
-        if ($maxLength && $fieldLength > $maxLength) {  // value of length more than max possible value of lengthFormat
-            $this->dbg("Bad unpack length of " . $this->getName() . ": $fieldLength more than $maxLength");
+            $this->rawFieldLength = substr($data, $this->offset, $lengthFormatLen);
 
-            $this->rawWithoutLength = null;
-            $this->length = null;
-            $this->value = null;
+            $lengthFieldFormatObject = aFieldFormat::spawn($this->getField(), $this->lengthFormatId);
+            $this->fieldLength = $lengthFieldFormatObject->unpackField($this->rawFieldLength);
+            unset($lengthFieldFormatObject);
 
-            return;
+            if ($this->fieldLength === null) {  // value of length more than max possible value of lengthFormat
+                $this->rawWithoutLength = null;
+                $this->length = null;
+                $this->value = null;
+
+                return;
+            }
+
+            $this->length = $this->fieldLength + $lengthFormatLen;
         }
 
-        $this->rawWithoutLength = substr($data, $this->offset + $lengthFormatLen, $fieldLength);
-        $this->length = $fieldLength + $lengthFormatLen;
+        $this->rawWithoutLength = substr($data, $this->offset + $lengthFormatLen, $this->fieldLength);
 
-        if (strlen($this->rawWithoutLength) < $fieldLength) {
+        if (strlen($this->rawWithoutLength) < $this->fieldLength) {
             $this->rawWithoutLength = null;
         }
     }

@@ -26,6 +26,7 @@ class Logger extends aBase
     public const DBG_TRANS_DATA_FLD =   524288;         // 20
     public const DBG_TRANS_DATA =       1048576;        // 21
     public const DBG_BLOCK_SECTION =    2097152;        // 22
+    public const DBG_BLOCK_FLD =        4194304;        // 23
 
 
     private static $flags = array(
@@ -51,6 +52,7 @@ class Logger extends aBase
         self::DBG_TRANS_DATA_FLD => 'Trn Dt Fld',
         self::DBG_TRANS_DATA =>     'Trans Data',
         self::DBG_BLOCK_SECTION =>  'Block Sect',
+        self::DBG_BLOCK_FLD =>      'Block Fld ',
     );
 
     /** @var string */

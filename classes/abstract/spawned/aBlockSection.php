@@ -75,4 +75,14 @@ abstract class aBlockSection extends aSpawnedFromEnum
 
         return $this;
     }
+
+    public function createRaw() : string
+    {
+        $this->raw = '';
+
+        $this->rawLength = strlen($this->raw);
+
+        $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
+        return $this->raw;
+    }
 }

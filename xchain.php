@@ -28,7 +28,7 @@ $debugMode =
     | Logger::DBG_TRANS_DATA_FLD
     | Logger::DBG_TRANS_DATA
     | Logger::DBG_BLOCK_SECTION
-
+    | Logger::DBG_BLOCK_FLD
 ;
 //*/
 /*
