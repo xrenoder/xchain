@@ -199,7 +199,8 @@ class Socket extends aBase
     public function sendMessage(?aMessage $message) : self
     {
         if ($message !== null) {
-            $messageString = $message->createRaw();
+            $message->createRaw();
+            $messageString = $message->getRaw();
         } else {
             $messageString = '';
         }

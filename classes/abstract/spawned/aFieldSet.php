@@ -131,7 +131,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
         return false;
     }
 
-    public function createRaw() : ?string
+    public function createRaw()
     {
         if ($this->fieldClass === null) {
             throw new Exception($this->getName() . " Bad code - not defined fieldClass");
@@ -150,7 +150,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
                 $this->dbg($this->getName() . " field $fieldId => $property is null");
                 $this->raw = null;
                 $this->rawLength = null;
-                return $this->raw;
+                return $this;
             }
 
             /** @var aField $fieldClassName */
@@ -161,7 +161,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
         $this->rawLength = strlen($this->raw);
         $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
 
-        return $this->raw;
+        return $this;
     }
 
     protected function postPrepareField(int $fieldId, string $property) : void

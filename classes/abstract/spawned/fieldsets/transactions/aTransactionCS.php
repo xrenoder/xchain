@@ -16,11 +16,13 @@ abstract class aTransactionCS extends aTransactionC
     /**
      * @return string
      */
-    public function createRaw() : ?string
+    public function createRaw()
     {
         $this->rawTransactionCS();
 
-        return $this->compositeRaw();
+        $this->compositeRaw();
+
+        return $this;
     }
 
     protected function rawTransactionCS() : void

@@ -164,7 +164,8 @@ abstract class aTransaction extends aFieldSet
             throw new Exception($this->getName() . " Bad code - dataClassId must be defined (for ID $this->id)");
         }
 
-        $this->rawData = $this->data->createRaw();
+        $this->data->createRaw();
+        $this->rawData = $this->data->getRaw();
 
         if ($this->rawData === null) {
             throw new Exception($this->getName() . " Bad code - all data fields must be filled (for ID $this->id)");

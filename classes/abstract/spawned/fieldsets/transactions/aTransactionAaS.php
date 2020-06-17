@@ -16,11 +16,13 @@ abstract class aTransactionAaS extends aTransactionAa
     /**
      * @return string
      */
-    public function createRaw() : ?string
+    public function createRaw()
     {
         $this->rawTransactionAaS();
 
-        return $this->compositeRaw();
+        $this->compositeRaw();
+
+        return $this;
     }
 
     protected function rawTransactionAaS() : void

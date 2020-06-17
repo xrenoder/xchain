@@ -109,6 +109,10 @@ class Block extends aFieldSet
 
     public function addTransaction(aTransaction $transaction) : self
     {
+        if ($transaction->getRaw() === null) {
+            throw new Exception($this->getName() . " Bad code - transaction must have generated raw");
+        }
+
         $transactionId = $transaction->getId();
 
         $sectionId = TransactionClassEnum::getBlockSectionId($transactionId);
@@ -118,7 +122,7 @@ class Block extends aFieldSet
         return $this;
     }
 
-    public function createRaw() : string
+    public function createRaw()
     {
         if (!$this->signerAddress->isFull()) {
             throw new Exception($this->getName() . " Bad code - address must be full for sign block");
@@ -151,7 +155,8 @@ class Block extends aFieldSet
         $this->signedData .= $rawSignerAddr;
 
         foreach ($this->sections as $sectionId => $section) {
-            $rawSection = SectionBlockField::pack($this, $section->createRaw());
+            $section->createRaw();
+            $rawSection = SectionBlockField::pack($this, $section->getRaw());
             $this->raw .= $rawSection;
             $this->signedData .= $rawSection;
         }
@@ -164,6 +169,6 @@ class Block extends aFieldSet
 
         $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
 
-        return $this->raw;
+        return $this;
     }
 }

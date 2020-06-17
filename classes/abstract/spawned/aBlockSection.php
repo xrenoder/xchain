@@ -19,6 +19,10 @@ abstract class aBlockSection extends aSpawnedFromEnum
     /** @var int  */
     protected $maxTransactionsCount = 0;
 
+    /** @var string */
+    protected $raw = null;
+    public function getRaw() : ?string {return $this->raw;}
+
     public static function create(Block $parent) : self
     {
         $me = new static($parent);
@@ -66,7 +70,6 @@ abstract class aBlockSection extends aSpawnedFromEnum
             return  $this;
         }
 
-        $transaction->createRaw();
         $transactionHash = $transaction->getHash();
 // TODO добавить проверку уникальности хэша транзакции для определенных типов нод
 // TODO добавить проверку правильности сигнатуры транзакции для определенных типов нод
@@ -76,13 +79,15 @@ abstract class aBlockSection extends aSpawnedFromEnum
         return $this;
     }
 
-    public function createRaw() : string
+    public function createRaw()
     {
         $this->raw = '';
+
+
 
         $this->rawLength = strlen($this->raw);
 
         $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
-        return $this->raw;
+        return $this;
     }
 }

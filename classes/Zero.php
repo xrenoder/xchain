@@ -24,12 +24,14 @@ class Zero extends aBase
                     ->setAuthorAddress($firstMnodeAddress)
                     ->setTargetAddrBin($firstMnodeAddress->getAddressBin())
                     ->setPublicKey($firstMnodeAddress->getPublicKeyBin())
+                    ->createRaw()
             )
             ->addTransaction(
                 RegisterNodeHostTransaction::create($app)
                     ->setAuthorAddress($firstMnodeAddress)
                     ->setHost(FIRST_M_NODE_HOST)
                     ->setNodeName(FIRST_M_NODE_NAME)
+                    ->createRaw()
             )
         ;
 
