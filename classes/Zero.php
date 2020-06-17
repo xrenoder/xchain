@@ -33,6 +33,7 @@ class Zero extends aBase
                     ->setNodeName(FIRST_M_NODE_NAME)
                     ->createRaw()
             )
+            ->createRaw()
         ;
 
 

@@ -11,10 +11,10 @@ class BlockFieldClassEnum extends aFieldClassEnum
     public const TIME =         2;
     public const PREV_SIGN =    3;
     public const SIGNER_ADDR =  4;
-    public const SECTION =      5;
     public const SIGN =         1000;
 
-    public const FIRST_SECTION_INDEX = self::SECTION;
+    public const FIRST_SECTION_INDEX = self::SIGNER_ADDR + 1;
+    public const SECTION_LEN_FORMAT = FieldFormatClassEnum::ASIS_SBIG;
 
     protected static $items = array(
         self::NUMBER =>     'NumberBlockField',
@@ -22,7 +22,6 @@ class BlockFieldClassEnum extends aFieldClassEnum
         self::TIME =>       'TimeBlockField',
         self::PREV_SIGN =>  'PrevSignBlockField',
         self::SIGNER_ADDR =>'SignerAddrBlockField',
-        self::SECTION =>    'SectionBlockField',
         self::SIGN =>       'SignBlockField',
     );
 
@@ -32,7 +31,6 @@ class BlockFieldClassEnum extends aFieldClassEnum
         self::TIME =>           FieldFormatClassEnum::ULONG,
         self::PREV_SIGN =>      FieldFormatClassEnum::ASIS_SBYTE,
         self::SIGNER_ADDR =>    FieldFormatClassEnum::ADDR,
-        self::SECTION =>        FieldFormatClassEnum::ASIS_SBIG,
         self::SIGN =>           FieldFormatClassEnum::ASIS_SBYTE,
     );
 }

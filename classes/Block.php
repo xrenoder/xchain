@@ -128,35 +128,28 @@ class Block extends aFieldSet
             throw new Exception($this->getName() . " Bad code - address must be full for sign block");
         }
 
-        $this->raw = '';
-
-        $rawBlockNumber = NumberBlockField::pack($this, $this->blockNumber);
-        $this->raw .= $rawBlockNumber;
-        $this->signedData .= $rawBlockNumber;
-
-        $rawChainNumber = ChainBlockField::pack($this, $this->chainNumber);
-        $this->raw .= $rawChainNumber;
-        $this->signedData .= $rawChainNumber;
-
         if ($this->blockTime === null) {
             $this->blockTime = time();
         }
 
-        $rawTime = TimeBlockField::pack($this, $this->blockTime);
-        $this->raw .= $rawTime;
-        $this->signedData .= $rawTime;
+        $locator = $this->getLocator();
 
-        $rawPrevSign = PrevSignBlockField::pack($this, $this->prevSignature);
-        $this->raw .= $rawPrevSign;
-        $this->signedData .= $rawPrevSign;
+        $this->raw = '';
 
-        $rawSignerAddr = SignerAddrBlockField::pack($this, $this->signerAddrBin);
-        $this->raw .= $rawSignerAddr;
-        $this->signedData .= $rawSignerAddr;
+        foreach ($this->fields as $fieldId => $property) {
+            if ($fieldId === BlockFieldClassEnum::FIRST_SECTION_INDEX) {
+                break;
+            }
+
+            $formatId = BlockFieldClassEnum::getFormat($fieldId);
+            $rawField = $locator->pack($formatId, $this->$property);
+            $this->raw .= $rawField;
+            $this->signedData .= $rawField;
+        }
 
         foreach ($this->sections as $sectionId => $section) {
             $section->createRaw();
-            $rawSection = SectionBlockField::pack($this, $section->getRaw());
+            $rawSection = $locator->pack(BlockFieldClassEnum::SECTION_LEN_FORMAT, $section->getRaw());
             $this->raw .= $rawSection;
             $this->signedData .= $rawSection;
         }

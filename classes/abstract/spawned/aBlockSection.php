@@ -8,6 +8,7 @@ abstract class aBlockSection extends aSpawnedFromEnum
     /** @var string  */
     protected static $enumClass = 'BlockSectionClassEnum'; /* overrided */
 
+    /** @var aTransaction[]  */
     protected $transactions = array();
 
     /** @var int  */
@@ -81,9 +82,11 @@ abstract class aBlockSection extends aSpawnedFromEnum
 
     public function createRaw()
     {
-        $this->raw = '';
+        $this->raw = $this->getLocator()->pack($this->transactionsCountFormatId, count($this->transactions));
 
-
+        foreach($this->transactions as $transaction) {
+            $this->raw .= $this->getLocator()->pack($this->transactionLengthFormatId, $transaction->getRawLength()) . $transaction->getRaw();
+        }
 
         $this->rawLength = strlen($this->raw);
 

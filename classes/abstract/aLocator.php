@@ -40,6 +40,9 @@ abstract class aLocator extends aBase
     public function setSummaryDataSet(SummaryDataSet $val) : self {$this->summaryDataSet = $val; return $this;}
     public function getSummaryDataSet() : SummaryDataSet {return $this->summaryDataSet;}
 
+    /** @var aField  */
+    private $serviceField = null;
+
     /**
      * App constructor.
      * @param string $name
@@ -50,6 +53,8 @@ abstract class aLocator extends aBase
 
         $this->setName($name);
         $this->pid = posix_getpid();
+
+        $this->serviceField = new ServiceField($this);
     }
 
     /**
@@ -65,5 +70,14 @@ abstract class aLocator extends aBase
         if ($gcCycles || $gcMemCaches) {
             $this->dbg("Garbage collect: $gcCycles cycles & $gcMemCaches bytes of memory was cleaned");
         }
+    }
+
+    public function pack(int $formatId, $data) : ?string
+    {
+        $fieldFormatObject = aFieldFormat::spawn($this->serviceField, $formatId);
+        $result = $fieldFormatObject->packField($data);
+        unset($fieldFormatObject);
+
+        return $result;
     }
 }
