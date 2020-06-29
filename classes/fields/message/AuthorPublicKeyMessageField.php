@@ -3,36 +3,45 @@
 
 class AuthorPublicKeyMessageField extends aMessageField
 {
-    /** @var int  */
-    protected $id = MessageFieldClassEnum::PUBKEY;  /* overrided */
+    /** @var bool  */
+    private $notNeedCreateNewObject = false;
 
-    public function check(): bool
+    public function checkValue() : bool
     {
-        /* @var aSignMessage $message */
-        $message = $this->getMessage();
-        $legate = $this->getLegate();
-        $authorPublicKey = $message->getAuthorPublicKey();
-
-        $message->setSignedData($this->getRawWithLength() . $message->getSignedData());
-
-        if (strlen($authorPublicKey) !== Address::PUBLIC_BIN_LEN) {
-            $this->dbg("BAD DATA bad public key length: " . strlen($authorPublicKey));
-            $legate->setBadData();
+        if (!Address::checkAddressBin($this->getValue())) {
+            $this->err($this->getName() . " BAD DATA address is bad " . Address::binToBase16($this->getValue()));
+            $this->parsingError = true;
             return false;
         }
 
-        if ($message->getRemoteAddress() === null) {
-            $remoteAddrBin = $message->getRemoteAddrBin();
-            $remoteAddress = Address::createFromPublic($this->getLocator(), $message->getAuthorPublicKey());
+        /** @var aAuthorPublicKeyMessage $message */
+        $message = $this->getMessage();
 
-            if ($remoteAddress->getAddressBin() !== $remoteAddrBin) {
-                $this->dbg("BAD DATA public key for " . $remoteAddress->getAddressHuman() . " cannot be used with address " . Address::binToBase16($remoteAddrBin));
-                $legate->setBadData();
-                return false;
-            }
-
-            $message->setRemoteAddress($remoteAddress);
+        if (Address::getAddrFromPublicKey($this->getValue()) === $message->getRemoteAddress()->getAddressBin()) {
+            $this->notNeedCreateNewObject = true;
         }
+
+        return true;
+    }
+
+    public function setObject() : void
+    {
+        if ($this->notNeedCreateNewObject) {
+            /** @var aAuthorPublicKeyMessage $message */
+            $message = $this->getMessage();
+            $remoteAddress = $message->getRemoteAddress();
+            $remoteAddress->addPublicKey($this->getValue());
+            $this->object = $remoteAddress;
+        } else {
+            $this->object = Address::createFromPublic($this->getLocator(), $this->getValue());
+        }
+    }
+
+    public function postPrepare() :  bool
+    {
+        /* @var aMessage $message */
+        $message = $this->getMessage();
+        $message->setSignedData($this->getRawWithLength() . $message->getSignedData());
 
         return true;
     }

@@ -3,12 +3,12 @@
 
 class AsIsFormat extends aFieldFormat
 {
-    protected function packDataTransform($data) : string
+    protected function &packDataTransform(&$data) : string
     {
         return $data;
     }
 
-    protected function unpackRawTransform()
+    protected function &unpackRawTransform()
     {
         $this->value = $this->rawWithoutLength;
         return $this->value;

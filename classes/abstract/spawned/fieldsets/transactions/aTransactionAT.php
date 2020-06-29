@@ -5,18 +5,12 @@ abstract class aTransactionAT extends aTransactionA
 {
     use tTransactionConstructor;
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
+    /* 'property' => '[fieldType, isObject]' or 'formatType' */
     protected static $fieldSet = array(      /* overrided */
-        TransactionFieldClassEnum::TINY_DATA =>    self::DATA_PROPERTY,
+        'data' => [TransactionFieldClassEnum::TINY_DATA, 'getRaw'],
     );
 
-    /**
-     * @return string
-     */
-    public function createRaw()
+    public function createRaw() : aFieldSet
     {
         $this->rawTransactionAT();
 
@@ -27,11 +21,9 @@ abstract class aTransactionAT extends aTransactionA
 
     protected function rawTransactionAT() : void
     {
-        $this->createRawData();
+        $rawData = ShortDataTransactionField::pack($this, $this->data->getRaw());
 
         $this->rawTransactionA();
-
-        $rawData = TinyDataTransactionField::pack($this, $this->rawData);
 
         $this->signedData .= $rawData;
         $this->raw .= $rawData;

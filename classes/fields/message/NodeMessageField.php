@@ -3,36 +3,63 @@
 
 class NodeMessageField extends aMessageField
 {
-    /** @var int  */
-    protected $id = MessageFieldClassEnum::NODE;  /* overrided */
+    public function checkValue() : bool
+    {
+        /** @var NodeClassEnum $enumClass */
+        $enumClass = aNode::getStaticEnumClass();
 
-    public function check(): bool
+        if (!$enumClass::isSetItem($this->getValue())) {
+            $this->err($this->getName() . " parsing error: object cannot be created from type " . $this->getValue());
+            $this->parsingError = true;
+            return false;
+        }
+
+        return true;
+    }
+
+    public function setObject() : void
+    {
+        $this->object = aNode::spawn($this->getMessage(), $this->getValue());
+    }
+
+    public function checkObject() : bool
     {
         /* @var aSimpleMessage $message */
         $message = $this->getMessage();
         $legate = $this->getLegate();
 
-        $message->setSignedData($this->getRawWithLength());
-
-        $message->setRemoteNode(aNode::spawn($this->getLocator(), $message->getRemoteNodeId()));
-
 // check nodes compatiblity
-        $myNodeId = $legate->getMyNodeId(); // use nodeId from legate (setted from task), not from locator, because locator node can be changed
+// TODO посмотреть, возможно ли заранее создать объект myNode в локаторе
+        $myNode = aNode::spawn($this, $legate->getMyNodeType()); // use nodeId from legate (setted from task), not from locator, because locator node can be changed
 
         if ($legate->isConnected()) {
-            $myCriteria = NodeClassEnum::getCanConnect($myNodeId);
+            $myCriteria = $myNode->getCanConnect();
             $logTxt = "cannot connect to";
         } else {
-            $myCriteria = NodeClassEnum::getCanAccept($myNodeId);
+            $myCriteria = $myNode->getCanAccept();
             $logTxt = "cannot accept connection from";
         }
 
-        if ($myCriteria & $message->getRemoteNodeId() === 0)  {
-            $this->dbg('Nodes uncompatible: ' . NodeClassEnum::getName($myNodeId) . " $logTxt " . NodeClassEnum::getName($message->getRemoteNodeId()));
+        if ($myCriteria & $this->getValue() === 0)  {
+            /** @var aNode $remoteNode */
+            $remoteNode = $this->object;
+
+            $this->err('Nodes uncompatible: ' . $myNode->getName() . " $logTxt " . $remoteNode->getName());
             $legate->setCloseAfterSend();
             $legate->createResponseString(BadNodeResMessage::create($this->getLocator()));
             return false;
         }
+
+        $message->setMyNode($myNode);
+
+        return true;
+    }
+
+    public function postPrepare() :  bool
+    {
+        /* @var aMessage $message */
+        $message = $this->getMessage();
+        $message->setSignedData($this->getRawWithLength());
 
         return true;
     }

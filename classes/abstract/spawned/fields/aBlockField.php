@@ -10,4 +10,6 @@ abstract class aBlockField extends aField
 
     /** @var string  */
     protected static $enumClass = 'BlockFieldClassEnum'; /* overrided */
+
+    public function getBlock() : Block {return $this->getParent();}
 }

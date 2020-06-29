@@ -12,13 +12,10 @@ abstract class aTransactionC extends aTransaction
 {
     use tTransactionConstructor;
 
-
-    /**
-     * @return string
-     */
-    public function createRaw()
+    public function createRaw() : aFieldSet
     {
         $this->raw = '';
+        $this->signedData = '';
 
         $this->compositeRaw();
 

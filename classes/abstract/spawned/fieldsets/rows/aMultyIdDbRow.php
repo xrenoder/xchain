@@ -11,21 +11,9 @@ abstract class aMultyIdDbRow extends aDbRow
     {
         $me = new static($parent);
         $me
-            ->setId($id)
+            ->setType($id)
             ->load();
 
         return $me;
-    }
-
-    public function setId($val) : aFieldSet
-    {
-        if ($this->table === null) {
-            throw new Exception($this->getName() . " Bad code - table must be defined for multy-ID row in row classenum (for ID $this->id)");
-        }
-
-        $this->id = $val;
-        $this->setInternalId();
-
-        return $this;
     }
 }

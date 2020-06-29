@@ -17,6 +17,7 @@ class FixedIdDbRowClassEnum extends aClassEnum
         self::TRANSACTION_REWARDS_RULE => 'TransactionRewardsRuleRow',
     );
 
+/*
     protected static $data = array(
         self::LAST_KNOWN_BLOCK => DbTableEnum::SUMMARY,
         self::LAST_PREPARED_BLOCK => DbTableEnum::SUMMARY,
@@ -28,4 +29,5 @@ class FixedIdDbRowClassEnum extends aClassEnum
     {
         return static::$data[$id] ?? null;
     }
+*/
 }

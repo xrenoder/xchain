@@ -7,7 +7,8 @@ class FieldFormatClassEnum extends aClassEnum
 {
     protected static $baseClassName = 'aFieldFormat'; /* overrided */
 
-    private const SUBBYTE_MAX =  105; // value of SubByte format max value
+    private const SUBBYTE_MAX =  120; // value of SubByte format max value
+    private const PERCENT_MAX =  10000; // value of Percent format max value (max 100%, min 0.01%)
     private const SUBSHORT_DEC =  1024; // value of SubShort format max value decrementation
     private const SUBLONG_DEC =  1024; // value of SubLong format max value decrementation
     private const SUBBIG_DEC =  1024; // value of SubBig format max value decrementation
@@ -37,14 +38,15 @@ class FieldFormatClassEnum extends aClassEnum
     public const SIXTY_FOUR =   17; // aFieldFormat (uchar) 64 max
     public const USHORT =   18; // aFieldFormat (ushort big-endian)
     public const USSHORT =  19; // aFieldFormat (ushort big-endian)
-    public const UHLONG =   20; // aFieldFormat  (ulong big-endian 3 bytes) 16 777 215 max
-    public const MILLION =  21; // aFieldFormat  (ulong big-endian 3 bytes) 1 000 000 max
-    public const ULONG =    22; // aFieldFormat (ulong big-endian)
-    public const USLONG =   23; // aFieldFormat  (ulong big-endian)
-    public const UBIG =     24; // aFieldFormat (ulong-long big-endian)
-    public const USBIG =    25; // aFieldFormat (ulong-long big-endian)
+    public const PERCENT =  20; // aFieldFormat (uchar) 64 max
+    public const UHLONG =   21; // aFieldFormat  (ulong big-endian 3 bytes) 16 777 215 max
+    public const MILLION =  22; // aFieldFormat  (ulong big-endian 3 bytes) 1 000 000 max
+    public const ULONG =    23; // aFieldFormat (ulong big-endian)
+    public const USLONG =   24; // aFieldFormat  (ulong big-endian)
+    public const UBIG =     25; // aFieldFormat (ulong-long big-endian)
+    public const USBIG =    26; // aFieldFormat (ulong-long big-endian)
 
-    public const HOST =     26; // aFixLengthFieldFormat
+    public const HOST =     27; // aFixLengthFieldFormat
 
 
     protected static $items = array(
@@ -72,6 +74,7 @@ class FieldFormatClassEnum extends aClassEnum
         self::SIXTY_FOUR => 'SixtyFourFormat', // 'Unsigned char (1 byte) 64 maximal value',
         self::USHORT =>     'ShortFormat', // 'Unsigned short big-endian (2 bytes)',
         self::USSHORT =>    'SubShortFormat', // 'Unsigned short big-endian (2 bytes) - SUBSHORT_DEC maximal value',
+        self::PERCENT =>    'PercentFormat', // 'Unsigned short big-endian (2 bytes) - PERCENT_MAX maximal value',
         self::UHLONG =>     'HalfLongFormat', // 'Unsigned half-long big-endian (3 bytes)',
         self::MILLION =>    'MillionFormat', // 'Unsigned half-long big-endian (3 bytes) one million maximal value',
         self::ULONG =>      'LongFormat', // 'Unsigned long big-endian (4 bytes)',
@@ -112,6 +115,7 @@ class FieldFormatClassEnum extends aClassEnum
         self::SIXTY_FOUR =>     [1, null, 64, false, 'C'],
         self::USHORT =>         [2, null, 2**16 - 1, false, 'n'],
         self::USSHORT =>        [2, null, 2**16 - self::SUBSHORT_DEC - 1, false, 'n'],
+        self::PERCENT =>        [2, null, self::PERCENT_MAX, false, 'n'],
         self::UHLONG =>         [3, null, 2**24 - 1, false, 'N'],
         self::MILLION =>        [3, null, 1000000, false, 'N'],
         self::ULONG =>          [4, null, 2**32 - 1, false, 'N'],

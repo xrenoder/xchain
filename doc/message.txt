@@ -14,7 +14,7 @@ variable        data
 
 248 bytes       author (for transaction message - can be not sender) public key
 
-variable 71-73  data signature (signed by sender)
+variable 71-73  signature (signed by sender)
                 (last field for "aSignMessage": "TransactionMessage", "BlockMessage")           360 + data
 
 
@@ -27,5 +27,18 @@ sending time
 sender address
 
 
+TransactionMessage:
 
+type                byte
+length              bigint
+senderNode          aNode
+time                long
+senderAddress       Address
 
+(field)             (DataMessageField, parent - aDataMessage)
+data                TransactionMessageData (parent - aDataMessage)
+
+    (field)         (TransactionMessageDataField,  parent - TransactionMessageData, parent-parent aDataMessage)
+    ->transaction       aTransaction (parent - aDataMessage)
+authorAddress       Address
+signature           string

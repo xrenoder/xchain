@@ -16,7 +16,11 @@ abstract class aBase
     public function setParent(?aBase $val) : self {$this->parent = $val; return $this;}
     protected function getParent() : aBase {return $this->parent;}
 
-    public function getMyNodeId() : ?int {return $this->locator->getMyNode()->getId();}
+    /** @var int */
+    private $unpackedLength = null;
+    public function getUnpackedLength() : int {return $this->unpackedLength;}
+
+    public function getMyNodeType() : ?int {return $this->locator->getMyNode()->getType();}
 
     /**
      * AppBase constructor.
@@ -70,5 +74,24 @@ abstract class aBase
     protected function dbCommit(string $transactionKey)
     {
         $this->getLocator()->getDba()->transactionCommit($transactionKey);
+    }
+
+    public function &simplePack(int $formatType, &$data) : ?string
+    {
+        $fieldFormatObject = aFieldFormat::spawn($this, $formatType);
+        $result = $fieldFormatObject->packField($data);
+        unset($fieldFormatObject);
+
+        return $result;
+    }
+
+    public function &simpleUnpack(int $formatType, string &$raw, int $offset = 0)
+    {
+        $fieldFormatObject = aFieldFormat::spawn($this, $formatType, $offset);
+        $result = $fieldFormatObject->unpackField($raw);
+        $this->unpackedLength = $fieldFormatObject->getLength();
+        unset($fieldFormatObject);
+
+        return $result;
     }
 }

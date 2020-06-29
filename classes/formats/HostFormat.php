@@ -3,7 +3,7 @@
 
 class HostFormat extends aFixLengthFieldFormat
 {
-    protected function packDataTransform($data) : string
+    protected function &packDataTransform(&$data) : string
     {
         $tmp = explode(':', trim($data));
 
@@ -52,7 +52,7 @@ class HostFormat extends aFixLengthFieldFormat
         return $result;
     }
 
-    protected function unpackRawTransform()
+    protected function &unpackRawTransform()
     {
         $this->value = '';
 

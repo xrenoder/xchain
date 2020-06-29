@@ -3,16 +3,13 @@
 
 class PublicKeyTransactionData extends aTransactionData
 {
-    /**
-     * 'propertyName' => fieldFormat
-     * @var array
-     */
+    /* 'property' => '[fieldType, objectMethod]' or 'formatType' */
     protected static $fieldSet = array(
-        TransactionDataFieldClassEnum::PUBKEY => 'publicKey',
+        'authorPubKeyAddress' => [TransactionDataFieldClassEnum::PUBKEY, 'getPublicKeyBin'],
     );
 
-    /** @var string  */
-    protected $publicKey = null;
-    public function setPublicKey(string $val) : self {$this->publicKey = $val; return $this;}
-    public function getPublicKey() : ?string {return $this->publicKey;}
+    /** @var Address  */
+    protected $authorPubKeyAddress = null;
+    public function setAuthorPubKeyAddress(Address $val) : self {$this->authorPubKeyAddress = $val; return $this;}
+    public function getAuthorPubKeyAddress() : Address {return $this->authorPubKeyAddress;}
 }

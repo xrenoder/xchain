@@ -61,8 +61,8 @@ class Socket extends aBase
 
     /** @var aTask  */
     private $task;
-    public function setTask(aTask $val) : self {$this->task = $val; $this->legate->setMyNodeId($this->task->getPool()->getMyNodeId()); return $this;}
-    public function unsetTask() : self {$this->task = null; $this->legate->setMyNodeId($this->getApp()->getMyNode()->getId()); return $this;}
+    public function setTask(aTask $val) : self {$this->task = $val; $this->legate->setMyNodeType($this->task->getPool()->getMyNodeType()); return $this;}
+    public function unsetTask() : self {$this->task = null; $this->legate->setMyNodeType($this->getApp()->getMyNode()->getType()); return $this;}
     public function getTask() : ?aTask {return $this->task;}
 
     /**
@@ -77,7 +77,7 @@ class Socket extends aBase
         $me = new self($server);
 
         $me->setLegate(SocketLegate::create($me, $id));
-        $me->getLegate()->setMyNodeId($me->getLocator()->getMyNode()->getId());
+        $me->getLegate()->setMyNodeType($me->getLocator()->getMyNode()->getType());
 
         $me
             ->setHost($host)
@@ -208,7 +208,7 @@ class Socket extends aBase
         return $this->sendMessageString($messageString);
     }
 
-    public function sendMessageString(?string $messageString) : self
+    public function sendMessageString(?string &$messageString) : self
     {
         if ($messageString === null) {
             $messageString = '';
@@ -328,7 +328,7 @@ class Socket extends aBase
         return false;
     }
 
-    public function workerResponseHandler(string $serializedLegate) : bool
+    public function workerResponseHandler(string &$serializedLegate) : bool
     {
         /** @var App $app */
         $app = $this->getApp();

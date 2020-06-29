@@ -5,24 +5,21 @@ abstract class aTransactionA extends aTransactionC
 {
     use tTransactionConstructor;
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
+    /* 'property' => '[fieldType, isObject]' or 'formatType' */
     protected static $fieldSet = array(      /* overrided */
-        TransactionFieldClassEnum::TARGET =>    'targetAddrBin',
+        'targetAddress' => [TransactionFieldClassEnum::TARGET, 'getAddressBin'],
     );
 
-    /** @var string  */
-    protected $targetAddrBin = null;
-    public function setTargetAddrBin(string $val) : self {$this->targetAddrBin = $val; return $this;}
-    public function getTargetAddrBin() : string {return $this->targetAddrBin;}
+    /** @var Address  */
+    protected $targetAddress = null;
+    public function setTargetAddress(string $val) : self {$this->targetAddress = $val; return $this;}
+    public function getTargetAddress() : Address {return $this->targetAddress;}
 
 
     /**
      * @return string
      */
-    public function createRaw()
+    public function createRaw() : aFieldSet
     {
         $this->rawTransactionA();
 
@@ -33,7 +30,7 @@ abstract class aTransactionA extends aTransactionC
 
     protected function rawTransactionA() : void
     {
-        $rawTarget = TargetTransactionField::pack($this, $this->targetAddrBin);
+        $rawTarget = TargetTransactionField::pack($this, $this->targetAddress->getAddressBin());
 
         $this->signedData = $rawTarget;
         $this->raw = $rawTarget;

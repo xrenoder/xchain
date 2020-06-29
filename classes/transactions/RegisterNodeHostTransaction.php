@@ -4,11 +4,11 @@
 class RegisterNodeHostTransaction extends aTransactionCS
 {
     /** @var int  */
-    protected $dataClassId = TransactionDataClassEnum::NODE_HOST_NAME; /* overrided */
+    protected $dataClass = TransactionDataClassEnum::NODE_HOST_NAME; /* overrided */
 
-    public function setHost(string $val) : self {$this->data->setHost($val); return $this;}
-    public function getHost() : ?string {return $this->data->getHost();}
+    public function setHost(Host $val) : self {$this->getData()->setHost($val); return $this;}
+    public function getHost() : Host {return $this->getData()->getHost();}
 
-    public function setNodeName(string $val) : self {$this->data->setNodeName($val); return $this;}
-    public function getNodeName() : ?string {return $this->data->getNodeName();}
+    public function setNodeName(string $val) : self {$this->getData()->setNodeName($val); return $this;}
+    public function getNodeName() : string {return $this->getData()->getNodeName();}
 }

@@ -12,10 +12,10 @@ abstract class aBlockSection extends aSpawnedFromEnum
     protected $transactions = array();
 
     /** @var int  */
-    protected $transactionsCountFormatId = null;
+    protected $transactionsCountFormatType = null;
 
     /** @var int  */
-    protected $transactionLengthFormatId = null;
+    protected $transactionLengthFormatType = null;
 
     /** @var int  */
     protected $maxTransactionsCount = 0;
@@ -29,7 +29,7 @@ abstract class aBlockSection extends aSpawnedFromEnum
         $me = new static($parent);
 
         $me
-            ->setIdFromEnum()
+            ->setTypeFromEnum()
             ->setProps();
 
         $parent->dbg($me->getName() .  ' created');
@@ -37,7 +37,7 @@ abstract class aBlockSection extends aSpawnedFromEnum
         return $me;
     }
 
-    public static function spawn(Block $parent, $id) : self
+    public static function spawn(Block $parent, $type) : self
     {
         if (static::$enumClass === null) {
             throw new Exception("Bad code - not defined enumClass");
@@ -47,18 +47,18 @@ abstract class aBlockSection extends aSpawnedFromEnum
         $enumClass = static::$enumClass;
 
         /** @var self $className */
-        if ($className = $enumClass::getClassName($id)) {
+        if ($className = $enumClass::getClassName($type)) {
             return $className::create($parent);
         }
 
-        throw new Exception("Bad code - cannot spawn class from $enumClass for ID " . $id);
+        throw new Exception("Bad code - cannot spawn class from $enumClass for type " . $type);
     }
 
     public function setProps() : self
     {
-        $this->transactionLengthFormatId = BlockSectionClassEnum::getTransactionLengthFormatId($this->id);
-        $this->transactionsCountFormatId = BlockSectionClassEnum::getTransactionCountFormatId($this->id);
-        $this->maxTransactionsCount = FieldFormatClassEnum::getMaxValue($this->transactionsCountFormatId);
+        $this->transactionLengthFormatType = BlockSectionClassEnum::getTransactionLengthFormatId($this->type);
+        $this->transactionsCountFormatType = BlockSectionClassEnum::getTransactionCountFormatId($this->type);
+        $this->maxTransactionsCount = FieldFormatClassEnum::getMaxValue($this->transactionsCountFormatType);
 
         return $this;
     }
@@ -82,10 +82,11 @@ abstract class aBlockSection extends aSpawnedFromEnum
 
     public function createRaw()
     {
-        $this->raw = $this->getLocator()->pack($this->transactionsCountFormatId, count($this->transactions));
+        $transactionsCount = count($this->transactions);
+        $this->raw = $this->simplePack($this->transactionsCountFormatType, $transactionsCount);
 
         foreach($this->transactions as $transaction) {
-            $this->raw .= $this->getLocator()->pack($this->transactionLengthFormatId, $transaction->getRawLength()) . $transaction->getRaw();
+            $this->raw .= $this->simplePack($this->transactionLengthFormatType, $transaction->getRawLength()) . $transaction->getRaw();
         }
 
         $this->rawLength = strlen($this->raw);

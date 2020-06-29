@@ -8,27 +8,26 @@ abstract class aFieldSet extends aSpawnedFromEnum
 
     /** @var string */
     protected $raw = null;
-    public function getRaw() : ?string {return $this->raw;}
     public function setRaw(string $val) : self {$this->raw = $val; $this->rawLength = strlen($val); return $this;}
+    public function &getRaw() : ?string {if ($this->raw === null) {$this->createRaw();} return $this->raw;}
+
+    /** @var string */
+    protected $rawType = null;
 
     /** @var int  */
     protected $rawLength = null;
-    public function getRawLength() : ?int {return $this->rawLength;}
+    public function &getRawLength() : ?int {return $this->rawLength;}
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
+    /* 'property' => '[fieldType, false or object method]' or 'formatType' */
     protected static $fieldSet = array(); /* override me */
 
     protected $fields = array();
-    public function getFields() : array {return $this->fields;}
 
     /** @var aField  */
     protected $field = null;
 
     /** @var int  */
-    protected $fieldPointer = 0;  /* can be overrided */    // first fieldId prepared inside FieldSet-object (field 'Length')
+    protected $fieldPointer = 0;  /* can be overrided */    // number of first field, prepared inside FieldSet-object
 
     /** @var int  */
     protected $fieldOffset = 0;
@@ -39,7 +38,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
         parent::__construct($parent);
     }
 
-    public static function spawn(aBase $parent, $id) : self
+    public static function spawn(aBase $parent, $type) : self
     {
         if (static::$enumClass === null) {
             throw new Exception("Bad code - not defined enumClass");
@@ -49,14 +48,14 @@ abstract class aFieldSet extends aSpawnedFromEnum
         $enumClass = static::$enumClass;
 
         /** @var self $className */
-        if ($className = $enumClass::getClassName($id)) {
+        if ($className = $enumClass::getClassName($type)) {
             return $className::create($parent);
         }
 
-        throw new Exception("Bad code - cannot spawn class from $enumClass for ID " . $id);
+        throw new Exception("Bad code - cannot spawn class from $enumClass for type " . $type);
     }
 
-    protected function spawnField(int $fieldId) : aField
+    protected function spawnField(int $fieldType) : aField
     {
         if ($this->fieldClass === null) {
             throw new Exception($this->getName() . " Bad code - not defined fieldClass");
@@ -65,7 +64,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
         /** @var aField $fieldClass */
         $fieldClass = $this->fieldClass;
 
-        return $fieldClass::spawn($this, $fieldId, $this->fieldOffset);
+        return $fieldClass::spawn($this, $fieldType, $this->fieldOffset);
     }
 
     protected function getLengthForLast() : int
@@ -73,57 +72,107 @@ abstract class aFieldSet extends aSpawnedFromEnum
         return $this->rawLength - $this->fieldOffset;
     }
 
-    public function parseRawString() : void
+    public function parseRaw() : void
     {
-        foreach ($this->fields as $fieldId => $property) {
-            if ($this->fieldPointer > $fieldId) {
+        $fieldCounter = -1;
+
+        foreach ($this->fields as $property => $formatOrField) {
+            $fieldCounter++;
+
+            if ($this->fieldPointer > $fieldCounter) {
                 continue;
             }
 
-            if (!$this->prepareField($fieldId, $property)) {
-// if field cannot be prepared - break  (not 'return false'), may be all formats was prepared
-                break;
+            if (is_array($formatOrField)) {
+                $fieldType = $formatOrField[0];
+
+                if (isset($formatOrField[1]) && $formatOrField[1]) {
+                    $isObject = true;
+                } else {
+                    $isObject = false;
+                }
+
+                if (!$this->prepareField($fieldType, $property, $isObject)) {
+                    break;
+                }
+            } else {
+                if (!$this->prepareFormat($formatOrField, $property)) {
+                    break;
+                }
             }
         }
     }
 
-    protected function prepareField(int $fieldId, string $property) : bool
+    protected function prepareFormat(int $formatType, string $property) : bool
     {
-        if ($this->$property !== null) return true;
+        $this->$property = $this->simpleUnpack($formatType, $this->raw, $this->fieldOffset);
 
-        $field = $this->field;
+        if ($this->$property === null) {
+            $this->parsingError = true;
+            return false;
+        }
 
-        if ($field === null) {
-            $this->field = $this->spawnField($fieldId);
-            $field = $this->field;
+        $this->fieldOffset += $this->getUnpackedLength();
+        $this->fieldPointer++;
 
-            if ($field->isLast()) {
-                $field->setLength($this->getLengthForLast());
+        return true;
+    }
+
+    protected function prepareField(int $fieldType, string $property, bool $isObject) : bool
+    {
+        if ($this->field === null) {
+            $this->field = $this->spawnField($fieldType);
+
+            if ($this->field->isLast()) {
+                $this->field->setLength($this->getLengthForLast());
             }
         }
 
-        if ($this->rawLength >= $field->getParsingPoint()) {
-            $this->$property = $field->unpack($this->raw);
+        if ($this->rawLength >= $this->field->getParsingPoint()) {
+            $this->field->unpack($this->raw);
 
-            if ($this->$property === null) {
-                if ($field->getLength() === null) {  // unpack maxLength or maxValue or fixLength error
+            if ($this->field->getValue() === null) {
+                if ($this->field->getLength() === null) {  // unpack maxLength or maxValue or fixLength error
+                    $this->parsingError = true;
+                    unset($this->field);
                     return false;
                 }
 
-                $this->dbg("Prepare field " . $field->getName() . ": field length = " . $field->getLength());
-                return $this->prepareField($fieldId, $property);
+                $this->dbg("Prepare field " . $this->field->getName() . " length for $property = " . $this->field->getLength());
+                return $this->prepareField($fieldType, $property, $isObject);
             }
 
-            $this->postPrepareField($fieldId, $property);
+            $this->dbg("Prepared field " . $this->field->getName() . " for $property = " . $this->field->getValue());
+            $this->dbg(bin2hex($this->field->getRawFieldLength()) . " " . bin2hex($this->field->getRawWithoutLength()));
 
-            $this->dbg("Prepared field " . $field->getName() . ": $property = " . $this->$property);
-            $this->dbg(bin2hex($field->getRawFieldLength()) . " " . bin2hex($field->getRawWithoutLength()));
+            $result = $this->field->checkValue();
 
-            $result = $field->check();
+            if ($result) {
+                if (!$isObject) {
+                    $this->$property = $this->field->getValue();
+                } else {
+                    $this->field->setObject();
+                    $result = $this->field->checkObject();
 
-            $this->fieldOffset += $field->getLength();
-            $this->fieldPointer = $fieldId + 1;
-            $this->field = null;
+                    if ($result) {
+                        $this->$property = $this->field->getOblect();
+                    }
+                }
+            }
+
+            if ($result && !$this->field->isParsingError()) {
+                $result = $this->field->postPrepare();
+            }
+
+            if ($this->field->isParsingError()) {
+                $this->parsingError = true;
+                unset($this->field);
+                return false;
+            }
+
+            $this->fieldOffset += $this->field->getLength();
+            $this->fieldPointer++;
+            unset($this->field);
 
             return $result;
         }
@@ -131,7 +180,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
         return false;
     }
 
-    public function createRaw()
+    public function createRaw() : aFieldSet
     {
         if ($this->fieldClass === null) {
             throw new Exception($this->getName() . " Bad code - not defined fieldClass");
@@ -145,27 +194,34 @@ abstract class aFieldSet extends aSpawnedFromEnum
 
         $this->raw = '';
 
-        foreach($this->fields as $fieldId => $property) {
+        foreach($this->fields as $property => $formatOrField) {
             if ($this->$property === null) {
-                $this->dbg($this->getName() . " field $fieldId => $property is null");
-                $this->raw = null;
-                $this->rawLength = null;
-                return $this;
+                throw new Exception($this->getName() . " Bad code - property $property is null");
             }
 
-            /** @var aField $fieldClassName */
-            $fieldClassName = $fieldClassEnum::getItem($fieldId);
-            $this->raw .= $fieldClassName::pack($this, $this->$property);
+            if (is_array($formatOrField)) {
+                $fieldType = $formatOrField[0];
+
+                if (isset($formatOrField[1]) && $formatOrField[1]) {
+                    $objectMethod = $formatOrField[1];
+                    $value = $this->$property->$objectMethod();
+
+                    if ($value === null) {
+                        throw new Exception($this->getName() . " Bad code - value of $property->$objectMethod()");
+                    }
+
+                    /** @var aField $fieldClassName */
+                    $fieldClassName = $fieldClassEnum::getItem($fieldType);
+                    $this->raw .= $fieldClassName::pack($this, $value);
+                } else {
+                    $this->raw .= $this->simplePack($formatOrField, $this->$property);
+                }
+            }
         }
 
         $this->rawLength = strlen($this->raw);
         $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
 
         return $this;
-    }
-
-    protected function postPrepareField(int $fieldId, string $property) : void
-    {
-        /* nothing to do, can be overrided */
     }
 }

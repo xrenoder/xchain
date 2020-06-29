@@ -1,16 +1,15 @@
-C     "Address-to-Chain without amount without data" transaction (unfreeze all, undelegate all from all nodes):
+C     "to-Chain without amount without data" transaction (unfreeze all, undelegate all from all nodes):
 
     1 byte          type of transaction (255)
     25 bytes        author address
 
     variable 71-73  author transaction signature (0-5)
-    16 bytes        transaction ID (MD4 hash of 6)
 
-    115 bytes
-
+    99 bytes
 
 
-    Ca    "Address-to-Chain with Amount without data"  transaction (freeze amount, unfreeze amount):
+
+    Ca    "to-Chain with Amount without data"  transaction (freeze amount, unfreeze amount):
 
         1 byte          type of transaction (255)
         25 bytes        author address
@@ -18,13 +17,12 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
         8 bytes         amount
 
         variable 71-73  author transaction signature (0-5)
-        16 bytes        transaction ID (MD4 hash of 6)
 
-        123 bytes
-
+        107 bytes
 
 
-            CaS    "Address-to-Chain with Amount with data Short"  transaction (wanna be node, short stop node):
+
+            CaS    "to-Chain with Amount with data Short"  transaction (wanna be node, short stop node):
 
                 1 byte          type of transaction (255)
                 25 bytes        author address
@@ -33,13 +31,12 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
                 2 + variable    short data (64511 bytes)
 
                 variable 71-73  author transaction signature (0-5)
-                16 bytes        transaction ID (MD4 hash of 6)
 
-                125 bytes + data
-
+                109 bytes + data
 
 
-    CS   "Address-to-Chain without amount with data Short" transaction (register node host, blockchain rules):
+
+    CS   "to-Chain without amount with data Short" transaction (register node host, blockchain rules):
 
         1 byte          type of transaction (255)
         25 bytes        author address
@@ -47,13 +44,12 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
         2 + variable    short data (64511 bytes)
 
         variable 71-73  author transaction signature (0-5)
-        16 bytes        transaction ID (MD4 hash of 6)
 
-        116 bytes + data
-
+        100 bytes + data
 
 
-    A     "Address-To-Address without amount without data" transaction (undelegate all from node):
+
+    A     "to-Address without amount without data" transaction (undelegate all from node):
 
         1 byte          type of transaction (255)
         25 bytes        author address
@@ -61,14 +57,13 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
         25 bytes        target address
 
         variable 71-73  author transaction signature (0-5)
-        16 bytes        transaction ID (MD4 hash of 6)
 
-        140 bytes
-
+        124 bytes
 
 
 
-        Aa    "Address-To-Address with Amount without data" transaction  (delegate amount to node, undelegate amount from node):
+
+        Aa    "to-Address with Amount without data" transaction  (delegate amount to node, undelegate amount from node):
 
             1 byte          type of transaction (255)
             25 bytes        author address
@@ -77,14 +72,12 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
             8 bytes         amount
 
             variable 71-73  author transaction signature (0-5)
-            16 bytes        transaction ID (MD4 hash of 6)
 
-            148 bytes
-
+            132 bytes
 
 
 
-            AaS  "Address-to-Address with Amount with data Short" transaction  (transfer with short data):
+            AaS  "to-Address with Amount with data Short" transaction  (transfer with short data):
 
                 1 byte          type of transaction (255)
                 25 bytes        author address
@@ -94,13 +87,12 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
                 2 + variable    short data (65535-)
 
                 variable 71-73  author transaction signature (0-5)
-                16 bytes        transaction ID (MD4 hash of 6)
 
-                150 bytes + data
-
+                134 bytes + data
 
 
-        AT "Address-To-Address without amount with data Short" transaction (node alive check directive, node type approved):
+
+        AT "to-Address without amount with data Short" transaction (node alive check directive, node type approved):
 
             1 byte          type of transaction (255)
             25 bytes        author address
@@ -109,13 +101,12 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
             1 + variable    tiny data (105 bytes)
 
             variable 71-73  author transaction signature (0-5)
-            16 bytes        transaction ID (MD4 hash of 6)
 
-            141 bytes + data
-
+            125 bytes + data
 
 
-        AS "Address-To-Address without amount with data Short" transaction (register public key):
+
+        AS "to-Address without amount with data Short" transaction (register public key):
 
             1 byte          type of transaction (255)
             25 bytes        author address
@@ -124,58 +115,71 @@ C     "Address-to-Chain without amount without data" transaction (unfreeze all, 
             2 + variable    short data (65535-)
 
             variable 71-73  author transaction signature (0-5)
-            16 bytes        transaction ID (MD4 hash of 6)
 
-            142 bytes + data
+            126 bytes + data
+
+
 
 Common fields for author transactions:
 
 F-node block:
-    1 byte         F-type
+    1 byte         F-node
     4 bytes        F-time
     25 bytes       F-addr
-    variable 71-73 F-sign: author_public_key . transaction . F-type . F-time . F-addr
+    variable 71-73 F-sign: author_public_key . transaction . F-node . F-time . F-addr
 
 P-node block:
-    1 byte         P-type
+    1 byte         P-node
     4 bytes        P-time
     25 bytes       P-addr
-    variable 71-73 P-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr
+    variable 71-73 P-sign: author_public_key . transaction . F-node . F-time . F-addr . F-sign . P-node . P-time . P-addr
 
 S-node block:
-    1 byte         S-type
+    1 byte         S-node
     4 bytes        S-time
     25 bytes       S-addr
-    variable 71-73 S-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr
+    variable 71-73 S-sign: author_public_key . transaction . F-node . F-time . F-addr . F-sign . P-node . P-time . P-addr . P-sign . S-node . S-time . S-addr
 
 M-node block:
-    1 byte         M-type
+    1 byte         M-node
     4 bytes        M-time
     25 bytes       M-addr
-    variable 71-73 M-sign: author_public_key . transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr . S-sign . M-type . M-time . M-addr
+    variable 71-73 M-sign: author_public_key . transaction . F-node . F-time . F-addr . F-sign . P-node . P-time . P-addr . P-sign . S-node . S-time . S-addr . S-sign . M-node . M-time . M-addr
+
+
 
 Final author transaction record:
-transaction . F-type . F-time . F-addr . F-sign . P-type . P-time . P-addr . P-sign . S-type . S-time . S-addr . S-sign . M-type . M-time . M-addr . M-sign
+transaction . F-node . F-time . F-addr . F-sign . P-node . P-time . P-addr . P-sign . S-node . S-time . S-addr . S-sign . M-node . M-time . M-addr . M-sign
++
+transaction of author public key
+
+
 
 Final signer transaction record:
 transaction
++
+transaction of signer public key
 
-Signer transactions:
 
-without data
-    max 148
-    min 115
 
-with data
-    max 150 + data (max 105 for summary max len 255)
-    min 116 + data
-
-Author transactions:
+Signer transactions length:
 
 without data
-    max 560 = 148 + 103 * 4
-    min 527 = 115 + 103 * 4
+    max 132
+    min 99
 
 with data
-    max 562 + data = (150 + 103 * 4) + data
-    min 528 + data = (116 + 103 * 4) + data
+    max 134 + data (max 121 for summary max len 255)
+    min 100 + data
+
+
+
+Author transactions length:
+
+without data
+    max 544 = 132 + 103 * 4
+    min 511 = 99 + 103 * 4
+
+with data
+    max 546 + data = (134 + 103 * 4) + data
+    min 512 + data = (100 + 103 * 4) + data

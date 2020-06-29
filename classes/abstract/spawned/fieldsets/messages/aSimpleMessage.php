@@ -3,57 +3,51 @@
 
 abstract class aSimpleMessage extends aMessage
 {
-    /** @var int  */
-    protected $maxLen = MessageFieldClassEnum::SIMPLE_MAX_LEN;   /* overrided */
+    use tMessageConstructor;
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
+    /* 'property' => [fieldType, isObject] */
     protected static $fieldSet = array(
-        MessageFieldClassEnum::NODE =>      'remoteNodeId',
-        MessageFieldClassEnum::TIME =>      'sendingTime',
+        'remoteNode' => [MessageFieldClassEnum::NODE, 'getType'],
+        'sendingTime' => [MessageFieldClassEnum::TIME, false],
     );
-
-    /** @var int  */
-    protected $remoteNodeId = null;
-    public function getRemoteNodeId() : int {return $this->remoteNodeId;}
 
     /** @var aNode  */
     private $remoteNode = null;
-    public function setRemoteNode(?aNode $val) : self {$this->remoteNode = $val; return $this;}
-    public function getRemoteNode() : ?aNode {return $this->remoteNode;}
+    public function setRemoteNode(aNode $val) : self {$this->remoteNode = $val; return $this;}
+    public function getRemoteNode() : aNode {return $this->remoteNode;}
 
     /** @var int  */
     protected $sendingTime = null;
     public function getSendingTime() : int {return $this->sendingTime;}
 
-    protected function __construct(aBase $parent)
+    /** @var aNode  */
+    private $myNode = null;
+    public function setMyNode(aNode $val) : self {$this->myNode = $val; return $this;}
+    public function getMyNode() : aNode {return $this->myNode;}
+
+    public function setMaxLen() : aMessage
     {
-        parent::__construct($parent);
-        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->maxLen = MessageFieldClassEnum::getSimpleMaxLen();
+
+        return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function createRaw() : ?string
+    public function createRaw() : aFieldSet
     {
         $this->rawSimpleMessage();
 
-        return $this->compositeRaw();
+        $this->compositeRaw();
+
+        return $this;
     }
 
     protected function rawSimpleMessage() : void
     {
-        $myNodeId = $this->getLocator()->getMyNodeId();
+        $rawNode = NodeMessageField::pack($this, $this->getLocator()->getMyNode()->getType());
         $time = time();
-
-        $rawNode = NodeMessageField::pack($this,$myNodeId);
         $rawTime = TimeMessageField::pack($this,$time);
 
-        $this->signedData = $rawNode . $rawTime;
-
         $this->raw = $rawNode . $rawTime;
+        $this->signedData = $this->raw;
     }
 }

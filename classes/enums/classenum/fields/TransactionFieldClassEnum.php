@@ -16,12 +16,13 @@ class TransactionFieldClassEnum extends aFieldClassEnum
     public const SHORT_DATA =   5;
     public const LONG_DATA =    6;
 
-    public const SIGN =         7;
-    public const HASH =         8;
+    public const NONCE =        7;
+    public const SIGN =         8;
 
     protected static $items = array(
         self::TYPE =>   'TypeTransactionField',
         self::AUTHOR => 'AuthorTransactionField',
+        self::NONCE =>  'NonceTransactionField',
 
         self::TARGET => 'TargetTransactionField',
         self::AMOUNT => 'AmountTransactionField',
@@ -31,7 +32,6 @@ class TransactionFieldClassEnum extends aFieldClassEnum
         self::LONG_DATA => 'LongDataTransactionField',
 
         self::SIGN =>   'SignTransactionField',
-        self::HASH =>   'HashTransactionField',
     );
 
     protected static $data = array(
@@ -45,7 +45,7 @@ class TransactionFieldClassEnum extends aFieldClassEnum
         self::SHORT_DATA => FieldFormatClassEnum::ASIS_SSHORT,
         self::LONG_DATA => FieldFormatClassEnum::ASIS_SLONG,  // max len of message = MAX_UBIG (2**64-1), max len of transaction message data = MAX_ULONG (2**32-1), max len of transaction data = MAX_USLONG (MAX_ULONG-1024)
 
+        self::NONCE =>  FieldFormatClassEnum::ULONG,
         self::SIGN => FieldFormatClassEnum::ASIS_BYTE,
-        self::HASH => FieldFormatClassEnum::MD4_RAW,
     );
 }

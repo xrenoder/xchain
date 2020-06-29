@@ -13,7 +13,7 @@ abstract class aEnum
      * @return string
      * @throws Exception
      */
-    public static function getItem($id) : string
+    public static function getItem($id)
     {
         if (!isset(static::$items[$id])) {
             throw new Exception(static::class . ' knows nothing about ' . $id);
@@ -24,10 +24,9 @@ abstract class aEnum
 
     /**
      * @param $id
-     * @return array
      * @throws Exception
      */
-    public static function getData($id) : array
+    public static function getData($id)
     {
         if (!isset(static::$data[$id])) {
             throw new Exception(static::class . ' knows nothing about data of ' . $id);

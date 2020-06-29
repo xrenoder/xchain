@@ -3,30 +3,34 @@
 
 class SignMessageField extends aMessageField
 {
-    /** @var int  */
-    protected $id = MessageFieldClassEnum::SIGN;  /* overrided */
-
-    public function check(): bool
+    public function checkValue(): bool
     {
-        /* @var aSignMessage $message */
+        /* @var aSignedMessage $message */
         $message = $this->getMessage();
 
         $remoteAddress = $message->getRemoteAddress();
 
-        if ($remoteAddress === null) {
-            throw new Exception("Bad code - public key must be here!!! Repair method AddrMessageField::check() and AuthorPublicKeyMessageField::check()");
+        if ($remoteAddress->isAddressOnly()) {
+            $this->err($this->getName() . " BAD DATA (or code?) - public key must be here!!!");
+            $this->parsingError = true;
+            return false;
         }
 
         $signedData = $message->getSignedData();
 
         $this->dbg($this->getName() . " verified data: " . bin2hex($signedData));
 
-        if (!$remoteAddress->verifyBin($message->getSignature(), $signedData)) {
-            $this->dbg("BAD DATA message signature is bad");
-            $this->getLegate()->setBadData();
+        if (!$remoteAddress->verifyBin($this->getValue(), $signedData)) {
+            $this->err($this->getName() . " BAD DATA message signature is bad");
+            $this->parsingError = true;
             return false;
         }
 
+        return true;
+    }
+
+    public function postPrepare() :  bool
+    {
         return true;
     }
 }

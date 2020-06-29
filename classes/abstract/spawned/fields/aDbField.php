@@ -11,4 +11,5 @@ abstract class aDbField extends aField
     /** @var string  */
     protected static $enumClass = 'DbFieldClassEnum'; /* overrided */
 
+    public function getRow() : aDbRow {return $this->getParent();}
 }

@@ -27,7 +27,8 @@ class Logger extends aBase
     public const DBG_TRANS_DATA =       1048576;        // 21
     public const DBG_BLOCK_SECTION =    2097152;        // 22
     public const DBG_BLOCK_FLD =        4194304;        // 23
-
+    public const DBG_MESSAGE_DATA =     8388608;        // 24
+    public const DBG_MESSAGE_DATA_FLD = 16777216;       // 25
 
     private static $flags = array(
         self::DBG_LOCATOR =>        'Locator   ',
@@ -53,6 +54,8 @@ class Logger extends aBase
         self::DBG_TRANS_DATA =>     'Trans Data',
         self::DBG_BLOCK_SECTION =>  'Block Sect',
         self::DBG_BLOCK_FLD =>      'Block Fld ',
+        self::DBG_MESSAGE_DATA =>   'Mess Data ',
+        self::DBG_MESSAGE_DATA_FLD=>'Msg Dt Fld',
     );
 
     /** @var string */
@@ -115,7 +118,7 @@ class Logger extends aBase
      * @param int $dbgLevel
      * @return string
      */
-    private function createRecord(string $message, int $dbgLevel, bool $isError  = false, bool $isDebug  = false) : string
+    private function &createRecord(string &$message, int $dbgLevel, bool $isError  = false, bool $isDebug  = false) : string
     {
         $record =
             $this->getDate() . "\t"
@@ -139,7 +142,7 @@ class Logger extends aBase
      * Usual log
      * @param string $message
      */
-    public function simpleLog(int $dbgLevel, string $message) : void
+    public function simpleLog(int $dbgLevel, string &$message) : void
     {
         $this->write($this->logFile, $this->createRecord($message, $dbgLevel));
     }
@@ -148,7 +151,7 @@ class Logger extends aBase
      * Debug logging
      * @param string $message
      */
-    public function debugLog(int $dbgLevel, string $message) : void
+    public function debugLog(int $dbgLevel, string &$message) : void
     {
         if (!($this->dbgMode & $dbgLevel)) return;
 
@@ -159,7 +162,7 @@ class Logger extends aBase
      * Error logging
      * @param string $message
      */
-    public function errorLog(int $dbgLevel, string $message) : void
+    public function errorLog(int $dbgLevel, string &$message) : void
     {
         $logStr = $this->createRecord($message, $dbgLevel, true);
 
@@ -179,7 +182,7 @@ class Logger extends aBase
      * @param string $file
      * @param string $message
      */
-    private function write(string $file, string $message) : void
+    private function write(string $file, string &$message) : void
     {
         $fd = fopen($file, 'ab');
         flock($fd, LOCK_EX);

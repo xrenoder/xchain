@@ -38,7 +38,7 @@ class Worker extends aLocator
         $this->log("Worker " . $this->getName() . " finished");
     }
 
-    public function serverIncomingPacketHandler(string $socketId, string $serializedLegate) : bool
+    public function serverIncomingPacketHandler(string $socketId, string &$serializedLegate) : bool
     {
         if (!isset($this->legates[$socketId])) {
             $this->legates[$socketId] = SocketLegate::create($this, $socketId);

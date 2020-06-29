@@ -20,17 +20,17 @@ abstract class aClassEnum extends aEnum
     }
 
     /**
-     * @param $id
+     * @param $type
      * @return string|null
      * @throws Exception
      */
-    public static function getClassName($id) : ?string
+    public static function getClassName($type) : ?string
     {
-        if (!static::isSetItem($id)) {
+        if (!static::isSetItem($type)) {
             return null;
         }
 
-        $className = static::getItem($id);
+        $className = static::getItem($type);
         $baseClassName = static::getBaseClassName();
 
         if (!is_a($className, $baseClassName, true)) {
@@ -40,7 +40,7 @@ abstract class aClassEnum extends aEnum
         return $className;
     }
 
-    public static function getIdByClassName(string $className)
+    public static function getTypeByClassName(string $className)
     {
         $keys = array_keys(static::$items, $className);
 

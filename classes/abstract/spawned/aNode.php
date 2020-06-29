@@ -28,16 +28,16 @@ abstract class aNode extends aSpawnedFromEnum
         $me = new static($parent);
 
         $me
-            ->setIdFromEnum()
-            ->setCanAccept(NodeClassEnum::getCanAccept($me->getId()))
-            ->setCanConnect(NodeClassEnum::getCanConnect($me->getId()));
+            ->setTypeFromEnum()
+            ->setCanAccept(NodeClassEnum::getCanAccept($me->getType()))
+            ->setCanConnect(NodeClassEnum::getCanConnect($me->getType()));
 
         $parent->dbg($me->getName() .  ' defined');
 
         return $me;
     }
 
-    public static function spawn(aBase $parent, $id) : self
+    public static function spawn(aBase $parent, int $type) : self
     {
         if (static::$enumClass === null) {
             throw new Exception("Bad code - not defined enumClass");
@@ -47,10 +47,10 @@ abstract class aNode extends aSpawnedFromEnum
         $enumClass = static::$enumClass;
 
         /** @var self $className */
-        if ($className = $enumClass::getClassName($id)) {
+        if ($className = $enumClass::getClassName($type)) {
             return $className::create($parent);
         }
 
-        throw new Exception("Bad code - cannot spawn class from $enumClass for ID " . $id);
+        throw new Exception("Bad code - cannot spawn class from $enumClass for type " . $type);
     }
 }

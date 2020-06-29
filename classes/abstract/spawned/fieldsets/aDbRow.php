@@ -10,11 +10,10 @@ abstract class aDbRow extends aFieldSet
     protected $table = null;
 
     /** @var int  */
-    protected $idFormat = null; /* can be overrided */
+    protected $idFormatType = null; /* can be overrided */
 
     protected $canBeReplaced = null;     /* override me */
 
-    /** @var aDbField  */
     protected $internalId = null;
 
     /** @var bool  */
@@ -23,14 +22,21 @@ abstract class aDbRow extends aFieldSet
     protected function __construct(aBase $parent)
     {
         parent::__construct($parent);
-        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->fields = array_replace($this->fields, static::$fieldSet);
     }
 
-    public function setInternalId() : self
+    public function setType($val) : aFieldSet
     {
-        /** @var aDbField $fieldClassName */
-        $fieldClassName = DbFieldClassEnum::getItem($this->idFormat);
-        $this->internalId = $fieldClassName::pack($this, $this->id);
+        if ($this->table === null) {
+            throw new Exception($this->getName() . " Bad code - table must be defined");
+        }
+
+        if ($this->idFormatType === null) {
+            throw new Exception($this->getName() . " Bad code - idFormatType must be defined");
+        }
+
+        $this->type = $val;
+        $this->internalId = $this->simplePack($this->idFormatType, $this->type);
 
         return $this;
     }
@@ -42,11 +48,15 @@ abstract class aDbRow extends aFieldSet
 
     public function load() : self
     {
-        $this->raw = $this->getLocator()->getDba()->fetch($this->table, $this->internalId);
-        $this->rawLength = strlen($this->raw);
+        $this->setRaw($this->getLocator()->getDba()->fetch($this->table, $this->internalId));
 
         if ($this->raw !== null) {
-            $this->parseRawString();
+            $this->parseRaw();
+
+            if ($this->parsingError) {
+                throw new Exception($this->getName() . " cannot be parsed");
+            }
+
             $this->dbg(get_class($this) . " loaded");
         } else {
             $this->dbg(get_class($this) . " loaded: NULL");
@@ -67,8 +77,13 @@ abstract class aDbRow extends aFieldSet
             return $this;
         }
 
-        if ($replace && $this->check()) {
-            $this->getLocator()->getDba()->update($this->table, $this->internalId, $this->raw);
+        if ($this->check()) {
+            if ($replace) {
+                $this->getLocator()->getDba()->update($this->table, $this->internalId, $this->raw);
+            } else {
+                throw new Exception($this->getName() . " must be replaced, but not have permission");
+            }
+
         } else {
             $this->getLocator()->getDba()->insert($this->table, $this->internalId, $this->raw);
         }
@@ -80,7 +95,7 @@ abstract class aDbRow extends aFieldSet
         return $this;
     }
 
-    protected function setNewValue(&$oldVal, $newVal, $needSave) : self
+    protected function setNewValue(&$oldVal, &$newVal, bool $needSave) : self
     {
         if ($newVal !== $oldVal) {
             $oldVal = $newVal;

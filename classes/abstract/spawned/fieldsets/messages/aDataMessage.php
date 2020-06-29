@@ -3,47 +3,34 @@
 
 abstract class aDataMessage extends aSimpleAddressMessage
 {
-    /** @var int  */
-    protected $maxLen = MessageFieldClassEnum::UNKNOWN_LEN;   /* overrided */
+    use tMessageConstructor;
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
+    /* 'property' => [fieldType, isObject] */
     protected static $fieldSet = array(
-        MessageFieldClassEnum::DATA =>      'data',
+        'data' => [MessageFieldClassEnum::DATA, 'getRaw'],
     );
 
-    /** @var string  */
-    protected $data = null;
-    public function setData(string $val) : self {$this->data = $val; return $this;}
-    public function getData() : string {return $this->data;}
-
-    protected function __construct(aBase $parent)
+    public function setMaxLen() : aMessage
     {
-        parent::__construct($parent);
-        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->maxLen = 0;
+
+        return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function createRaw() : ?string
+    public function createRaw() : aFieldSet
     {
         $this->rawDataMessage();
 
-        return $this->compositeRaw();
+        $this->compositeRaw();
+
+        return $this;
     }
 
     protected function rawDataMessage() : void
     {
-        if ($this->data === null) {
-            $this->data = '';
-        }
+        $rawData = DataMessageField::pack($this,$this->data->getRaw());
 
         $this->rawSimpleAddressMessage();
-
-        $rawData = DataMessageField::pack($this,$this->data);
 
         $this->signedData = $rawData . $this->signedData;
 

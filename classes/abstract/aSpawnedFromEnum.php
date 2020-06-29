@@ -8,13 +8,17 @@ class aSpawnedFromEnum extends aBase
     public function getEnumClass() : string {return static::$enumClass;}
     public static function getStaticEnumClass() : string {return static::$enumClass;}
 
-    protected $id = null;
-    public function setId($val) {if ($this->id === null) $this->id = $val; return $this;}
-    public function getId() {return $this->id;}
+    protected $type = null;
+    public function setType($val) {if ($this->type === null) $this->type = $val; return $this;}
+    public function &getType() {return $this->type;}
+
+    /** @var bool  */
+    protected $parsingError = false;
+    public function isParsingError() : bool {return $this->parsingError;}
 
     public function getName() : string {return get_class($this);}
 
-    public function setIdFromEnum() : self
+    public function setTypeFromEnum() : self
     {
         if (static::$enumClass === null) {
             throw new Exception("Bad code - not defined enumClass");
@@ -23,11 +27,11 @@ class aSpawnedFromEnum extends aBase
         /** @var aClassEnum $enumClass */
         $enumClass = static::$enumClass;
 
-        if (($id = $enumClass::getIdByClassName(get_class($this))) === null) {
-            throw new Exception("Bad code - for $enumClass bad ID (not found or not exclusive): " . $this->getName());
+        if (($type = $enumClass::getTypeByClassName(get_class($this))) === null) {
+            throw new Exception("Bad code - for $enumClass bad type (not found or not exclusive): " . $this->getName());
         }
 
-        $this->setId($id);
+        $this->setType($type);
 
         return $this;
     }

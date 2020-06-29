@@ -8,10 +8,7 @@ class Block extends aFieldSet
     /** @var string  */
     protected $fieldClass = 'aBlockField'; /* overrided */
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
+    /* 'property' => '[fieldType, false or object method]' or 'formatType' */
     protected static $fieldSet = array(      /* overrided */
         BlockFieldClassEnum::NUMBER =>      'blockNumber',
         BlockFieldClassEnum::CHAIN =>       'chainNumber',
@@ -43,12 +40,9 @@ class Block extends aFieldSet
     public function setBlockTime(int $val) : self {$this->blockTime = $val; return $this;}
     public function getBlockTime() : int {return $this->blockTime;}
 
-    /** @var string  */
-    protected $signerAddrBin = null;
-
     /** @var Address  */
     protected $signerAddress = null;
-    public function setSignerAddress(Address $val) : self {$this->signerAddress = $val; $this->signerAddrBin = $val->getAddressBin(); return $this;}
+    public function setSignerAddress(Address $val) : self {$this->signerAddress = $val; return $this;}
     public function getSignerAddress() : Address {return $this->signerAddress;}
 
     protected static $fieldLastSet = array(  /* overrided */
@@ -70,9 +64,7 @@ class Block extends aFieldSet
     protected function __construct(aBase $parent)
     {
         parent::__construct($parent);
-//        $this->fields = array_diff_key($this->fields, static::$fieldLastSet);
         $this->fields = array_replace($this->fields, self::$fieldSet);
-//        $this->fields = array_replace($this->fields, static::$fieldLastSet);
 
         $sections = BlockSectionClassEnum::getItemsList();
 
@@ -107,13 +99,18 @@ class Block extends aFieldSet
         return $me;
     }
 
+    public static function createFromRaw(aBase $parent, string &$raw) : self
+    {
+        throw new Exception("Block Bad code - createFromRaw must be defined");
+    }
+
     public function addTransaction(aTransaction $transaction) : self
     {
         if ($transaction->getRaw() === null) {
             throw new Exception($this->getName() . " Bad code - transaction must have generated raw");
         }
 
-        $transactionId = $transaction->getId();
+        $transactionId = $transaction->getType();
 
         $sectionId = TransactionClassEnum::getBlockSectionId($transactionId);
 
@@ -122,7 +119,7 @@ class Block extends aFieldSet
         return $this;
     }
 
-    public function createRaw()
+    public function createRaw() : aFieldSet
     {
         if (!$this->signerAddress->isFull()) {
             throw new Exception($this->getName() . " Bad code - address must be full for sign block");
@@ -132,29 +129,23 @@ class Block extends aFieldSet
             $this->blockTime = time();
         }
 
-        $locator = $this->getLocator();
-
         $this->raw = '';
 
         foreach ($this->fields as $fieldId => $property) {
-            if ($fieldId === BlockFieldClassEnum::FIRST_SECTION_INDEX) {
+            $formatId = BlockFieldClassEnum::getFormat($fieldId);
+            $this->raw .= $this->simplePack($formatId, $this->$property);
+
+            if ($fieldId === BlockFieldClassEnum::FIRST_SECTION_REACHED) {
                 break;
             }
-
-            $formatId = BlockFieldClassEnum::getFormat($fieldId);
-            $rawField = $locator->pack($formatId, $this->$property);
-            $this->raw .= $rawField;
-            $this->signedData .= $rawField;
         }
 
         foreach ($this->sections as $sectionId => $section) {
             $section->createRaw();
-            $rawSection = $locator->pack(BlockFieldClassEnum::SECTION_LEN_FORMAT, $section->getRaw());
-            $this->raw .= $rawSection;
-            $this->signedData .= $rawSection;
+            $this->raw .= $section->getRaw();
         }
 
-        $this->signature = $this->signerAddress->signBin($this->signedData);
+        $this->signature = $this->signerAddress->signBin($this->raw);
         $rawSignature = SignBlockField::pack($this, $this->signature);
         $this->raw .= $rawSignature;
 
@@ -163,5 +154,37 @@ class Block extends aFieldSet
         $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
 
         return $this;
+    }
+
+    public function parseRaw() : void
+    {
+        foreach ($this->fields as $fieldId => $property) {
+            if ($this->fieldPointer > $fieldId) {
+                continue;
+            }
+
+            if (!$this->prepareField($fieldId, $property)) {
+// if field cannot be prepared - break  (not 'return false'), may be all formats was prepared
+                break;
+            }
+
+            if ($fieldId === BlockFieldClassEnum::FIRST_SECTION_REACHED) {
+                break;
+            }
+        }
+
+// check unpack maxLength or maxValue or fixLength error
+        if ($this->field !== null && $this->field->getLength() === null && $this->field->getValue() === null) {
+            return;
+        }
+
+        foreach ($this->sections as $sectionId => $section) {
+
+        }
+    }
+
+    protected function prepareSection(int $sectionId) : bool
+    {
+
     }
 }

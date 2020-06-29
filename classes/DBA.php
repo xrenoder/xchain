@@ -21,6 +21,7 @@ class DBA extends aBase
     private const TRANS_KEY = 'TRANS_';
 
     public const INTEGRITY_TABLE = DbTableEnum::INTEGRITY;
+
     private const INTEGRITY_HASH_ALGO = 'md4';
     private const INTEGRITY_LAST_RECORD_TABLE = 'lastRecordTable';
     private const INTEGRITY_LAST_RECORD_ID = 'lastRecordId';
@@ -57,11 +58,9 @@ class DBA extends aBase
     private $transLockMode = null;
 
     private $transactions = array();
-    private $transactionStack = array();
+    private $recordsStack = array();
 
     private $dbhTables = array();
-
-
 
     /**
      * @param App $locator
@@ -97,17 +96,20 @@ class DBA extends aBase
 
     public function integrity() : bool
     {
+        $integrityTable = self::INTEGRITY_TABLE;
+        $integrityLastRecordValue = self::INTEGRITY_LAST_RECORD_VALUE;
+
         $this->lockEx();
 
         if ($this->check(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH) === false) {
 // initialize integrity records
             $val = 'init';
 
-            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, self::INTEGRITY_TABLE);
-            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, self::INTEGRITY_LAST_RECORD_VALUE);
+            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $integrityTable);
+            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $integrityLastRecordValue);
             $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_VALUE, $val);
 
-            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_VALUE, $val));
+            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($integrityTable, $integrityLastRecordValue, $val));
         }
 // check DB for integrity
 
@@ -126,7 +128,7 @@ class DBA extends aBase
         return $this->integrityPassed;
     }
 
-    public function removeDbTables()
+    public function removeDbTables() : void
     {
         $tables = DbTableEnum::getItemsList();
 
@@ -148,7 +150,7 @@ class DBA extends aBase
     public function transactionBegin() : string
     {
         if (!$this->inTransaction()) {
-            $this->lockEx();
+            $this->lockSh();
         }
 
         $transactionKey = self::TRANS_KEY . count($this->transactions);
@@ -172,9 +174,13 @@ class DBA extends aBase
             $id = null;
             $val = null;
 
-            $recordsCnt = 0;
+            $recordsCounter = 0;
 
-            foreach($this->transactionStack as $record) {
+            if (count($this->recordsStack)) {
+                $this->lockEx();
+            }
+
+            foreach($this->recordsStack as $record) {
                 $operation = $record[self::OPERATION_FIELD];
 
                 $table = $record[self::RECORD_FIELD][self::RECORD_TABLE];
@@ -182,9 +188,9 @@ class DBA extends aBase
                 $val = $record[self::RECORD_FIELD][self::RECORD_VAL];
 
 // fill data for integrity checking
-                $recordsCnt++;
+                $recordsCounter++;
 
-                if ($recordsCnt === 1) {
+                if ($recordsCounter === 1) {
                     $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
                     $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
                 }
@@ -192,18 +198,18 @@ class DBA extends aBase
                 $this->$operation($table, $id, $val);
             }
 
-            if ($recordsCnt > 1) {
+            if ($recordsCounter > 1) {
                 $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
                 $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
             }
 
-            if ($recordsCnt > 0) {
+            if ($recordsCounter > 0) {
                 $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($table, $id, $val));
             }
 
             $this->unlock();
 
-            $this->transactionStack = array();
+            $this->recordsStack = array();
 
             $this->dbg("DB transaction $transactionKey commit suss");
         } else {
@@ -251,7 +257,7 @@ class DBA extends aBase
         return $id;
     }
 
-    public function check(string $table, string $id) : bool
+    public function check(string $table, string $id, $useCache = true) : bool
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
@@ -262,10 +268,13 @@ class DBA extends aBase
             $this->lockSh();
         } else {
             $isLock = false;
-            $cacheId = $this->getCacheId($table, $id);
 
-            if (isset($this->transactionStack[$cacheId])) {
-                $result = true;
+            if ($useCache) {
+                $cacheId = $this->getCacheId($table, $id);
+
+                if (isset($this->recordsStack[$cacheId])) {
+                    $result = true;
+                }
             }
         }
 
@@ -280,7 +289,7 @@ class DBA extends aBase
         return $result;
     }
 
-    public function fetch(string $table, string $id) : ?string
+    public function &fetch(string $table, string $id, $useCache = true) : ?string
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
@@ -291,10 +300,13 @@ class DBA extends aBase
             $this->lockSh();
         } else {
             $isLock = false;
-            $cacheId = $this->getCacheId($table, $id);
 
-            if (isset($this->transactionStack[$cacheId])) {
-                $result = $this->transactionStack[$cacheId][self::RECORD_FIELD][self::RECORD_VAL];
+            if ($useCache) {
+                $cacheId = $this->getCacheId($table, $id);
+
+                if (isset($this->recordsStack[$cacheId])) {
+                    $result = $this->recordsStack[$cacheId][self::RECORD_FIELD][self::RECORD_VAL];
+                }
             }
         }
 
@@ -311,12 +323,12 @@ class DBA extends aBase
         return $result;
     }
 
-    public function insert(string $table, string $id, string $val) : void
+    public function insert(string $table, string $id, string &$val) : void
     {
         $this->write('realInsert', $table, $id, $val);
     }
 
-    public function update(string $table, string $id, string $val) : void
+    public function update(string $table, string $id, string &$val) : void
     {
         $this->write('realUpdate', $table, $id, $val);
     }
@@ -331,7 +343,7 @@ class DBA extends aBase
         }
     }
 
-    private function write(string $operation, string $table, string $id, string $val) : void
+    private function write(string $operation, string $table, string $id, string &$val) : void
     {
         if (!$this->inTransaction()) {
             $this->lockEx();
@@ -346,16 +358,16 @@ class DBA extends aBase
 
             $cacheId = $this->getCacheId($table, $id);
 
-            if (!isset($this->transactionStack[$cacheId])) {
-                $this->transactionStack[$cacheId][self::OPERATION_FIELD] = $operation;
+            if (!isset($this->recordsStack[$cacheId])) {
+                $this->recordsStack[$cacheId][self::OPERATION_FIELD] = $operation;
             }
 
-            $this->transactionStack[$cacheId][self::RECORD_FIELD] = $record;
+            $this->recordsStack[$cacheId][self::RECORD_FIELD] = $record;
 
         }
     }
 
-    private function realInsert(string $table, string $id, string $val) : void
+    private function realInsert(string $table, string $id, string &$val) : void
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
@@ -364,7 +376,7 @@ class DBA extends aBase
         }
     }
 
-    public function realUpdate(string $table, string $id, string $val) : void
+    public function realUpdate(string $table, string $id, string &$val) : void
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
@@ -445,9 +457,10 @@ class DBA extends aBase
         return fclose($this->fdDbLock);
     }
 
-    private function hash(string $table, string $id, string $val) : string
+    private function &hash(string &$table, string &$id, string &$val) : string
     {
-        return hash(self::INTEGRITY_HASH_ALGO, $table . "_" . $id . "_" . $val, true);
+        $result = hash(self::INTEGRITY_HASH_ALGO, $table . "_" . $id . "_" . $val, true);
+        return $result;
     }
 
     private function getCacheId(string $table, string $id) : string

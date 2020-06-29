@@ -17,18 +17,21 @@ abstract class aField extends aSpawnedFromEnum
     public function setLength(int $val) : self {$this->format->setLength($val); return $this;}
     public function getLength() : ?int {return $this->format->getLength();}
 
-    public function getRawWithoutLength() : string {return $this->format->getRawWithoutLength();}
-    public function getRawFieldLength() : string {return $this->format->getRawFieldLength();}
-    public function getRawWithLength() : string {return $this->format->getRawWithLength();}
+    public function &getRawWithoutLength() : string {return $this->format->getRawWithoutLength();}
+    public function &getRawFieldLength() : string {return $this->format->getRawFieldLength();}
+    public function &getRawWithLength() : string {return $this->format->getRawWithLength();}
 
-    public function getValue() {return $this->format->getValue();}
+    public function &getValue() {return $this->format->getValue();}
+
+    protected $object = null;
+    public function getOblect() {return $this->object;}
 
     public static function create(aBase $parent, int $offset = 0) : self
     {
         $me = new static($parent);
 
         $me
-            ->setIdFromEnum()
+            ->setTypeFromEnum()
             ->setFormat($offset);
 
         $me->dbg($me->getName() .  " object created (offset $offset)");
@@ -36,7 +39,7 @@ abstract class aField extends aSpawnedFromEnum
         return $me;
     }
 
-    public static function spawn(aFieldSet $parent, int $id, int $offset) : self
+    public static function spawn(aFieldSet $parent, int $type, int $offset) : self
     {
         if (static::$enumClass === null) {
             throw new Exception("Bad code - not defined enumClass");
@@ -54,40 +57,54 @@ abstract class aField extends aSpawnedFromEnum
         $enumClass = static::$enumClass;
 
         /** @var aField $className */
-        if ($className = $enumClass::getClassName($id)) {
+        if ($className = $enumClass::getClassName($type)) {
             return $className::create($parent, $offset);
         }
 
-        throw new Exception("Bad code - cannot spawn class from $enumClass for ID " . $id);
+        throw new Exception("Bad code - cannot spawn class from $enumClass for type " . $type);
     }
 
     public function setFormat(int $offset) : self
     {
         /** @var aFieldClassEnum $enumClass */
         $enumClass = static::$enumClass;
-        $formatId = $enumClass::getFormat($this->id);
+        $formatType = $enumClass::getFormat($this->type);
 
-        $this->format = aFieldFormat::spawn($this, $formatId, $offset);
+        $this->format = aFieldFormat::spawn($this, $formatType, $offset);
 
         return $this;
     }
 
-    public function unpack(string $data)
+    public function unpack(string &$data)
     {
         return $this->format->unpackField($data);
     }
 
-    public static function pack($parent, $val) : string
+    public static function &pack(aBase $parent, &$val) : string
     {
         $field = static::create($parent);
         $result = $field->getFormat()->packField($val);
-        $field->dbg($val .  ' packed to');
-        $field->dbg(bin2hex($result));
         unset($field);
+
         return $result;
     }
 
-    public function check(): bool
+    public function checkValue(): bool
+    {
+        return true;
+    }
+
+    public function checkObject(): bool
+    {
+        return true;
+    }
+
+    public function setObject() :  void
+    {
+        throw new Exception($this->getName() . " Bad code - method 'setObject' not defined");
+    }
+
+    public function postPrepare() :  bool
     {
         return true;
     }

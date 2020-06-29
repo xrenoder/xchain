@@ -3,12 +3,13 @@
 
 class BinHexFormat extends aFieldFormat
 {
-    protected function packDataTransform($data) : string
+    protected function &packDataTransform(&$data) : string
     {
-        return hex2bin($data);
+        $result = hex2bin($data);
+        return $result;
     }
 
-    protected function unpackRawTransform()
+    protected function &unpackRawTransform()
     {
         $this->value = bin2hex($this->rawWithoutLength);
         return $this->value;

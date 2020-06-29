@@ -3,31 +3,37 @@
 
 abstract class aFixLengthFieldFormat extends aFieldFormat
 {
-    public function packField($data) : string
+    public function &packField(&$data) : string
     {
-        $data = $this->packDataTransform($data);
+        if ($data === null) {
+            throw new Exception($this->getName() . " Bad coding: packed data must be not null");
+        }
 
-        if ($this->length && strlen($data) !== $this->length) {
-            $length = strlen($data);
+        $result = $this->packDataTransform($data);
+
+        if ($this->length && strlen($result) !== $this->length) {
+            $length = strlen($result);
             throw new Exception("Bad pack length of " . $this->getName() . ": $length not equal " . $this->length);
         }
 
-        return $data;
+        return $result;
     }
 
-    public function unpackField(string $data)
+    public function &unpackField(string &$raw)
     {
-        $this->rawWithoutLength = substr($data, $this->offset, $this->length);
+        $fieldRaw = substr($raw, $this->offset, $this->length);
 
-        if ($this->length && strlen($this->rawWithoutLength) !== $this->length) { // length of data not equal data length described in format
-            $this->dbg("Bad unpack length of " . $this->getName() . ": " . strlen($this->rawWithoutLength) . " not equal " . $this->length);
+        if ($this->length && strlen($fieldRaw) !== $this->length) { // length of data not equal data length described in format
+            $this->dbg("Bad unpack length of " . $this->getName() . ": " . strlen($fieldRaw) . " not equal " . $this->length);
 
-            $this->rawWithoutLength = null;
+            $this->unsetRaw();
             $this->length = null;
             $this->value = null;
 
             return $this->value;
         }
+
+        $this->setRaw($fieldRaw);
 
         $this->unpackRawTransform();
 

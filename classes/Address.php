@@ -13,6 +13,11 @@ class Address extends aBase
 {
     protected static $dbgLvl = Logger::DBG_ADDRESS;
 
+    public const FIELD_FORMAT = FieldFormatClassEnum::ADDR; /* overrided */
+
+    /** @var string  */
+    protected $packMeProperty = 'address'; /* overrided */
+
     private const PRIVATE_HEX_LEN = 558;
     public const PUBLIC_BIN_LEN = 248;
     public const ADDRESS_HUM_LEN = 52;
@@ -27,9 +32,9 @@ class Address extends aBase
 
     private $addressBase16 = null;     // base16 (hex + 2 bytes)
 
-    public function getPublicKeyBin() : string {return $this->publicKey;}
-    public function getAddressBin() : string {return $this->address;}
-    public function getAddressHuman() : string {return $this->addressBase16;}
+    public function &getPublicKeyBin() : string {return $this->publicKey;}
+    public function &getAddressBin() : string {return $this->address;}
+    public function &getAddressHuman() : string {return $this->addressBase16;}
 
     public function isAddressOnly() : bool {return ($this->publicKey === null);}
     public function isPubKeyOnly() : bool {return ($this->privateKeyHex === null);}
@@ -123,12 +128,22 @@ class Address extends aBase
         $this->address = hex2bin($this->addressHex);
     }
 
+    public static function getAddrFromPublicKey(string $publicKeyBin) : string
+    {
+        $addressHex = null;
+        $publicKeyHex = bin2hex($publicKeyBin);
+
+        mhcrypto_generate_address($publicKeyHex, $addressHex);
+
+        return hex2bin($addressHex);
+    }
+
     /**
      * Return binary signature
      * @param $data
      * @return |null
      */
-    public function signBin($data) : string
+    public function &signBin(&$data) : string
     {
         if ($this->privateKeyHex === null ) {
             throw new Exception("Cannot sign data without private key");
@@ -147,7 +162,7 @@ class Address extends aBase
      * @param $data
      * @return mixed
      */
-    public function verifyBin($signBin, $data) : bool
+    public function verifyBin($signBin, &$data) : bool
     {
         if ($this->publicKeyHex === null ) {
             throw new Exception("Cannot verify signature without public key");
@@ -228,7 +243,7 @@ class Address extends aBase
         return $this;
     }
 
-    public function loadPublicKey($publicKeyBin, $addressBin = null) : self
+    public function loadPublicKey(string $publicKeyBin, ?string $addressBin = null) : self
     {
         if ($this->privateKeyHex !== null || $this->publicKeyHex !== null || $this->address !== null) {
             throw new RuntimeException('Cannot load new public key - this address-object is already filled');
@@ -238,6 +253,13 @@ class Address extends aBase
             throw new RuntimeException("Binary public key size $keySize is incorrect, need " . static::PUBLIC_BIN_LEN);
         }
 
+        $this->addPublicKey($publicKeyBin, $addressBin);
+
+        return $this;
+    }
+
+    public function addPublicKey(string $publicKeyBin, ?string $addressBin = null) : self
+    {
         $this->publicKey = $publicKeyBin;
         $this->publicKeyHex = bin2hex($this->publicKey);
 
@@ -247,6 +269,7 @@ class Address extends aBase
             throw new RuntimeException('Cannot load: this public key is not for address ' . static::hexToBase16(bin2hex($addressBin)));
         }
 
+// TODO заменить все Exception на RuntimeException или что-то более подходящее
         $this->dbg('Public key for ' . $this->addressBase16 . " loaded");
 
         return $this;

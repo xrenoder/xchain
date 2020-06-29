@@ -89,9 +89,6 @@ try {
         throw new Exception('Cannot daemon start');
     }
 
-    // load chain state data
-    SummaryDataSet::create($app);
-
 //    $startPool = TaskPool::create($app->getServer()->getQueue(), "Start Operations");
 //    GetFnodesTask::create($app->getServer(), $startPool, $firstRemoteHost);
 //    $startPool->toQueue();

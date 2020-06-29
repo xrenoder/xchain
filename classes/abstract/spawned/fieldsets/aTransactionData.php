@@ -11,6 +11,8 @@ abstract class aTransactionData extends aFieldSet
     /** @var string  */
     protected $fieldClass = 'aTransactionDataField'; /* overrided */
 
+    public function getTransaction() : aTransaction {return $this->getParent();}
+
     protected function __construct(aTransaction $parent)
     {
         parent::__construct($parent);
@@ -22,7 +24,7 @@ abstract class aTransactionData extends aFieldSet
         $me = new static($parent);
 
         $me
-            ->setIdFromEnum();
+            ->setTypeFromEnum();
 
         return $me;
     }

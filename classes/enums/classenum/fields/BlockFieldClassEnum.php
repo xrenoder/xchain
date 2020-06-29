@@ -11,10 +11,9 @@ class BlockFieldClassEnum extends aFieldClassEnum
     public const TIME =         2;
     public const PREV_SIGN =    3;
     public const SIGNER_ADDR =  4;
-    public const SIGN =         1000;
+    public const SIGN =         5;
 
-    public const FIRST_SECTION_INDEX = self::SIGNER_ADDR + 1;
-    public const SECTION_LEN_FORMAT = FieldFormatClassEnum::ASIS_SBIG;
+    public const FIRST_SECTION_REACHED = self::SIGNER_ADDR;
 
     protected static $items = array(
         self::NUMBER =>     'NumberBlockField',

@@ -3,50 +3,41 @@
 
 abstract class aSimpleAddressMessage extends aSimpleMessage
 {
-    /** @var int  */
-    protected $maxLen = MessageFieldClassEnum::SIMPLE_ADDR_MAX_LEN;   /* overrided */
+    use tMessageConstructor;
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
+    /* 'property' => [fieldType, isObject] */
     protected static $fieldSet = array(
-        MessageFieldClassEnum::ADDR =>      'remoteAddrBin',
+        'remoteAddr' => [MessageFieldClassEnum::ADDR, 'getAddressBin'],
     );
-
-    /** @var string  */
-    protected $remoteAddrBin = null;
-    public function getRemoteAddrBin() : string {return $this->remoteAddrBin;}
 
     /** @var Address  */
     protected $remoteAddress = null;
-    public function setRemoteAddress(?Address $val) : self {$this->remoteAddress = $val; return $this;}
-    public function getRemoteAddress() : ?Address {return $this->remoteAddress;}
+    public function setRemoteAddress(Address $val) : self {$this->remoteAddress = $val; return $this;}
+    public function getRemoteAddress() : Address {return $this->remoteAddress;}
 
-    protected function __construct(aBase $parent)
+    public function setMaxLen() : aMessage
     {
-        parent::__construct($parent);
-        $this->fields = array_replace($this->fields, self::$fieldSet);
+        $this->maxLen = MessageFieldClassEnum::getSimpleAddrMaxLen();
+
+        return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function createRaw() : ?string
+    public function createRaw() : aFieldSet
     {
         $this->rawSimpleAddressMessage();
 
-        return $this->compositeRaw();
+        $this->compositeRaw();
+
+        return $this;
     }
 
     protected function rawSimpleAddressMessage() : void
     {
+        $rawAddress = AddrMessageField::pack($this, $this->getLocator()->getMyAddress()->getAddressBin());
+
         $this->rawSimpleMessage();
 
-        $rawAddress = AddrMessageField::pack($this,$this->getLocator()->getMyAddress()->getAddressBin());
-
-        $this->signedData .= $rawAddress;
-
         $this->raw .=  $rawAddress;
+        $this->signedData .= $rawAddress;
     }
 }

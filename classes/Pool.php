@@ -35,7 +35,7 @@ class Pool extends aBase
      */
     private $myNodeId = null;
     public function setMyNodeId(int $val) : self {$this->myNodeId = $val; return $this;}
-    public function getMyNodeId() : ?int {return $this->myNodeId;}
+    public function getMyNodeType() : ?int {return $this->myNodeId;}
 
     /** @var bool  */
     private $isAdded = false;
@@ -63,7 +63,7 @@ class Pool extends aBase
 
         $me
             ->setName($name)
-            ->setMyNodeId($me->getLocator()->getMyNode()->getId());
+            ->setMyNodeId($me->getLocator()->getMyNode()->getType());
 
         return $me;
     }

@@ -3,6 +3,8 @@
 
 class TypeMessageField extends aMessageField
 {
-    /** @var int  */
-    protected $id = MessageFieldClassEnum::TYPE;  /* overrided */
+    public function postPrepare() :  bool
+    {
+        return true;
+    }
 }

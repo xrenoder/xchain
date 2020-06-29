@@ -5,14 +5,14 @@ class DbTableEnum extends aEnum
 {
     public const INTEGRITY = 'integrity';    // data for DB-integrity checking
 
+    public const BLOCKS = 'blocks';               // "blockNumber" => "blockRawData" ; used for master & torrent nodes
+
     public const SUMMARY = 'summary';               // actual fixed blockchain data (last prepared block, last known block, rules, etc); used for all non-client nodes
 
     public const ADDR_PUBKEYS = 'addr.pubkeys';    // "address" => "publicKey"; used for all non-client nodes
     public const ADDR_NODES = 'addr.nodes';    // "address" => "nodeType"; used for all non-client nodes
 
     public const NODE_PINGS = 'node.pings';      // "address" => "ping" ; used for all nodes; data from tests, not in chain
-
-    public const BLOCKS = 'blocks';               // "blockNumber" => "blockRawData" ; used for master & torrent nodes
 
     public const TRANSACTIONS = 'transactions';  // "transactionId" => nonce ; for checking, is transaction ID exists, used for all nodes
 

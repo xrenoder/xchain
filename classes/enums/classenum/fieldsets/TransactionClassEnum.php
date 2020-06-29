@@ -24,4 +24,12 @@ class TransactionClassEnum extends aClassEnum
         return self::$data[$id];
     }
 
+    public static function getMaxTransactionLength(int $id) : int
+    {
+        return FieldFormatClassEnum::getMaxValue(
+            BlockSectionClassEnum::getTransactionLengthFormatId(
+                static::getBlockSectionId($id)
+            )
+        );
+    }
 }

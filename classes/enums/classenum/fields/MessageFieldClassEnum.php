@@ -15,11 +15,6 @@ class MessageFieldClassEnum extends aFieldClassEnum
     public const PUBKEY =  6;
     public const SIGN =    7;
 
-    public const UNKNOWN_LEN  = 0;
-    public const BASE_MAX_LEN  = 1 + 8; // type + length
-    public const SIMPLE_MAX_LEN  = 1 + 8 + 1 + 4; // type + length + node + time
-    public const SIMPLE_ADDR_MAX_LEN  = 1 + 8 + 1 + 4 + 25; // type + length + node + time + addr
-
     protected static $items = array(
         self::TYPE =>   'TypeMessageField',
         self::LENGTH => 'LengthMessageField',
@@ -41,4 +36,30 @@ class MessageFieldClassEnum extends aFieldClassEnum
         self::PUBKEY => FieldFormatClassEnum::PUBKEY,
         self::SIGN =>   FieldFormatClassEnum::ASIS_BYTE,
     );
+
+    public static function getBaseMaxLen()
+    {
+        return
+            FieldFormatClassEnum::getLength(static::getFormat(self::TYPE))
+            + FieldFormatClassEnum::getLength(static::getFormat(self::LENGTH));
+    }
+
+    public static function getSimpleMaxLen()
+    {
+        return
+            FieldFormatClassEnum::getLength(static::getFormat(self::TYPE))
+            + FieldFormatClassEnum::getLength(static::getFormat(self::LENGTH))
+            + FieldFormatClassEnum::getLength(static::getFormat(self::NODE))
+            + FieldFormatClassEnum::getLength(static::getFormat(self::TIME));
+    }
+
+    public static function getSimpleAddrMaxLen()
+    {
+        return
+            FieldFormatClassEnum::getLength(static::getFormat(self::TYPE))
+            + FieldFormatClassEnum::getLength(static::getFormat(self::LENGTH))
+            + FieldFormatClassEnum::getLength(static::getFormat(self::NODE))
+            + FieldFormatClassEnum::getLength(static::getFormat(self::TIME))
+            + FieldFormatClassEnum::getLength(static::getFormat(self::ADDR));
+    }
 }

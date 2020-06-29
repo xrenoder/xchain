@@ -52,9 +52,9 @@ class SocketLegate extends aBase
     public function isServerBusy() : bool {return $this->isServerBusy;}
 
     /** @var int  */
-    private $myNodeId = null;
-    public function setMyNodeId(int $val) : self {$this->myNodeId = $val; return $this;}
-    public function getMyNodeId() : ?int {return $this->myNodeId;}
+    private $myNodeType = null;
+    public function setMyNodeType(int $val) : self {$this->myNodeType = $val; return $this;}
+    public function getMyNodeType() : ?int {return $this->myNodeType;}
 
     /** @var string  */
     private $incomingString = null;
@@ -89,11 +89,20 @@ class SocketLegate extends aBase
         $message = $this->getInMessage();
 
         if ($message === null) {
-            $messageId = TypeMessageField::create($this)->unpack($packet);
+            $field = TypeMessageField::create($this);
+            $messageType = $field->unpack($packet);
+            unset($field);
 
-            if (!($message = aMessage::spawn($this, $messageId))) {
+            if (!MessageClassEnum::isSetItem($messageType)) {
+                $this->dbg("BAD DATA don't know about message type $messageType");
+                $this->badData = true;
+                $this->workerResult = aMessage::MESSAGE_PARSED;
+                return;
+            }
+
+            if (!($message = aMessage::spawn($this, $messageType))) {
 // if cannot create classenum of request by declared type - incoming data is bad
-                $this->getLocator()->dbg("BAD DATA cannot create message classenum with ID $messageId");
+                $this->dbg("BAD DATA cannot create message classenum with type $messageType");
                 $this->badData = true;
                 $this->workerResult = aMessage::MESSAGE_PARSED;
                 return;
@@ -118,7 +127,7 @@ class SocketLegate extends aBase
         $this->responseString = $message->getRaw();
     }
 
-    public function serializeInSocket() : string
+    public function &serializeInSocket() : string
     {
         $locator = $this->getLocator();
         $this->setLocator(null);
@@ -134,7 +143,7 @@ class SocketLegate extends aBase
         return $string;
     }
 
-    public function unserializeInWorker(string $serializedLegate) : SocketLegate
+    public function unserializeInWorker(string &$serializedLegate) : SocketLegate
     {
         /** @var SocketLegate $legate */
         $legate = unserialize($serializedLegate, ['allowed_classes' => true]);
@@ -155,7 +164,7 @@ class SocketLegate extends aBase
         return $legate;
     }
 
-    public function serializeInWorker() : string
+    public function &serializeInWorker() : string
     {
 /*
         if ($this->workerResult) {
@@ -180,7 +189,7 @@ class SocketLegate extends aBase
         return $string;
     }
 
-    public function unserializeInSocket(string $serializedLegate) : SocketLegate
+    public function unserializeInSocket(string &$serializedLegate) : SocketLegate
     {
         /** @var SocketLegate $legate */
         $legate = unserialize($serializedLegate, ['allowed_classes' => true]);

@@ -3,58 +3,57 @@
 
 class AddrMessageField extends aMessageField
 {
-    /** @var int  */
-    protected $id = MessageFieldClassEnum::ADDR;  /* overrided */
+    /** @var Address  */
+    private $savedAddressWithPubKey = null;
 
-    public function check(): bool
+    public function checkValue() : bool
     {
-        /* @var aSimpleAddressMessage $message */
-        $message = $this->getMessage();
-        $legate = $this->getLegate();
-        $remoteAddrBin = $message->getRemoteAddrBin();
-        $locator = $this->getLocator();
-
-        $message->setSignedData($message->getSignedData() . $this->getRawWithLength());
-
-        if (!Address::checkAddressBin($remoteAddrBin)) {
-            $this->dbg("BAD DATA remote address is bad " . Address::binToBase16($remoteAddrBin));
-            $legate->setBadData();
+        if (!Address::checkAddressBin($this->getValue())) {
+            $this->err($this->getName() . " BAD DATA address is bad " . Address::binToBase16($this->getValue()));
+            $this->parsingError = true;
             return false;
         }
 
-        $myNodeId = $legate->getMyNodeId();
-        $remoteNodeId = $message->getRemoteNodeId();
+        /** @var aSimpleAddressMessage $message */
+        $message = $this->getMessage();
 
-        if ($remoteNodeId !== NodeClassEnum::CLIENT && $myNodeId !== NodeClassEnum::CLIENT) {
-            $savedNodeId = NodeByAddr::create($locator, $remoteAddrBin)->getNodeId();
+        $remoteNodeType = $message->getRemoteNode()->getType();
 
-            if ($savedNodeId === null) {
-                $this->dbg("BAD DATA don't know node with address " . Address::binToBase16($remoteAddrBin));
-                $legate->setBadData();
+// if my node or remote node is client, not check node & public key in DB
+        if ($remoteNodeType !== NodeClassEnum::CLIENT && $message->getMyNode()->getType() !== NodeClassEnum::CLIENT) {
+            $locator = $this->getLocator();
+            $savedNode = NodeByAddr::create($locator, $this->getValue())->getNode();
+
+            if ($savedNode === null) {
+                $this->err($this->getName() . " BAD DATA don't know node with address " . Address::binToBase16($this->getValue()));
+                $this->parsingError = true;
                 return false;
             }
 
-            if ($savedNodeId !== $remoteNodeId) {
-                $this->dbg("BAD DATA address " . Address::binToBase16($remoteAddrBin) . " cannot be node " . NodeClassEnum::getName($remoteNodeId) . " (is node " . NodeClassEnum::getName($savedNodeId) . ")");
-                $legate->setBadData();
+            if ($savedNode->getType() !== $remoteNodeType) {
+                $this->err($this->getName() . " BAD DATA address " . Address::binToBase16($this->getValue()) . " cannot be node " . NodeClassEnum::getName($remoteNodeType) . " (is node " . $savedNode->getName() . ")");
+                $this->parsingError = true;
                 return false;
             }
 
-            $savedPubKey = PubKeyByAddr::create($locator, $remoteAddrBin)->getPublicKey();
+            $this->savedAddressWithPubKey = PubKeyByAddr::create($locator, $this->getValue())->getAddressWithPubKey();
 
-            if ($savedPubKey === null) {
-                $this->dbg("BAD DATA don't know public key for address " . Address::binToBase16($remoteAddrBin));
-                $legate->setBadData();
+            if ($this->savedAddressWithPubKey === null) {
+                $this->err($this->getName() . " BAD DATA don't know public key for sender address " . Address::binToBase16($this->getValue()));
+                $this->parsingError = true;
                 return false;
             }
-
-// TODO при сохранении публичного ключа в базу проверять соответствие ключа и адреса, чтобы здесь уже не проверять
-
-            $message->setRemoteAddress(Address::createFromPublic($locator, $savedPubKey));
         }
 
-        $this->dbg("Message received from address " . Address::binToBase16($remoteAddrBin));
-
         return true;
+    }
+
+    public function setObject() : void
+    {
+        if ($this->savedAddressWithPubKey !== null) {
+            $this->object = $this->savedAddressWithPubKey;
+        } else {
+            $this->object = Address::createFromAddress($this->getLocator(), $this->getValue());
+        }
     }
 }

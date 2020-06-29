@@ -4,6 +4,8 @@
  */
 abstract class aMessage extends aFieldSet
 {
+    use tMessageConstructor;
+
     public const MESSAGE_PARSED = true;
     public const MESSAGE_NOT_PARSED = false;
 
@@ -16,24 +18,28 @@ abstract class aMessage extends aFieldSet
     protected $fieldClass = 'aMessageField'; /* overrided */
 
     /** @var int  */
-    protected $maxLen = MessageFieldClassEnum::BASE_MAX_LEN;   /* override me */
+    protected $maxLen = null;
     public function getMaxLen() : int {return $this->maxLen;}
 
     /** @var int  */
-    protected $fieldPointer = MessageFieldClassEnum::LENGTH;  /* overrided */    // first fieldId prepared inside Message-object (field 'Message Length')
+    protected $fieldPointer = 1;  /* overrided */    // first fieldId prepared inside Message-object (field 'Message Length')
 
-    /**
-     * fieldId => 'propertyName'
-     * @var string[]
-     */
+    /* 'property' => [fieldType, isObject] */
     protected static $fieldSet = array(      /* overrided */
-        MessageFieldClassEnum::TYPE =>      'id',              // must be always first field in message
-        MessageFieldClassEnum::LENGTH =>    'declaredLen',     // must be always second field in message
+        'type' => [MessageFieldClassEnum::TYPE, false],              // must be always first field in message
+        'declaredLen' => [MessageFieldClassEnum::LENGTH, false],     // must be always second field in message
     );
 
     /** @var int  */
     protected $declaredLen = null;
     public function getDeclaredLen() : ?int {return $this->declaredLen;}
+
+    /** @var int  */
+    protected $dataClass = null; /* override me */
+    public function getDataClass() : int {return $this->dataClass;}
+
+    /** @var aMessageData  */
+    protected $data = null;
 
     /** @var int  */
     protected $incomingMessageTime = null;
@@ -58,13 +64,7 @@ abstract class aMessage extends aFieldSet
             return $this->getParent();
         }
 
-        throw new Exception("Bad code - legate cannot be used in outgoing message");
-    }
-
-    protected function __construct(aBase $parent)
-    {
-        parent::__construct($parent);
-        $this->fields = array_replace($this->fields, self::$fieldSet);
+        throw new Exception($this->getName() . " Bad code - legate cannot be used in outgoing message");
     }
 
     public static function create(aBase $parent) : self
@@ -72,7 +72,8 @@ abstract class aMessage extends aFieldSet
         $me = new static($parent);
 
         $me
-            ->setIdFromEnum()
+            ->setTypeFromEnum()
+            ->setMaxLen()
             ->setFieldOffset(MessageFieldClassEnum::getLength(MessageFieldClassEnum::TYPE));
 
         if ($parent instanceof SocketLegate) {
@@ -89,11 +90,31 @@ abstract class aMessage extends aFieldSet
         return $me;
     }
 
+    public function setMaxLen() : aMessage
+    {
+        $this->maxLen = MessageFieldClassEnum::getBaseMaxLen();
+
+        return $this;
+    }
+
+    public function getData() : aMessageData
+    {
+        if ($this->data === null) {
+            if ($this->dataClass !== null) {
+                throw new Exception($this->getName() . " Bad code - not defined dataClass");
+            }
+
+            $this->data = aMessageData::spawn($this, $this->dataClass);
+        }
+
+        return $this->data;
+    }
+
     /**
      * @param string $packet
      * @return bool
      */
-    public function addPacket(string $packet) : bool
+    public function addPacket(string &$packet) : bool
     {
         $legate = $this->getLegate();
 
@@ -126,16 +147,16 @@ abstract class aMessage extends aFieldSet
         }
 
 // parse raw string and prepare formats
-        $this->parseRawString();
+        $this->parseRaw();
 
-// check unpack maxLength or maxValue or fixLength error
-        if ($this->field !== null && $this->field->getLength() === null && $this->field->getValue() === null) {
+// check bad data errors: maxLength or maxValue or fixLength error or impossible semantic
+        if ($this->parsingError) {
             $this->dbg("BAD DATA (see prev string))");
             $legate->setBadData();
             return self::MESSAGE_PARSED;
         }
 
-        if ($legate->isBadData() || $legate->getResponseString() !== null) {
+        if ($legate->getResponseString() !== null) {
             return self::MESSAGE_PARSED;
         }
 
@@ -151,9 +172,9 @@ abstract class aMessage extends aFieldSet
         return $this->declaredLen - $this->fieldOffset;
     }
 
-    protected function compositeRaw() : string
+    protected function compositeRaw() : void
     {
-        $rawType = TypeMessageField::pack($this,$this->id);
+        $rawType = TypeMessageField::pack($this,$this->type);
         $fullLength = strlen($rawType) + aMessageField::getStaticLength(MessageFieldClassEnum::LENGTH) + strlen($this->raw);
         $rawLength = LengthMessageField::pack($this,$fullLength);
 
@@ -161,16 +182,13 @@ abstract class aMessage extends aFieldSet
         $this->rawLength = strlen($this->raw);
 
         $this->dbg(get_class($this) . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
-
-        return $this->raw;
     }
 
-    /**
-     * @return string
-     */
-    public function createRaw() : ?string
+    public function createRaw() : aFieldSet
     {
         $this->raw = '';
-        return $this->compositeRaw();
+        $this->compositeRaw();
+
+        return $this;
     }
 }

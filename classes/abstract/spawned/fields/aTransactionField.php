@@ -12,4 +12,12 @@ abstract class aTransactionField extends aField
     protected static $enumClass = 'TransactionFieldClassEnum'; /* overrided */
 
     public function getTransaction() : aTransaction {return $this->getParent();}
+
+    public function postPrepare() :  bool
+    {
+        $transaction = $this->getTransaction();
+        $transaction->setSignedData($transaction->getSignedData() . $this->getRawWithLength());
+
+        return true;
+    }
 }

@@ -2,7 +2,7 @@
 /**
  * Request "Is daemon alive?"
  */
-class AliveReqMessage extends aSignMessage
+class AliveReqMessage extends aSimpleAddressMessage
 {
     /**
      * @return bool
@@ -13,13 +13,7 @@ class AliveReqMessage extends aSignMessage
 
         $legate->setCloseAfterSend();
 
-        $myPubKey = $this->getLocator()->getMyAddress()->getPublicKeyBin();
-
-//AliveResMessage::create($this->getLocator(), [self::DATA => 'test', self::AUTHKEY => $myPubKey]);
-        $response
-            = AliveResMessage::create($this->getLocator())
-                ->setData('test')
-                ->setAuthorPublicKey($myPubKey);
+        $response = AliveResMessage::create($this->getLocator());
 
         $legate->createResponseString($response);
 

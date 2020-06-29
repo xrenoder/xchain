@@ -10,4 +10,6 @@ abstract class aTransactionDataField extends aField
 
     /** @var string  */
     protected static $enumClass = 'TransactionDataFieldClassEnum'; /* overrided */
+
+    public function getTransaction() : aTransaction {return $this->getParent()->getParent();}
 }

@@ -5,14 +5,18 @@ abstract class aVarLengthFieldFormat extends aFieldFormat
 {
     protected $fieldLength = null;
 
-    public function packField($data) : string
+    public function &packField(&$data) : string
     {
+        if ($data === null) {
+            throw new Exception($this->getName() . " Bad coding: packed data must be not null");
+        }
+
         return $this->packVariableLength($this->packDataTransform($data));
     }
 
-    public function unpackField(string $data)
+    public function &unpackField(string &$fieldRaw)
     {
-        $this->unpackVariableLength($data);
+        $this->unpackVariableLength($fieldRaw);
 
         if ($this->rawWithoutLength !== null) {
             $this->unpackRawTransform();
@@ -21,37 +25,34 @@ abstract class aVarLengthFieldFormat extends aFieldFormat
         return $this->value;
     }
 
-    private function packVariableLength($data) : string
+    private function &packVariableLength(&$data) : string
     {
         $length = strlen($data);
 
-        if (FieldFormatClassEnum::getPackFormat($this->lengthFormatId) === null) {
-            throw new Exception($this->getName() . " Bad code: format $this->lengthFormatId cannot be used as length of data");
+        if (FieldFormatClassEnum::getPackFormat($this->lengthFormatType) === null) {
+            throw new Exception($this->getName() . " Bad code: format $this->lengthFormatType cannot be used as length of data");
         }
 
-        $lengthFieldFormatObject = aFieldFormat::spawn($this->getField(), $this->lengthFormatId);
-        return $lengthFieldFormatObject->packField($length) . $data;
+        $result = $this->simplePack($this->lengthFormatType, $length) . $data;
 
-//        return pack(FieldFormatClassEnum::getPackFormat($this->lengthFormatId), $length) . $data;
+        return $result;
     }
 
-    private function unpackVariableLength(string $data) : void
+    private function unpackVariableLength(string &$data) : void
     {
-        $lengthFormatLen = FieldFormatClassEnum::getLength($this->lengthFormatId);
+        $lengthFormatLen = FieldFormatClassEnum::getLength($this->lengthFormatType);
 
         if ($this->fieldLength === null) {
-            if (FieldFormatClassEnum::getPackFormat($this->lengthFormatId) === null) {
-                throw new Exception($this->getName() . " Bad code: format $this->lengthFormatId cannot be used as length of data");
+            if (FieldFormatClassEnum::getPackFormat($this->lengthFormatType) === null) {
+                throw new Exception($this->getName() . " Bad code: format $this->lengthFormatType cannot be used as length of data");
             }
 
             $this->rawFieldLength = substr($data, $this->offset, $lengthFormatLen);
 
-            $lengthFieldFormatObject = aFieldFormat::spawn($this->getField(), $this->lengthFormatId);
-            $this->fieldLength = $lengthFieldFormatObject->unpackField($this->rawFieldLength);
-            unset($lengthFieldFormatObject);
+            $this->fieldLength = $this->simpleUnpack($this->lengthFormatType, $this->rawFieldLength);
 
             if ($this->fieldLength === null) {  // value of length more than max possible value of lengthFormat
-                $this->rawWithoutLength = null;
+                $this->unsetRaw();
                 $this->length = null;
                 $this->value = null;
 
@@ -61,10 +62,12 @@ abstract class aVarLengthFieldFormat extends aFieldFormat
             $this->length = $this->fieldLength + $lengthFormatLen;
         }
 
-        $this->rawWithoutLength = substr($data, $this->offset + $lengthFormatLen, $this->fieldLength);
+        $fieldRaw = substr($data, $this->offset + $lengthFormatLen, $this->fieldLength);
 
-        if (strlen($this->rawWithoutLength) < $this->fieldLength) {
-            $this->rawWithoutLength = null;
+        if (strlen($fieldRaw) < $this->fieldLength) {
+            $this->unsetRaw();
+        } else {
+            $this->setRaw($fieldRaw);
         }
     }
 }

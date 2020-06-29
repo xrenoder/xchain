@@ -7,19 +7,15 @@ class PubKeyByAddr extends aMultyIdDbRow
     protected $table = DbTableEnum::ADDR_PUBKEYS;     /* overrided */
 
     /** @var string  */
-    protected $idFormat = DbFieldClassEnum::ADDR; /* overrided */
+    protected $idFormatType = FieldFormatClassEnum::ADDR; /* overrided */
 
-    protected $canBeReplaced = false;     /* overrided */
-
-    /**
-     * 'propertyName' => fieldFormat
-     * @var array
-     */
+    /* 'property' => '[fieldType, false or object method]' or 'formatType' */
     protected static $fieldSet = array(
-        'publicKey' =>    DbFieldClassEnum::PUBKEY,
+        'addressWithPubKey' =>    [DbFieldClassEnum::PUBKEY, 'getPublicKeyBin'],
     );
 
-    protected $publicKey = null;
-    public function setPublicKey($val, $needSave = true) : self {return $this->setNewValue($this->publicKey, $val, $needSave);}
-    public function getPublicKey() : ?string {return $this->publicKey;}
+    /** @var Address  */
+    protected $addressWithPubKey = null;
+    public function setAddressWithPubKey(Address $val, $needSave = true) : self {return $this->setNewValue($this->addressWithPubKey, $val, $needSave);}
+    public function getAddressWithPubKey() : ?Address {return $this->addressWithPubKey;}
 }

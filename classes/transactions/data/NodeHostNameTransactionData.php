@@ -3,22 +3,19 @@
 
 class NodeHostNameTransactionData extends aTransactionData
 {
-    /**
-     * 'propertyName' => fieldFormat
-     * @var array
-     */
+    /* 'property' => '[fieldType, isObject]' or 'formatType' */
     protected static $fieldSet = array(
-        TransactionDataFieldClassEnum::HOST => 'host',
-        TransactionDataFieldClassEnum::NODE_NAME => 'nodeName',
+        'host' => [TransactionDataFieldClassEnum::HOST, 'getPair'],
+        'nodeName' => [TransactionDataFieldClassEnum::NODE_NAME, false],
     );
 
-    /** @var string  */
+    /** @var Host  */
     protected $host = null;
-    public function setHost(string $val) : self {$this->host = $val; return $this;}
-    public function getHost() : ?string {return $this->host;}
+    public function setHost(Host $val) : self {$this->host = $val; return $this;}
+    public function getHost() : Host {return $this->host;}
 
     /** @var string  */
     protected $nodeName = null;
     public function setNodeName(string $val) : self {$this->nodeName = $val; return $this;}
-    public function getNodeName() : ?string {return $this->nodeName;}
+    public function getNodeName() : string {return $this->nodeName;}
 }

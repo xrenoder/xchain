@@ -3,21 +3,19 @@
 
 class TransactionEmissionRuleRow extends aFixedIdDbRow
 {
-    /**
-     * 'propertyName' => fieldFormat
-     * @var array
-     */
+    /* 'property' => '[fieldType, false or object method]' or 'formatType' */
     protected static $fieldSet = array(
-        'bottomLimit' =>        DbFieldClassEnum::ASIS,
-        'emissionPercent' =>    DbFieldClassEnum::ASIS,
+        'bottomLimit' =>        FieldFormatClassEnum::UBIG,
+        'emissionPercent' =>    FieldFormatClassEnum::PERCENT,
     );
 
+    /** @var int  */
     protected $bottomLimit = null;
-    public function setBottomLimit($val, $needSave = true) : self {return $this->setNewValue($this->bottomLimit, $val, $needSave);}
-    public function getBottomLimit() {return $this->bottomLimit;}
+    public function setBottomLimit(int &$val, $needSave = true) : self {return $this->setNewValue($this->bottomLimit, $val, $needSave);}
+    public function &getBottomLimit() : int {return $this->bottomLimit;}
 
-
+    /** @var int  */
     protected $emissionPercent = null;
-    public function setEmissionPercent($val, $needSave = true) : self {return $this->setNewValue($this->emissionPercent, $val, $needSave);}
-    public function getEmissionPercent() {return $this->emissionPercent;}
+    public function setEmissionPercent(int &$val, $needSave = true) : self {return $this->setNewValue($this->emissionPercent, $val, $needSave);}
+    public function &getEmissionPercent() : int {return $this->emissionPercent;}
 }

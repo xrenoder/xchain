@@ -4,8 +4,8 @@
 class RegisterPublicKeyTransaction extends aTransactionAS
 {
     /** @var int  */
-    protected $dataClassId = TransactionDataClassEnum::PUBLIC_KEY; /* overrided */
+    protected $dataClass = TransactionDataClassEnum::PUBLIC_KEY; /* overrided */
 
-    public function setPublicKey(string $val) : self {$this->data->setPublicKey($val); return $this;}
-    public function getPublicKey() : ?string {return $this->data->getPublicKey();}
+    public function setAuthorPubKeyAddress(Address $val) : self {$this->getData()->setAuthorPubKeyAddress($val); return $this;}
+    public function getAuthorPubKeyAddress() : Address {return $this->getData()->getAuthorPubKeyAddress();}
 }
