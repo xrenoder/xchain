@@ -12,7 +12,7 @@ abstract class aSimpleMessage extends aMessage
     );
 
     /** @var aNode  */
-    private $remoteNode = null;
+    protected $remoteNode = null;
     public function setRemoteNode(aNode $val) : self {$this->remoteNode = $val; return $this;}
     public function getRemoteNode() : aNode {return $this->remoteNode;}
 
@@ -21,7 +21,7 @@ abstract class aSimpleMessage extends aMessage
     public function getSendingTime() : int {return $this->sendingTime;}
 
     /** @var aNode  */
-    private $myNode = null;
+    protected $myNode = null;
     public function setMyNode(aNode $val) : self {$this->myNode = $val; return $this;}
     public function getMyNode() : aNode {return $this->myNode;}
 
