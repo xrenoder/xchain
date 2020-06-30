@@ -37,6 +37,7 @@ abstract class aLocator extends aBase
 
     /** @var Address */
     private $zeroAddress;
+    public function setZeroAddress(Address $val) : self {$this->zeroAddress = $val; return $this;}
     public function getZeroAddress() : Address {return $this->zeroAddress;}
 
     /**
@@ -49,7 +50,6 @@ abstract class aLocator extends aBase
 
         $this->setName($name);
         $this->pid = posix_getpid();
-        $this->zeroAddress = Address::createZero($this);
     }
 
     /**
