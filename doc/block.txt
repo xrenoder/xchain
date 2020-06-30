@@ -1,12 +1,14 @@
 8 bytes         block number
 4 bytes         chain number
 4 bytes         time
-variable 71-74  prev block signature
-25 bytes        address of signer (node, who sign this block)
+25 bytes        address of signer (node, who create and sign this block)
+    variable 71-74  previous block signature (not sended in message, not saved to row, but used in signature. For zero-block is '')
 
 
+Sections:
 
-Signer: public key transactions (short data transactions):
+
+Auto Signer: public key transactions (short data transactions):
 4 bytes         transactions count (USLONG)
 
 2 + variable    transaction ()

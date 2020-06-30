@@ -35,6 +35,10 @@ abstract class aLocator extends aBase
     public function setMyAddress(Address $val) : self {$this->myAddress = $val; return $this;}
     public function getMyAddress() : Address {return $this->myAddress;}
 
+    /** @var Address */
+    private $zeroAddress;
+    public function getZeroAddress() : Address {return $this->zeroAddress;}
+
     /**
      * App constructor.
      * @param string $name
@@ -45,6 +49,7 @@ abstract class aLocator extends aBase
 
         $this->setName($name);
         $this->pid = posix_getpid();
+        $this->zeroAddress = Address::createZero($this);
     }
 
     /**

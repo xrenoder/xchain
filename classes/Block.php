@@ -10,30 +10,27 @@ class Block extends aFieldSet
 
     /* 'property' => '[fieldType, false or object method]' or 'formatType' */
     protected static $fieldSet = array(      /* overrided */
-        BlockFieldClassEnum::NUMBER =>      'blockNumber',
-        BlockFieldClassEnum::CHAIN =>       'chainNumber',
-        BlockFieldClassEnum::TIME =>        'blockTime',
-        BlockFieldClassEnum::PREV_SIGN =>   'prevSignature',
-        BlockFieldClassEnum::SIGNER_ADDR => 'signerAddrBin',
+        'blockNumber' =>    FieldFormatClassEnum::UBIG,
+        'chain' =>          [BlockFieldClassEnum::CHAIN, 'getId'],
+        'blockTime' =>      [BlockFieldClassEnum::TIME, false],
+        'signerAddress' =>  [BlockFieldClassEnum::SIGNER_ADDR, 'getAddressBin'],
     );
 
     /** @var int  */
-    protected $blockNumber = 0;
-    public function getBlockNumber() : int {return $this->blockNumber;}
+    protected $id = 0;
+    public function getId() : int {return $this->id;}
 
-    /** @var int  */
-    protected $chainNumber = 0;
-    public function setChainNumber(int $val) : self {$this->chainNumber = $val; return $this;}
-    public function getChainNumber() : int {return $this->chainNumber;}
+    /** @var Chain  */
+    protected $chain = null;
+    public function setChain(Chain $val) : self {$this->chain = $val; return $this;}
+    public function getChain() : Chain {return $this->chain;}
 
-    /** @var ?Block  */
+    /** @var Block  */
     protected $prevBlock = null;
-    public function setPrevBlock(Block $val) : self {$this->prevBlock = $val; $this->blockNumber = $val->getBlockNumber() + 1; $this->prevSignature = $val->getSignature(); return $this;}
+    public function setPrevBlock(Block $val) : self {$this->prevBlock = $val; $this->id = $val->getId() + 1; $this->prevSignature = $val->getSignature(); return $this;}
     public function getPrevBlock() : ?Block {return $this->prevBlock;}
 
-    /** @var string  */
-    protected $prevSignature = '';
-    public function getPrevSignature() : string {return $this->prevSignature;}
+    public function getPrevSignature() : string {return $this->prevBlock->getSignature();}
 
     /** @var int  */
     protected $blockTime = null;
@@ -53,7 +50,6 @@ class Block extends aFieldSet
     protected $signature = null;
     public function getSignature() : string {return $this->signature;}
 
-
     /** @var string  */
     protected $signedData = '';
     public function getSignedData() : string {return $this->signedData;}
@@ -68,15 +64,15 @@ class Block extends aFieldSet
 
         $sections = BlockSectionClassEnum::getItemsList();
 
-        foreach ($sections as $sectionId => $sectionClass) {
-            $this->sections[$sectionId] = aBlockSection::spawn($this, $sectionId);
+        foreach ($sections as $sectionType => $sectionClass) {
+            $this->sections[$sectionType] = aBlockSection::spawn($this, $sectionType);
         }
 
 //        $this->dbg($this->getName() .  ' fields:');
 //        $this->dbg(var_export($this->fields, true));
     }
 
-    public static function create(aBase $parent, Address $signerAddress, ?Block $prevBlock, int $chainNumber) : self
+    public static function create(aBase $parent, Chain $chain, Address $signerAddress, ?Block $prevBlock) : self
     {
         $me = new Block($parent);
 
@@ -89,18 +85,19 @@ class Block extends aFieldSet
         }
 
         $me
-            ->setChainNumber($chainNumber)
-//            ->setBlockTime(time())
+            ->setChain($chain)
             ->setSignerAddress($signerAddress)
         ;
 
-        $parent->dbg('Block ' . $me->getBlockNumber() . ' created');
+        $parent->dbg('Block ' . $me->getId() . ' created');
 
         return $me;
     }
 
     public static function createFromRaw(aBase $parent, string &$raw) : self
     {
+        $me = new Block($parent);
+
         throw new Exception("Block Bad code - createFromRaw must be defined");
     }
 
@@ -110,11 +107,11 @@ class Block extends aFieldSet
             throw new Exception($this->getName() . " Bad code - transaction must have generated raw");
         }
 
-        $transactionId = $transaction->getType();
+        $transactionType = $transaction->getType();
 
-        $sectionId = TransactionClassEnum::getBlockSectionId($transactionId);
+        $sectionType = TransactionClassEnum::getBlockSectionId($transactionType);
 
-        $this->sections[$sectionId]->addTransaction($transaction);
+        $this->sections[$sectionType]->addTransaction($transaction);
 
         return $this;
     }
@@ -140,7 +137,7 @@ class Block extends aFieldSet
             }
         }
 
-        foreach ($this->sections as $sectionId => $section) {
+        foreach ($this->sections as $sectionType => $section) {
             $section->createRaw();
             $this->raw .= $section->getRaw();
         }

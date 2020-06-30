@@ -80,6 +80,20 @@ class Address extends aBase
         return $me->setAddress($addressBin);
     }
 
+    public static function createZero(aLocator $locator) : self
+    {
+        $me = static::create($locator);
+
+        $privateHex = '';
+
+        for($i = 0; $i < self::PRIVATE_HEX_LEN; $i++) {
+            $privateHex .= '0';
+        }
+
+        $me->dbg('Zero address:');
+        return $me->createFromPirvate($privateHex);
+    }
+
     protected static function create(aLocator $locator) : self
     {
         return new self($locator);

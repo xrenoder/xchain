@@ -14,9 +14,11 @@ class Zero extends aBase
     {
         $app = $this->getApp();
 
+        $chain = Chain::create($app, 0);
+
         $firstMnodeAddress = Address::createFromPrivateHex($app, FIRST_M_NODE_KEY);
 
-        $block = Block::create($app, $firstMnodeAddress,  null, 0);
+        $block = Block::create($app, $chain, $firstMnodeAddress,  null);
 
         $block
             ->addTransaction(
