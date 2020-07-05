@@ -139,9 +139,9 @@ class Logger extends aBase
             $diff = ((float) ((int) ($this->dbgTimeDiff * 1000000))) / 1000000;
             $formatDiff = number_format($diff, 6, ".", " ");
 
-            $record .= $formatDiff . "\t" . ' [dbg ' . self::$flags[$dbgLevel] . ']' . "\t";
+            $record .= $formatDiff . "\t" . '[dbg ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else {
-            $record .= "\t" . self::$flags[$dbgLevel] . "\t\t";
+            $record .= "\t\t" . self::$flags[$dbgLevel] . "\t\t";
         }
 
         $record .= $message . "\n";
