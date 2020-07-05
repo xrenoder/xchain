@@ -136,7 +136,7 @@ class Logger extends aBase
         if ($isError) {
             $record .= "\t\t" . '[err ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else if ($isDebug) {
-            $diff = ((float) ((int) ($this->dbgTimeDiff * 1000000))) / 1000000;
+            $diff = (int) ($this->dbgTimeDiff * 1000000);
 
             $record .= $diff . "\t" . ' [dbg ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else {
