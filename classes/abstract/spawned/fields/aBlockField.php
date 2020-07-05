@@ -12,4 +12,11 @@ abstract class aBlockField extends aField
     protected static $enumClass = 'BlockFieldClassEnum'; /* overrided */
 
     public function getBlock() : Block {return $this->getParent();}
+
+    public function postPrepare() :  bool
+    {
+        $this->getBlock()->addSignedData($this->getRawWithLength());
+
+        return true;
+    }
 }

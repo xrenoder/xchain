@@ -55,7 +55,7 @@ Logger::create(
 );
 
 try {
-    $app->setZeroAddress(Address::createZero($app));
+//    $app->setZeroAddress(Address::createZero($app));
 
 // set DBA
     DBA::create($app, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);

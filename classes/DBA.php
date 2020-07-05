@@ -18,8 +18,6 @@ class DBA extends aBase
     private const RECORD_ID = 'id';
     private const RECORD_VAL = 'val';
 
-    private const TRANS_KEY = 'TRANS_';
-
     public const INTEGRITY_TABLE = DbTableEnum::INTEGRITY;
 
     private const INTEGRITY_HASH_ALGO = 'md4';
@@ -57,7 +55,9 @@ class DBA extends aBase
     /** @var bool */
     private $transLockMode = null;
 
-    private $transactions = array();
+    /** @var bool  */
+    private $transaction = false;
+    public function inTransaction() : bool {return $this->transaction;}
     private $recordsStack = array();
 
     private $dbhTables = array();
@@ -138,99 +138,102 @@ class DBA extends aBase
         }
     }
 
-    private function inTransaction() : bool
+    public function transactionBegin() : void
     {
-        if (!count($this->transactions)) {
-            return false;
+        if ($this->transaction) {
+            throw new Exception("DBA Bad code - cannot begin DB-transaction, when other DB-transaction is opened");
         }
 
-        return true;
+        $this->transaction = true;
+
+        $this->lockSh();
+
+        $this->dbg("DB transaction begin");
     }
 
-    public function transactionBegin() : string
+    public function transactionRollback() : void
     {
-        if (!$this->inTransaction()) {
-            $this->lockSh();
+        if (!$this->transaction) {
+            throw new Exception("DBA Bad code - cannot rollback DB-transaction already closed");
         }
 
-        $transactionKey = self::TRANS_KEY . count($this->transactions);
-        $this->transactions[$transactionKey] = true;
+        if (count($this->recordsStack)) {
+            $this->recordsStack = array();
+        }
 
-        $this->dbg("DB transaction $transactionKey begin");
+        $this->transaction = false;
+        $this->unlock();
 
-        return $transactionKey;
+        $this->dbg("DB transaction rollback");
     }
 
-    public function transactionCommit(string $transactionKey)
+    public function transactionCommit() : void
     {
-        if (isset($this->transactions[$transactionKey])) {
-            unset($this->transactions[$transactionKey]);
+        if (!$this->transaction) {
+            throw new Exception("DBA Bad code - cannot commit DB-transaction already closed");
         }
 
-        if (!count($this->transactions)) {
-            $this->dbg("DB transaction $transactionKey will be commited");
+        $this->dbg("DB transaction will be commited");
 
-            $table = null;
-            $id = null;
-            $val = null;
+        $table = null;
+        $id = null;
+        $val = null;
 
-            $recordsCounter = 0;
+        $recordsCounter = 0;
 
-            if (count($this->recordsStack)) {
-                $this->lockEx();
-            }
+        if (count($this->recordsStack)) {
+            $this->lockEx();
+        }
 
-            foreach($this->recordsStack as $record) {
-                $operation = $record[self::OPERATION_FIELD];
+        foreach($this->recordsStack as $record) {
+            $operation = $record[self::OPERATION_FIELD];
 
-                $table = $record[self::RECORD_FIELD][self::RECORD_TABLE];
-                $id = $record[self::RECORD_FIELD][self::RECORD_ID];
-                $val = $record[self::RECORD_FIELD][self::RECORD_VAL];
+            $table = $record[self::RECORD_FIELD][self::RECORD_TABLE];
+            $id = $record[self::RECORD_FIELD][self::RECORD_ID];
+            $val = $record[self::RECORD_FIELD][self::RECORD_VAL];
 
 // fill data for integrity checking
-                $recordsCounter++;
+            $recordsCounter++;
 
-                if ($recordsCounter === 1) {
-                    $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
-                    $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
-                }
-
-                $this->$operation($table, $id, $val);
-            }
-
-            if ($recordsCounter > 1) {
+            if ($recordsCounter === 1) {
                 $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
                 $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
             }
 
-            if ($recordsCounter > 0) {
-                $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($table, $id, $val));
-            }
-
-            $this->unlock();
-
-            $this->recordsStack = array();
-
-            $this->dbg("DB transaction $transactionKey commit suss");
-        } else {
-            $this->dbg("DB transaction $transactionKey ended, but still inside earlier transaction");
+            $this->$operation($table, $id, $val);
         }
+
+        if ($recordsCounter > 1) {
+            $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
+            $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
+        }
+
+        if ($recordsCounter > 0) {
+            $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($table, $id, $val));
+        }
+
+        $this->unlock();
+
+        if (count($this->recordsStack)) {
+            $this->recordsStack = array();
+        }
+
+        $this->dbg("DB transaction commit suss");
+
+        $this->transaction = false;
     }
 
     public function first(string $table) : string
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!$this->inTransaction()) {
-            $isLock = true;
+        if (!$this->transaction) {
             $this->lockSh();
-        } else {
-            $isLock = false;
         }
 
         $id = dba_firstkey($this->dbhTables[$table]);
 
-        if ($isLock) {
+        if (!$this->transaction) {
             $this->unlock();
         }
 
@@ -241,16 +244,13 @@ class DBA extends aBase
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!$this->inTransaction()) {
-            $isLock = true;
+        if (!$this->transaction) {
             $this->lockSh();
-        } else {
-            $isLock = false;
         }
 
         $id = dba_nextkey($this->dbhTables[$table]);
 
-        if ($isLock) {
+        if (!$this->transaction) {
             $this->unlock();
         }
 
@@ -263,11 +263,9 @@ class DBA extends aBase
 
         $result = null;
 
-        if (!$this->inTransaction()) {
-            $isLock = true;
+        if (!$this->transaction) {
             $this->lockSh();
         } else {
-            $isLock = false;
 
             if ($useCache) {
                 $cacheId = $this->getCacheId($table, $id);
@@ -282,7 +280,7 @@ class DBA extends aBase
             $result = dba_exists($id, $this->dbhTables[$table]);
         }
 
-        if ($isLock) {
+        if (!$this->transaction) {
             $this->unlock();
         }
 
@@ -295,11 +293,9 @@ class DBA extends aBase
 
         $result = null;
 
-        if (!$this->inTransaction()) {
-            $isLock = true;
+        if (!$this->transaction) {
             $this->lockSh();
         } else {
-            $isLock = false;
 
             if ($useCache) {
                 $cacheId = $this->getCacheId($table, $id);
@@ -316,7 +312,7 @@ class DBA extends aBase
             }
         }
 
-        if ($isLock) {
+        if (!$this->transaction) {
             $this->unlock();
         }
 
@@ -345,7 +341,7 @@ class DBA extends aBase
 
     private function write(string $operation, string $table, string $id, string &$val) : void
     {
-        if (!$this->inTransaction()) {
+        if (!$this->transaction) {
             $this->lockEx();
             $this->$operation($table, $id, $val);
             $this->unlock();

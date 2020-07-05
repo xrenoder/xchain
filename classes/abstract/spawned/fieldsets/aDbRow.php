@@ -4,7 +4,7 @@
 abstract class aDbRow extends aFieldSet
 {
     /** @var string  */
-    protected $fieldClass = 'aDbField'; /* overrided */
+    protected $fieldClass = 'aDbRowField'; /* overrided */
 
     /** @var string  */
     protected $table = null;
@@ -48,6 +48,8 @@ abstract class aDbRow extends aFieldSet
 
     public function load() : self
     {
+        $this->isChanged = false;
+
         $this->setRaw($this->getLocator()->getDba()->fetch($this->table, $this->internalId));
 
         if ($this->raw !== null) {
@@ -57,15 +59,15 @@ abstract class aDbRow extends aFieldSet
                 throw new Exception($this->getName() . " cannot be parsed");
             }
 
-            $this->dbg(get_class($this) . " loaded");
+            $this->dbg($this->getName() . " loaded");
         } else {
-            $this->dbg(get_class($this) . " loaded: NULL");
+            $this->dbg($this->getName() . " loaded: NULL");
         }
 
         return $this;
     }
 
-    public function save(bool $replace = false) : self
+    public function save() : self
     {
         if (!$this->isChanged) {
             return $this;
@@ -78,39 +80,27 @@ abstract class aDbRow extends aFieldSet
         }
 
         if ($this->check()) {
-            if ($replace) {
+            if ($this->canBeReplaced) {
                 $this->getLocator()->getDba()->update($this->table, $this->internalId, $this->raw);
             } else {
-                throw new Exception($this->getName() . " must be replaced, but not have permission");
+                throw new Exception($this->getName() . " must be replaced, but not have permission (property 'canBeReplaced')");
             }
-
         } else {
             $this->getLocator()->getDba()->insert($this->table, $this->internalId, $this->raw);
         }
 
-        $this->dbg(get_class($this) . " saved");
+        $this->dbg($this->getName() . " saved");
 
         $this->isChanged = false;
 
         return $this;
     }
 
-    protected function setNewValue(&$oldVal, &$newVal, bool $needSave) : self
+    protected function setNewValue(&$oldVal, &$newVal) : self
     {
         if ($newVal !== $oldVal) {
             $oldVal = $newVal;
-            $this->saveIfNeed($needSave);
-        }
-
-        return $this;
-    }
-
-    protected function saveIfNeed(bool $needSave) : self
-    {
-        $this->isChanged = true;
-
-        if ($needSave) {
-            $this->save($this->canBeReplaced);
+            $this->isChanged = true;
         }
 
         return $this;

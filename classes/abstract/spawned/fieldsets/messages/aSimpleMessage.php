@@ -7,14 +7,14 @@ abstract class aSimpleMessage extends aMessage
 
     /* 'property' => [fieldType, isObject] */
     protected static $fieldSet = array(
-        'remoteNode' => [MessageFieldClassEnum::NODE, 'getType'],
+        'senderNode' => [MessageFieldClassEnum::NODE, 'getType'],
         'sendingTime' => [MessageFieldClassEnum::TIME, false],
     );
 
     /** @var aNode  */
-    protected $remoteNode = null;
-    public function setRemoteNode(aNode $val) : self {$this->remoteNode = $val; return $this;}
-    public function getRemoteNode() : aNode {return $this->remoteNode;}
+    protected $senderNode = null;
+    public function setSenderNode(aNode $val) : self {$this->senderNode = $val; return $this;}
+    public function getSenderNode() : aNode {return $this->senderNode;}
 
     /** @var int  */
     protected $sendingTime = null;

@@ -15,8 +15,7 @@ abstract class aTransactionField extends aField
 
     public function postPrepare() :  bool
     {
-        $transaction = $this->getTransaction();
-        $transaction->setSignedData($transaction->getSignedData() . $this->getRawWithLength());
+        $this->getTransaction()->addSignedData($this->getRawWithLength());
 
         return true;
     }

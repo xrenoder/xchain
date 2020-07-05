@@ -8,7 +8,7 @@ abstract class aFieldSet extends aSpawnedFromEnum
 
     /** @var string */
     protected $raw = null;
-    public function setRaw(string $val) : self {$this->raw = $val; $this->rawLength = strlen($val); return $this;}
+    public function setRaw(string &$val) : self {$this->raw = $val; $this->rawLength = strlen($val); return $this;}
     public function &getRaw() : ?string {if ($this->raw === null) {$this->createRaw();} return $this->raw;}
 
     /** @var string */
@@ -76,6 +76,8 @@ abstract class aFieldSet extends aSpawnedFromEnum
     {
         $fieldCounter = -1;
 
+        $this->parsingRawPre();
+
         foreach ($this->fields as $property => $formatOrField) {
             $fieldCounter++;
 
@@ -100,7 +102,13 @@ abstract class aFieldSet extends aSpawnedFromEnum
                     break;
                 }
             }
+
+            if (!$this->parsingRawInterrupt($property)) {
+                break;
+            }
         }
+
+        $this->parsingRawPost();
     }
 
     protected function prepareFormat(int $formatType, string $property) : bool
@@ -180,6 +188,21 @@ abstract class aFieldSet extends aSpawnedFromEnum
         return false;
     }
 
+    protected function parsingRawPre() : void
+    {
+
+    }
+
+    protected function parsingRawPost() : void
+    {
+
+    }
+
+    protected function parsingRawInterrupt(string &$property) : bool
+    {
+        return true;
+    }
+
     public function createRaw() : aFieldSet
     {
         if ($this->fieldClass === null) {
@@ -192,9 +215,13 @@ abstract class aFieldSet extends aSpawnedFromEnum
         /** @var aFieldClassEnum $fieldClassEnum */
         $fieldClassEnum = $fieldClass::getStaticEnumClass();
 
+        $this->creatingRawPre();
+
         $this->raw = '';
 
         foreach($this->fields as $property => $formatOrField) {
+            $this->creatingRawPreInterrupt($property);
+
             if ($this->$property === null) {
                 throw new Exception($this->getName() . " Bad code - property $property is null");
             }
@@ -217,11 +244,28 @@ abstract class aFieldSet extends aSpawnedFromEnum
                     $this->raw .= $this->simplePack($formatOrField, $this->$property);
                 }
             }
+
+            $this->creatingRawPostInterrupt($property);
         }
 
         $this->rawLength = strlen($this->raw);
         $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
 
         return $this;
+    }
+
+    public function creatingRawPre() : void
+    {
+
+    }
+
+    public function creatingRawPreInterrupt(string &$property) : void
+    {
+
+    }
+
+    public function creatingRawPostInterrupt(string &$property) : void
+    {
+
     }
 }

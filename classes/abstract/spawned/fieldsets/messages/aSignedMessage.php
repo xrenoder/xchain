@@ -1,7 +1,7 @@
 <?php
 
 
-abstract class aSignedMessage extends aAuthorPublicKeyMessage
+abstract class aSignedMessage extends aDataMessage
 {
     use tMessageConstructor;
 
@@ -28,7 +28,8 @@ abstract class aSignedMessage extends aAuthorPublicKeyMessage
         $this->dbg($this->getName() . " signed data: " . bin2hex($this->signedData));
         $rawSignature = SignMessageField::pack($this,$this->getLocator()->getMyAddress()->signBin($this->signedData));
 
-        $this->rawAuthorPublicKeyMessage();
+        $this->rawDataMessage();
+
         $this->raw .= $rawSignature;
     }
 }

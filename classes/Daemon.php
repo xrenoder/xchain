@@ -170,6 +170,7 @@ class Daemon extends aBase
             );
 
             try {
+//              $worker->setZeroAddress(Address::createZero($worker));
 // set DBA
                 DBA::create($worker, DBA_HANDLER, DATA_PATH, DBA_EXT, DBA_LOCK_FILE, LOCK_EXT);
 // set current node as Client (always, before full syncronization)

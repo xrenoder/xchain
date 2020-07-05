@@ -89,24 +89,16 @@ class SocketLegate extends aBase
         $message = $this->getInMessage();
 
         if ($message === null) {
-            $field = TypeMessageField::create($this);
-            $messageType = $field->unpack($packet);
-            unset($field);
+            $messageType = aMessage::parseType($this, $packet);
 
-            if (!MessageClassEnum::isSetItem($messageType)) {
+            if ($messageType === null) {
                 $this->dbg("BAD DATA don't know about message type $messageType");
                 $this->badData = true;
                 $this->workerResult = aMessage::MESSAGE_PARSED;
                 return;
             }
 
-            if (!($message = aMessage::spawn($this, $messageType))) {
-// if cannot create classenum of request by declared type - incoming data is bad
-                $this->dbg("BAD DATA cannot create message classenum with type $messageType");
-                $this->badData = true;
-                $this->workerResult = aMessage::MESSAGE_PARSED;
-                return;
-            }
+            $message = aMessage::spawn($this, $messageType);
 
             $message->setIncomingMessageTime($this->incomingStringTime);
         }

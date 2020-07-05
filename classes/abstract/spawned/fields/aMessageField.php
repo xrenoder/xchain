@@ -19,9 +19,7 @@ abstract class aMessageField extends aField
 
     public function postPrepare() :  bool
     {
-        /* @var aMessage $message */
-        $message = $this->getMessage();
-        $message->setSignedData($message->getSignedData() . $this->getRawWithLength());
+        $this->getMessage()->addSignedData($this->getRawWithLength());
 
         return true;
     }

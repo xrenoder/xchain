@@ -14,11 +14,26 @@ class Zero extends aBase
     {
         $app = $this->getApp();
 
-        $chain = Chain::create($app, 0);
+        $chainName = MAIN_CHAIN_NAME;
+        $chainLastSign = '';
+        $chainTime = time();
+        $zero = 0;
+        $signerNode = aNode::spawn($app, NodeClassEnum::MASTER);
+
+        $chain =
+            ChainByIdDbRow::create($app, 0)
+                ->setChainName($chainName)
+                ->setSignerNode($signerNode)
+                ->setLastPreparedBlockId($zero)
+                ->setLastPreparedBlockTime($chainTime)
+                ->setLastPreparedBlockSignature($chainLastSign)
+                ->setLastKnownBlockId($zero)
+                ->save()
+        ;
 
         $firstMnodeAddress = Address::createFromPrivateHex($app, FIRST_M_NODE_KEY);
 
-        $block = Block::create($app, $chain, $firstMnodeAddress,  null);
+        $block = Block::createNew($app, $chain, $firstMnodeAddress);
 
         $block
             ->addTransaction(
@@ -26,18 +41,22 @@ class Zero extends aBase
                     ->setAuthorAddress($firstMnodeAddress)
                     ->setTargetAddress($firstMnodeAddress)
                     ->setAuthorPubKeyAddress($firstMnodeAddress)
-                    ->createRaw()
             )
+
             ->addTransaction(
                 RegisterNodeHostTransaction::create($app)
                     ->setAuthorAddress($firstMnodeAddress)
                     ->setHost(Host::create($app, Host::TRANSPORT_TCP, FIRST_M_NODE_HOST))
                     ->setNodeName(FIRST_M_NODE_NAME)
-                    ->createRaw()
             )
+
             ->createRaw()
         ;
 
 
+
+
+
+        $chain->save();
     }
 }

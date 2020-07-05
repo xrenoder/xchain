@@ -20,23 +20,23 @@ class BlockSectionClassEnum extends aClassEnum
         self::SIGNER_NEXT_SIGNERS =>    'SignerNextSignersBlockSection',
     );
 
-    /* 0: formatId of transaction count */
-    /* 1: formatId of transaction length */
+    /* 0: formatType of transaction count */
+    /* 1: formatType of transaction raw */
     protected static $data = array(
-        self::SIGNER_PUBLIC_KEYS =>     [FieldFormatClassEnum::USLONG, FieldFormatClassEnum::USHORT],
-        self::AUTHOR_FINANCE =>         [FieldFormatClassEnum::MILLION, FieldFormatClassEnum::USHORT],
-        self::AUTHOR_DATA =>            [FieldFormatClassEnum::MILLION, FieldFormatClassEnum::ULONG],
-        self::AUTHOR_BROADCAST =>       [FieldFormatClassEnum::MILLION, FieldFormatClassEnum::USHORT],
-        self::SIGNER_NEXT_SIGNERS =>    [FieldFormatClassEnum::UBYTE, FieldFormatClassEnum::UBYTE],
+        self::SIGNER_PUBLIC_KEYS =>     [FieldFormatClassEnum::USLONG, FieldFormatClassEnum::ASIS_SHORT],
+        self::AUTHOR_FINANCE =>         [FieldFormatClassEnum::MILLION, FieldFormatClassEnum::ASIS_SHORT],
+        self::AUTHOR_DATA =>            [FieldFormatClassEnum::MILLION, FieldFormatClassEnum::ASIS_LONG],
+        self::AUTHOR_BROADCAST =>       [FieldFormatClassEnum::MILLION, FieldFormatClassEnum::ASIS_SHORT],
+        self::SIGNER_NEXT_SIGNERS =>    [FieldFormatClassEnum::UBYTE, FieldFormatClassEnum::ASIS_BYTE],
     );
 
-    public static function getTransactionCountFormatId(int $id) : int
+    public static function getTransactionCountFormatType(int $type) : int
     {
-        return self::$data[$id][0];
+        return self::$data[$type][0];
     }
 
-    public static function getTransactionLengthFormatId(int $id) : int
+    public static function getTransactionRawFormatType(int $type) : int
     {
-        return self::$data[$id][1];
+        return self::$data[$type][1];
     }
 }

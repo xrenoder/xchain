@@ -20,6 +20,10 @@ abstract class aBase
     private $unpackedLength = null;
     public function getUnpackedLength() : int {return $this->unpackedLength;}
 
+    /** @var string */
+    private $unpackedRaw = null;
+    public function getUnpackedRaw() : string {return $this->unpackedRaw;}
+
     public function getMyNodeType() : ?int {return $this->locator->getMyNode()->getType();}
 
     /**
@@ -66,14 +70,36 @@ abstract class aBase
         $this->getLocator()->getLogger()->debugLog(static::$dbgLvl, $message);
     }
 
-    protected function dbTrans() : string
+    public function dbTransBegin() : void
     {
-        return $this->getLocator()->getDba()->transactionBegin();
+        $dba = $this->getLocator()->getDba();
+
+        if (!$dba->inTransaction()) {
+            $dba->transactionBegin();
+        }
     }
 
-    protected function dbCommit(string $transactionKey)
+    public function dbTransCommit() : void
     {
-        $this->getLocator()->getDba()->transactionCommit($transactionKey);
+        $dba = $this->getLocator()->getDba();
+
+        if ($dba->inTransaction()) {
+            $dba->transactionCommit();
+        }
+    }
+
+    public function dbTransRollback() : void
+    {
+        $dba = $this->getLocator()->getDba();
+
+        if ($dba->inTransaction()) {
+            $dba->transactionRollback();
+        }
+    }
+
+    public function dbInTransaction() : bool
+    {
+        return $this->getLocator()->getDba()->inTransaction();
     }
 
     public function &simplePack(int $formatType, &$data) : ?string
@@ -90,6 +116,7 @@ abstract class aBase
         $fieldFormatObject = aFieldFormat::spawn($this, $formatType, $offset);
         $result = $fieldFormatObject->unpackField($raw);
         $this->unpackedLength = $fieldFormatObject->getLength();
+        $this->unpackedRaw = $fieldFormatObject->getRawWithLength();
         unset($fieldFormatObject);
 
         return $result;

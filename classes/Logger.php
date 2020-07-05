@@ -60,21 +60,28 @@ class Logger extends aBase
 
     /** @var string */
     private $logFile;
-    public function setLogFile($val) : self {$this->logFile = $val; return $this;}
+    public function setLogFile(string $val) : self {$this->logFile = $val; return $this;}
 
     /** @var string */
     private $errFile;
-    public function setErrFile($val) :  self {$this->errFile = $val; return $this;}
+    public function setErrFile(string $val) :  self {$this->errFile = $val; return $this;}
 
     /** @var string */
     private $phpErrFile;
-    public function setPhpErrFile($val) : self {$this->phpErrFile = $val; return $this;}
+    public function setPhpErrFile(string $val) : self {$this->phpErrFile = $val; return $this;}
     public function getPhpErrFile() : string {return $this->phpErrFile;}
 
     /** @var int */
     private $dbgMode = 0;
-    public function setDbgMode($val) : self {$this->dbgMode = $val; return $this;}
+    public function setDbgMode(int $val) : self {$this->dbgMode = $val; return $this;}
     public function getDbgMode() : int {return $this->dbgMode;}
+
+    /** @var float */
+    private $dbgTime = 0;
+    public function setDbgTime(float $val) : self {$this->dbgTime = $val; return $this;}
+
+    /** @var float */
+    private $dbgTimeDiff = 0;
 
     /**
      * Creating Logger object
@@ -99,12 +106,13 @@ class Logger extends aBase
     {
         $me = new self($locator);
 
-        $me->setLogFile($logPath . $logName . $logExt);
-        $me->setErrFile($logPath . $errName . $logExt);
-        $me->setPhpErrFile($logPath . $phpErrName . $logExt);
-        $me->setDbgMode($dbgLevels);
-
-        $me->getLocator()->setLogger($me);
+        $me
+            ->setLogFile($logPath . $logName . $logExt)
+            ->setErrFile($logPath . $errName . $logExt)
+            ->setPhpErrFile($logPath . $phpErrName . $logExt)
+            ->setDbgMode($dbgLevels)
+            ->setDbgTime(microtime(true))
+            ->getLocator()->setLogger($me);
 
         ini_set('error_log', $me->getPhpErrFile());
 
@@ -126,11 +134,11 @@ class Logger extends aBase
             . $this->getLocator()->getName() . "\t";
 
         if ($isError) {
-            $record .= '[err ' . self::$flags[$dbgLevel] . ']' . "\t";
+            $record .= "\t" . '[err ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else if ($isDebug) {
-            $record .= '[dbg ' . self::$flags[$dbgLevel] . ']' . "\t";
+            $record .= $this->dbgTimeDiff . "\t" . ' [dbg ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else {
-            $record .= self::$flags[$dbgLevel] . "\t\t";
+            $record .= "\t" . self::$flags[$dbgLevel] . "\t\t";
         }
 
         $record .= $message . "\n";
@@ -155,7 +163,11 @@ class Logger extends aBase
     {
         if (!($this->dbgMode & $dbgLevel)) return;
 
+        $this->dbgTimeDiff = microtime(true) - $this->dbgTime;
+
         $this->write($this->logFile, $this->createRecord($message, $dbgLevel, false, true));
+
+        $this->dbgTime = microtime(true);
     }
 
     /**

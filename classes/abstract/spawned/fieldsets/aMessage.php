@@ -47,8 +47,10 @@ abstract class aMessage extends aFieldSet
     public function getIncomingMessageTime() : int {return $this->incomingMessageTime;}
 
     /** @var string  */
-    protected $signedData = null;
-    public function setSignedData(string $val) : self {$this->signedData = $val; return $this;}
+    protected $signedData = '';
+    public function setSignedData(string &$val) : self {$this->signedData = $val; return $this;}
+    public function addSignedData(string &$val) : self {$this->signedData .= $val; return $this;}
+    public function addBeforeSignedData(string &$val) : self {$this->signedData = $val . $this->signedData; return $this;}
     public function getSignedData() : string {return $this->signedData;}
 
     /** @var bool  */
@@ -65,6 +67,19 @@ abstract class aMessage extends aFieldSet
         }
 
         throw new Exception($this->getName() . " Bad code - legate cannot be used in outgoing message");
+    }
+
+    public static function parseType(aBase $parent, string &$raw) : ?int
+    {
+        $field = TypeMessageField::create($parent);
+        $result = $field->unpack($raw);
+        unset($field);
+
+        if (!MessageClassEnum::isSetItem($result)) {
+            return null;
+        }
+
+        return $result;
     }
 
     public static function create(aBase $parent) : self

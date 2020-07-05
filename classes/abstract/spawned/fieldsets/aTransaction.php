@@ -51,7 +51,8 @@ abstract class aTransaction extends aFieldSet
 
     /** @var string  */
     protected $signedData = null;
-    public function setSignedData(string $val) : self {$this->signedData = $val; return $this;}
+    public function setSignedData(string &$val) : self {$this->signedData = $val; return $this;}
+    public function addSignedData(string &$val) : self {$this->signedData .= $val; return $this;}
     public function &getSignedData() : string {return $this->signedData;}
 
     /** @var string  */
@@ -71,11 +72,6 @@ abstract class aTransaction extends aFieldSet
     public function setIsIncoming(bool $val) : self {$this->isIncoming = $val; return $this;}
     public function isIncoming() : bool {return $this->isIncoming;}
 
-    /** @var bool  */
-    protected $isPubKeySetFromMessage = false;
-    public function setIsPubKeySetFromMessage(bool $val) : self {$this->isPubKeySetFromMessage = $val; return $this;}
-    public function isPubKeySetFromMessage() : bool {return $this->isPubKeySetFromMessage;}
-
     public function getMessage() : TransactionMessage
     {
         if ($this->getParent() instanceof TransactionMessage) {
@@ -83,6 +79,19 @@ abstract class aTransaction extends aFieldSet
         }
 
         throw new Exception("Bad code - message-object can be used only in incoming transaction");
+    }
+
+    public static function parseType(aBase $parent, string &$raw) : ?int
+    {
+        $field = TypeTransactionField::create($parent);
+        $result = $field->unpack($raw);
+        unset($field);
+
+        if (!TransactionClassEnum::isSetItem($result)) {
+            return null;
+        }
+
+        return $result;
     }
 
     public static function create(aBase $parent) : self
@@ -165,5 +174,10 @@ abstract class aTransaction extends aFieldSet
     public function calcHash(string $data) : string
     {
         return hash(self::HASH_ALGO, $data, true);
+    }
+
+    public function save() : bool
+    {
+        throw new Exception($this->getName() . " Bad code - not defined checkAndSave()");
     }
 }

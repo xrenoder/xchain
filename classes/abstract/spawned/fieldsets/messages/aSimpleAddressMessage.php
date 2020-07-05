@@ -7,13 +7,13 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
 
     /* 'property' => [fieldType, isObject] */
     protected static $fieldSet = array(
-        'remoteAddr' => [MessageFieldClassEnum::ADDR, 'getAddressBin'],
+        'senderAddress' => [MessageFieldClassEnum::SENDER, 'getAddressBin'],
     );
 
     /** @var Address  */
-    protected $remoteAddress = null;
-    public function setRemoteAddress(Address $val) : self {$this->remoteAddress = $val; return $this;}
-    public function getRemoteAddress() : Address {return $this->remoteAddress;}
+    protected $senderAddress = null;
+    public function setSenderAddress(Address $val) : self {$this->senderAddress = $val; return $this;}
+    public function getSenderAddress() : Address {return $this->senderAddress;}
 
     public function setMaxLen() : aMessage
     {
@@ -33,7 +33,7 @@ abstract class aSimpleAddressMessage extends aSimpleMessage
 
     protected function rawSimpleAddressMessage() : void
     {
-        $rawAddress = AddrMessageField::pack($this, $this->getLocator()->getMyAddress()->getAddressBin());
+        $rawAddress = SenderMessageField::pack($this, $this->getLocator()->getMyAddress()->getAddressBin());
 
         $this->rawSimpleMessage();
 

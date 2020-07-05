@@ -12,17 +12,22 @@ abstract class aBlockSection extends aSpawnedFromEnum
     protected $transactions = array();
 
     /** @var int  */
+    protected $transactionsCount = null;
+
+    /** @var int  */
     protected $transactionsCountFormatType = null;
 
     /** @var int  */
-    protected $transactionLengthFormatType = null;
+    protected $transactionRawFormatType = null;
 
     /** @var int  */
     protected $maxTransactionsCount = 0;
 
     /** @var string */
     protected $raw = null;
-    public function getRaw() : ?string {return $this->raw;}
+    public function &getRaw() : ?string {if ($this->raw === null) {$this->createRaw();} return $this->raw;}
+
+    public function getBlock() : Block {return $this->getParent();}
 
     public static function create(Block $parent) : self
     {
@@ -56,8 +61,8 @@ abstract class aBlockSection extends aSpawnedFromEnum
 
     public function setProps() : self
     {
-        $this->transactionLengthFormatType = BlockSectionClassEnum::getTransactionLengthFormatId($this->type);
-        $this->transactionsCountFormatType = BlockSectionClassEnum::getTransactionCountFormatId($this->type);
+        $this->transactionRawFormatType = BlockSectionClassEnum::getTransactionRawFormatType($this->type);
+        $this->transactionsCountFormatType = BlockSectionClassEnum::getTransactionCountFormatType($this->type);
         $this->maxTransactionsCount = FieldFormatClassEnum::getMaxValue($this->transactionsCountFormatType);
 
         return $this;
@@ -80,13 +85,62 @@ abstract class aBlockSection extends aSpawnedFromEnum
         return $this;
     }
 
+    public function parseRaw(string &$raw, int &$offset) : void
+    {
+        $block = $this->getBlock();
+
+        $transactionsCount = $this->simpleUnpack($this->transactionsCountFormatType, $raw, $offset);
+        $signedData = $this->getUnpackedRaw();
+        $offset += $this->getUnpackedLength();
+
+        for($i = 0; $i < $transactionsCount; $i++) {
+            $transactionRaw = $this->simpleUnpack($this->transactionRawFormatType, $raw, $offset);
+            $signedData .= $this->getUnpackedRaw();
+            $offset += $this->getUnpackedLength();
+
+            $transactionType = aTransaction::parseType($this, $transactionRaw);
+
+            if ($transactionType === null) {
+                $this->err($this->getName() . " parsing error: transaction-object cannot be created from type $transactionType");
+                $this->parsingError = true;
+                return;
+            }
+
+            if (TransactionClassEnum::getBlockSectionType($transactionType) !== $this->getType()) {
+                $this->err($this->getName() . " parsing error: transaction type $transactionType cannot be placed in block section type " . $this->getType());
+                $this->parsingError = true;
+                return;
+            }
+
+            $this->transactions[$i] =
+                aTransaction::spawn($this->getBlock(), $transactionType)
+                ->setRaw($transactionRaw);
+
+            $this->transactions[$i]->parseRaw();
+
+            if ($this->transactions[$i]->isParsingError()) {
+                $this->parsingError = true;
+                return;
+            }
+
+            if ($block->dbInTransaction()) {
+                if (!$this->transactions[$i]->save()) {
+                    $this->parsingError = true;
+                    return;
+                }
+            }
+        }
+
+        $block->addSignedData($signedData);
+    }
+
     public function createRaw()
     {
         $transactionsCount = count($this->transactions);
         $this->raw = $this->simplePack($this->transactionsCountFormatType, $transactionsCount);
 
         foreach($this->transactions as $transaction) {
-            $this->raw .= $this->simplePack($this->transactionLengthFormatType, $transaction->getRawLength()) . $transaction->getRaw();
+            $this->raw .= $this->simplePack($this->transactionRawFormatType, $transaction->getRaw());
         }
 
         $this->rawLength = strlen($this->raw);

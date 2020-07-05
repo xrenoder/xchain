@@ -5,9 +5,9 @@ class DbTableEnum extends aEnum
 {
     public const INTEGRITY = 'integrity';    // data for DB-integrity checking
 
+    public const CHAINS = 'chains';               // "chainId" => ["lastPreparedBlockId", "lastPreparedBlockSignature", "lastKnownBlockId"]  ; used for master & torrent nodes
     public const BLOCKS = 'blocks';               // "blockNumber" => "blockRawData" ; used for master & torrent nodes
-
-    public const SUMMARY = 'summary';               // actual fixed blockchain data (last prepared block, last known block, rules, etc); used for all non-client nodes
+    public const SUMMARY = 'summary';             // actual fixed blockchain data (rules, etc); used for all non-client nodes
 
     public const ADDR_PUBKEYS = 'addr.pubkeys';    // "address" => "publicKey"; used for all non-client nodes
     public const ADDR_NODES = 'addr.nodes';    // "address" => "nodeType"; used for all non-client nodes
@@ -30,15 +30,15 @@ class DbTableEnum extends aEnum
     public const NODES_MAP = 'nodes_map';
 
     protected static $items = array(
+        self::INTEGRITY => self::INTEGRITY,
         self::SUMMARY => self::SUMMARY,
-
+        self::CHAINS => self::CHAINS,
+        self::BLOCKS => self::BLOCKS,
         self::ADDR_PUBKEYS => self::ADDR_PUBKEYS,
         self::ADDR_NODES => self::ADDR_NODES,
+
 /*
         self::NODE_PINGS_TABLE => 'node.pings',
-
-        self::BLOCKS_TABLE => 'blocks',
-
         self::TRANSACTIONS_TABLE => 'transactions',
 
         self::AMOUNTS_TABLE => 'amounts',

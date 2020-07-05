@@ -9,10 +9,11 @@
 25 bytes        sender address
                 (last field for "aSimpleAddressMessage")         39
 
-variable        data
-                (last field for "aDataMessage")                  39 + data
+248 bytes       author of transaction or block or other signed data public key    287
+                (if sender is node - can be not sender)
 
-248 bytes       author (for transaction message - can be not sender) public key
+variable        data
+                (last field for "aDataMessage")                  287 + data
 
 variable 71-73  signature (signed by sender)
                 (last field for "aSignMessage": "TransactionMessage", "BlockMessage")           360 + data
@@ -20,8 +21,8 @@ variable 71-73  signature (signed by sender)
 
 signed message fields:
 
-author public key
-data with length
+author public key (!)
+data with length (!)
 sender node ID
 sending time
 sender address

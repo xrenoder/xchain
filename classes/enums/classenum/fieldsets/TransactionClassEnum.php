@@ -19,16 +19,16 @@ class TransactionClassEnum extends aClassEnum
         self::REGISTER_NODE_HOST => BlockSectionClassEnum::AUTHOR_BROADCAST,
     );
 
-    public static function getBlockSectionId(int $id) : int
+    public static function getBlockSectionType(int $type) : int
     {
-        return self::$data[$id];
+        return self::$data[$type];
     }
 
-    public static function getMaxTransactionLength(int $id) : int
+    public static function getMaxTransactionLength(int $type) : int
     {
         return FieldFormatClassEnum::getMaxValue(
-            BlockSectionClassEnum::getTransactionLengthFormatId(
-                static::getBlockSectionId($id)
+            BlockSectionClassEnum::getTransactionRawFormatType(
+                static::getBlockSectionType($type)
             )
         );
     }
