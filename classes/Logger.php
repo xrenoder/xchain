@@ -134,11 +134,11 @@ class Logger extends aBase
             . $this->getLocator()->getName() . "\t";
 
         if ($isError) {
-            $record .= "\t" . '[err ' . self::$flags[$dbgLevel] . ']' . "\t";
+            $record .= "\t\t" . '[err ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else if ($isDebug) {
             $record .= $this->dbgTimeDiff . "\t" . ' [dbg ' . self::$flags[$dbgLevel] . ']' . "\t";
         } else {
-            $record .= "\t" . self::$flags[$dbgLevel] . "\t\t";
+            $record .= "\t\t" . self::$flags[$dbgLevel] . "\t\t";
         }
 
         $record .= $message . "\n";
