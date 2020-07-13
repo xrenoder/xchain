@@ -38,8 +38,8 @@ class NodeEnum extends aEnum
 
     protected static $data = array(
         self::CLIENT => array(
-            self::CAN_ACCEPT => 0,
-            self::CAN_CONNECT => self::FRONT
+            self::CAN_ACCEPT => self::CLIENT,                   // 0
+            self::CAN_CONNECT => self::CLIENT | self::FRONT     // FRONT
         ),
 
         self::FRONT => array(
