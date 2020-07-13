@@ -24,7 +24,7 @@ class NodeMessageField extends aMessageField
             $logTxt = "cannot accept connection from";
         }
 
-        if ($myCriteria & $this->getValue() === 0)  {
+        if (($myCriteria & $this->getValue()) === 0)  {
             $this->err('Nodes incompatible: ' . NodeEnum::getName($myNodeType) . " $logTxt " . NodeEnum::getName($this->getValue()));
             $legate->setCloseAfterSend();
             $legate->createResponseString(BadNodeResMessage::create($this->getLocator()));
