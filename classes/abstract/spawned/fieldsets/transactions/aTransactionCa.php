@@ -26,9 +26,14 @@ abstract class aTransactionCa extends aTransactionC
 
     protected function rawTransactionCa() : void
     {
-        $rawAmount = AmountTransactionField::pack($this, $this->amount);
+        if ($this->amount === null) {
+            throw new Exception($this->getName() . " Bad code - amount cannot be null");
+        }
 
-        $this->signedData = $rawAmount;
-        $this->raw = $rawAmount;
+        if ($this->amount <= 0) {
+            throw new Exception($this->getName() . " Bad code - amount must be >0");
+        }
+
+        $this->raw = AmountTransactionField::pack($this, $this->amount);
     }
 }

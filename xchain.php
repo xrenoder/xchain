@@ -71,7 +71,7 @@ try {
     }
 
 // set current node as Client (always, before full syncronization)
-    $app->setMyNode(aNode::spawn($app, NodeClassEnum::CLIENT));
+    $app->setMyNodeType(NodeEnum::CLIENT);
 
 // get server-object
     $listenTCPHost = Host::create($app, Host::TRANSPORT_TCP, MY_NODE_HOST);

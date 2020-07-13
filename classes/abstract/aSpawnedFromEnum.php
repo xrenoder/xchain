@@ -1,7 +1,7 @@
 <?php
 
 
-class aSpawnedFromEnum extends aBase
+abstract class aSpawnedFromEnum extends aBase
 {
     /** @var string  */
     protected static $enumClass = null; /* override me */

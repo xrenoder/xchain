@@ -5,12 +5,17 @@ class DbTableEnum extends aEnum
 {
     public const INTEGRITY = 'integrity';    // data for DB-integrity checking
 
-    public const CHAINS = 'chains';               // "chainId" => ["lastPreparedBlockId", "lastPreparedBlockSignature", "lastKnownBlockId"]  ; used for master & torrent nodes
-    public const BLOCKS = 'blocks';               // "blockNumber" => "blockRawData" ; used for master & torrent nodes
     public const SUMMARY = 'summary';             // actual fixed blockchain data (rules, etc); used for all non-client nodes
 
-    public const ADDR_PUBKEYS = 'addr.pubkeys';    // "address" => "publicKey"; used for all non-client nodes
-    public const ADDR_NODES = 'addr.nodes';    // "address" => "nodeType"; used for all non-client nodes
+    public const CHAINS = 'chains';               // "chainId" => ["lastPreparedBlockId", "lastPreparedBlockTime", "lastPreparedBlockSignature", "lastKnownBlockId"]  ; used for master & torrent nodes
+    public const BLOCKS = 'blocks';               // "blockNumber" => "blockRawData" ; used for master & torrent nodes
+    public const NEW_AUTHOR_TRANSACTIONS = 'new.author.transactions';               // "hash" => "raw transaction" ; used for master & torrent nodes
+    public const NEW_SIGNER_TRANSACTIONS = 'new.signer.transactions';               // "hash" => "raw transaction" ; used for master & torrent nodes
+    public const NEW_PUBlIC_KEYS = 'new.public.keys';                               // "address" => "public key" ; used for master & torrent nodes
+    public const UNIQUE_TRANSACTIONS = 'unique.transactions';                       // "hash" => "last nonce" ; used for master & torrent nodes
+
+    public const PUBLIC_KEYS = 'public.keys';    // "address" => "publicKey"; used for all non-client nodes
+    public const NODE_TYPES = 'node.types';    // "address" => "nodeType"; used for all non-client nodes
 
     public const NODE_PINGS = 'node.pings';      // "address" => "ping" ; used for all nodes; data from tests, not in chain
 
@@ -20,7 +25,6 @@ class DbTableEnum extends aEnum
     public const DELEGATE_FROM = 'delegate.from';// "addressFrom" => amount ; used for all nodes
     public const DELEGATE_TO = 'delegate.to';    // "addressTo" => amount ; used for all nodes
 
-    public const NODE_TYPES = 'node.types';      // "address" => nodeType ; used for all nodes
     public const NODE_HOSTS = 'node.hosts';      // "address" => "host" ; used for all nodes
     public const NODE_TRUSTS = 'node.trusts';    // "address" => "trust" ; used for all nodes
     public const NODE_ONLINE = 'node.online';    // "address" => isOnline ; used for all nodes
@@ -34,8 +38,12 @@ class DbTableEnum extends aEnum
         self::SUMMARY => self::SUMMARY,
         self::CHAINS => self::CHAINS,
         self::BLOCKS => self::BLOCKS,
-        self::ADDR_PUBKEYS => self::ADDR_PUBKEYS,
-        self::ADDR_NODES => self::ADDR_NODES,
+        self::NEW_AUTHOR_TRANSACTIONS => self::NEW_AUTHOR_TRANSACTIONS,
+        self::NEW_SIGNER_TRANSACTIONS => self::NEW_SIGNER_TRANSACTIONS,
+        self::UNIQUE_TRANSACTIONS => self::UNIQUE_TRANSACTIONS,
+
+        self::PUBLIC_KEYS => self::PUBLIC_KEYS,
+        self::NODE_TYPES => self::NODE_TYPES,
 
 /*
         self::NODE_PINGS_TABLE => 'node.pings',
@@ -45,7 +53,6 @@ class DbTableEnum extends aEnum
         self::DELEGATE_FROM_TABLE => 'delegate.from',
         self::DELEGATE_TO_TABLE => 'delegate.to',
 
-        self::NODE_TYPES_TABLE => 'node.types',
         self::NODE_HOSTS_TABLE => 'node.hosts',
         self::NODE_TRUSTS_TABLE => 'node.trusts',
         self::NODE_ONLINE_TABLE => 'node.online',

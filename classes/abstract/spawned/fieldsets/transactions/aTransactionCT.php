@@ -1,25 +1,23 @@
 <?php
 
 
-abstract class aTransactionCS extends aTransactionC
+abstract class aTransactionCT extends aTransaction
 {
-    use tTransactionConstructor;
-
     /* 'property' => '[fieldType, isObject]' or 'formatType' */
     protected static $fieldSet = array(      /* overrided */
-        'data' => [TransactionFieldClassEnum::SHORT_DATA, 'getRaw'],
+        'data' => [TransactionFieldClassEnum::TINY_DATA, 'getRaw'],
     );
 
     public function createRaw() : aFieldSet
     {
-        $this->rawTransactionCS();
+        $this->rawTransactionCT();
 
         $this->compositeRaw();
 
         return $this;
     }
 
-    protected function rawTransactionCS() : void
+    protected function rawTransactionCT() : void
     {
         if ($this->data === null) {
             throw new Exception($this->getName() . " Bad code - data cannot be null");
@@ -29,6 +27,6 @@ abstract class aTransactionCS extends aTransactionC
             throw new Exception($this->getName() . " Bad code - data must be insatance of aTransactionData");
         }
 
-        $this->raw = ShortDataTransactionField::pack($this, $this->data->getRaw());
+        $this->raw = TinyDataTransactionField::pack($this, $this->data->getRaw());
     }
 }

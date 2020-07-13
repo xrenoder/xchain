@@ -23,6 +23,9 @@ abstract class aBlockSection extends aSpawnedFromEnum
     /** @var int  */
     protected $maxTransactionsCount = 0;
 
+    /** @var bool  */
+    protected $isAuthorTransactionSection = null;
+
     /** @var string */
     protected $raw = null;
     public function &getRaw() : ?string {if ($this->raw === null) {$this->createRaw();} return $this->raw;}
@@ -64,6 +67,7 @@ abstract class aBlockSection extends aSpawnedFromEnum
         $this->transactionRawFormatType = BlockSectionClassEnum::getTransactionRawFormatType($this->type);
         $this->transactionsCountFormatType = BlockSectionClassEnum::getTransactionCountFormatType($this->type);
         $this->maxTransactionsCount = FieldFormatClassEnum::getMaxValue($this->transactionsCountFormatType);
+        $this->isAuthorTransactionSection = BlockSectionClassEnum::isAuthorTransaction($this->type);
 
         return $this;
     }
@@ -74,6 +78,11 @@ abstract class aBlockSection extends aSpawnedFromEnum
         if (count($this->transactions) === $this->maxTransactionsCount) {
 // TODO добавить реакцию на неправильное количество транзакций в секции блока с прекращением его обработки
             return  $this;
+        }
+
+        if ($transaction->isAuthor() !== $this->isAuthorTransactionSection) {
+// TODO исключение или ошибка?
+            throw new Exception("Bad code - bad transaction isAuthor type for this block section " . $transaction->getType());
         }
 
         $transactionHash = $transaction->getHash();
@@ -93,7 +102,7 @@ abstract class aBlockSection extends aSpawnedFromEnum
         $signedData = $this->getUnpackedRaw();
         $offset += $this->getUnpackedLength();
 
-        for($i = 0; $i < $transactionsCount; $i++) {
+        for ($i = 0; $i < $transactionsCount; $i++) {
             $transactionRaw = $this->simpleUnpack($this->transactionRawFormatType, $raw, $offset);
             $signedData .= $this->getUnpackedRaw();
             $offset += $this->getUnpackedLength();
@@ -124,7 +133,7 @@ abstract class aBlockSection extends aSpawnedFromEnum
             }
 
             if ($block->dbInTransaction()) {
-                if (!$this->transactions[$i]->save()) {
+                if (!$this->transactions[$i]->saveAsPreparedTransaction()) {
                     $this->parsingError = true;
                     return;
                 }

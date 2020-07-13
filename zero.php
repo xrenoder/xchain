@@ -62,14 +62,13 @@ try {
     }
 
 // set current node as Client (always, before full syncronization)
-    $app->setMyNode(aNode::spawn($app, NodeClassEnum::MASTER));
+    $app->setMyNodeType(NodeEnum::MASTER);
 
 // load node private key
-    $app->setMyAddress(Address::createFromWallet($app, MY_ADDRESS, WALLET_PATH));
+    $app->setMyAddress(Address::createFromPrivateHex($app, FIRST_M_NODE_KEY));
 
 // create zero-block
     $zero = Zero::create($app);
-
     $zero->run();
 
 } catch (Exception $e) {

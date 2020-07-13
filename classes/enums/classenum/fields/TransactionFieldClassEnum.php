@@ -22,7 +22,6 @@ class TransactionFieldClassEnum extends aFieldClassEnum
     protected static $items = array(
         self::TYPE =>   'TypeTransactionField',
         self::AUTHOR => 'AuthorTransactionField',
-        self::NONCE =>  'NonceTransactionField',
 
         self::TARGET => 'TargetTransactionField',
         self::AMOUNT => 'AmountTransactionField',
@@ -31,6 +30,7 @@ class TransactionFieldClassEnum extends aFieldClassEnum
         self::SHORT_DATA => 'ShortDataTransactionField',
         self::LONG_DATA => 'LongDataTransactionField',
 
+        self::NONCE =>  'NonceTransactionField',
         self::SIGN =>   'SignTransactionField',
     );
 

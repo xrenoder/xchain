@@ -13,6 +13,8 @@ abstract class aTransaction extends aFieldSet
 
     public const HASH_ALGO = 'md4';
     public const HASH_BIN_LEN = 16;
+    protected const AUTHOR_FIELD = 'authorAddress';
+    protected const SIGNATURE_FIELD = 'signature';
 
     protected static $dbgLvl = Logger::DBG_TRANSACT;
 
@@ -22,10 +24,14 @@ abstract class aTransaction extends aFieldSet
     /** @var string  */
     protected $fieldClass = 'aTransactionField'; /* overrided */
 
-    /* 'property' => '[fieldType, isObject]' or 'formatType' */
+    /** @var bool  */
+    protected static $isAuthor = true; /* can be overrided */
+    public function isAuthor() : bool {return static::$isAuthor;}
+
+    /* 'property' => '[fieldType, objectMethod or false]' or 'formatType' */
     protected static $fieldSet = array(      /* overrided */
         'type' => [TransactionFieldClassEnum::TYPE, false],              // must be always first field in message
-        'authorAddress' => [TransactionFieldClassEnum::AUTHOR, 'getAddressBin'],
+        self::AUTHOR_FIELD => [TransactionFieldClassEnum::AUTHOR, 'getAddressBin'],
     );
 
     /** @var Address  */
@@ -42,12 +48,12 @@ abstract class aTransaction extends aFieldSet
 
     protected static $fieldLastSet = array(  /* overrided */
         'nonce' => [TransactionFieldClassEnum::NONCE, false],
-        'signature' => [TransactionFieldClassEnum::SIGN, false],
+        self::SIGNATURE_FIELD => [TransactionFieldClassEnum::SIGN, false],
     );
 
     /** @var int  */
-    protected $nonce = 0; /* override me */
-    public function getNonce() : ?int {return $this->nonce;}
+    protected $nonce = 0;
+    public function getNonce() : int {return $this->nonce;}
 
     /** @var string  */
     protected $signedData = null;
@@ -62,10 +68,6 @@ abstract class aTransaction extends aFieldSet
     /** @var string  */
     protected $hash = null;
     public function getHash() : string {return $this->hash;}
-
-    /** @var string  */
-    protected $internalHash = null;
-    public function getInternalHash() : string {return $this->internalHash;}
 
     /** @var bool  */
     protected $isIncoming = null;
@@ -100,7 +102,9 @@ abstract class aTransaction extends aFieldSet
 
         $me
             ->setTypeFromEnum()
-            ->setFieldOffset(TransactionFieldClassEnum::getLength(TransactionFieldClassEnum::TYPE));
+            ->setFieldOffset(TransactionFieldClassEnum::getLength(TransactionFieldClassEnum::TYPE))
+            ->removeAuthorAndSignIfNeed()
+        ;
 
         if ($parent instanceof TransactionMessage) {
 // if parent object is "aTransactionMessage" - this is incoming message,
@@ -113,6 +117,16 @@ abstract class aTransaction extends aFieldSet
         }
 
         return $me;
+    }
+
+    public function removeAuthorAndSignIfNeed() : self
+    {
+        if (!static::$isAuthor) {
+            unset($this->fields[self::AUTHOR_FIELD]);
+            unset($this->fields[self::SIGNATURE_FIELD]);
+        }
+
+        return $this;
     }
 
     public function getData() : aTransactionData
@@ -130,27 +144,54 @@ abstract class aTransaction extends aFieldSet
 
     protected function compositeRaw() : void
     {
-        if (!$this->getAuthorAddress()->isFull()) {
-            throw new Exception($this->getName() . " Bad code - address must be full for sign transaction");
+        $rawType = TypeTransactionField::pack($this, $this->type);
+
+        if (static::$isAuthor) {
+            if ($this->authorAddress === null) {
+                throw new Exception($this->getName() . " Bad code - author address cannot be null");
+            }
+
+            if (!($this->authorAddress instanceof Address)) {
+                throw new Exception($this->getName() . " Bad code - author address must be insatance of Address");
+            }
+
+            if (!$this->authorAddress->isFull()) {
+                throw new Exception($this->getName() . " Bad code - author address must be full for sign transaction");
+            }
+
+            $rawAuthor = AuthorTransactionField::pack($this, $this->authorAddress->getAddressBin());
+            $this->raw = $rawType . $rawAuthor . $this->raw;
+        } else {
+            $this->raw = $rawType . $this->raw;
         }
 
-        $rawType = TypeTransactionField::pack($this, $this->type);
-        $rawAuthor = AuthorTransactionField::pack($this, $this->authorAddress->getAddressBin());
+        $isUnique = false;
+        $savedUniqueTransactionNonces = array();
+        $i = 0;
 
-        $this->raw = $rawType . $rawAuthor . $this->raw;
-        $this->signedData = $rawType . $rawAuthor . $this->signedData;
+        while (!$isUnique) {
+            $rawNonce = NonceTransactionField::pack($this, $this->nonce);
+            $raw = $this->raw . $rawNonce;
+            $this->hash = $this->calcHash($raw);
 
-        $rawNonce = NonceTransactionField::pack($this, $this->nonce);
-        $signedData = $this->signedData . $rawNonce;
-        $this->signature = $this->getAuthorAddress()->signBin($signedData);
-        $this->setHash();
+            $savedUniqueTransactionNonces[$i] = UniqueTransactionNonceByHashDbRow::create($this, $this->hash);
 
-// TODO добавить проверку на уникальность хэша транзакции в блокчейне
+            if (($nonce = $savedUniqueTransactionNonces[$i]->getNonce()) === null) {
+                $isUnique = true;
+            } else {
+                $i++;
+                $this->nonce = $nonce + 1;
+            }
+        }
 
-        $this->signedData = $signedData;
+        $this->raw = $raw;
 
-        $rawSignature = SignTransactionField::pack($this, $this->signature);
-        $this->raw .= $rawSignature;
+        if (static::$isAuthor) {
+            $this->signature = $this->getAuthorAddress()->signBin($this->raw);
+
+            $rawSignature = SignTransactionField::pack($this, $this->signature);
+            $this->raw .= $rawSignature;
+        }
 
         $this->rawLength = strlen($this->raw);
 
@@ -158,26 +199,44 @@ abstract class aTransaction extends aFieldSet
             throw new Exception($this->getName() . " Bad code - raw transaction length $this->rawLength more than maximal " . TransactionClassEnum::getMaxTransactionLength($this->type));
         }
 
-        $this->setHash();
+        foreach ($savedUniqueTransactionNonces as $savedUniqueTransactionNonce) {
+            $savedUniqueTransactionNonce
+                ->setNonce($this->nonce)
+                ->save();
+        }
 
         $this->dbg($this->getName() . " raw created ($this->rawLength bytes):\n" . bin2hex($this->raw) . "\n");
     }
 
-    public function setHash() : self
+    public function setHash() : void
     {
-        $this->hash = $this->calcHash($this->signature);
-        $this->internalHash = $this->calcHash($this->signedData);
-
-        return $this;
+        $this->hash = $this->calcHash($this->signedData);
     }
 
-    public function calcHash(string $data) : string
+    public function calcHash(string &$data) : string
     {
         return hash(self::HASH_ALGO, $data, true);
     }
 
-    public function save() : bool
+    public function saveAsPreparedTransaction() : bool
     {
         throw new Exception($this->getName() . " Bad code - not defined checkAndSave()");
+    }
+
+    public function saveAsNewTransaction() : self
+    {
+        if (static::$isAuthor) {
+            NewAuthorTransactionByHashDbRow::create($this, $this->getHash())
+                ->setTransaction($this)
+                ->save()
+            ;
+        } else {
+            NewSignerTransactionByHashDbRow::create($this, $this->getHash())
+                ->setTransaction($this)
+                ->save()
+            ;
+        }
+
+        return $this;
     }
 }

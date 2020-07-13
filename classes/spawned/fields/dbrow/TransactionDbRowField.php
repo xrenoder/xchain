@@ -1,7 +1,7 @@
 <?php
 
 
-class TransactionMessageDataField extends aMessageDataField
+class TransactionDbRowField extends aDbRowField
 {
     /** @var int  */
     private $transactionType = null;
@@ -21,7 +21,7 @@ class TransactionMessageDataField extends aMessageDataField
 
     public function setObject() : void
     {
-        $this->object = aTransaction::spawn($this->getMessage(), $this->transactionType);
+        $this->object = aTransaction::spawn($this->getParent(), $this->transactionType);
         $this->object->setRaw($this->getRawWithoutLength());
         $this->object->parseRaw();
     }

@@ -24,7 +24,7 @@ abstract class aBase
     private $unpackedRaw = null;
     public function getUnpackedRaw() : string {return $this->unpackedRaw;}
 
-    public function getMyNodeType() : ?int {return $this->locator->getMyNode()->getType();}
+    public function getMyNodeType() : ?int {return $this->locator->getMyNodeType();}
 
     /**
      * AppBase constructor.
@@ -100,6 +100,21 @@ abstract class aBase
     public function dbInTransaction() : bool
     {
         return $this->getLocator()->getDba()->inTransaction();
+    }
+
+    public function dbFirst(string $table) : ?string
+    {
+        return $this->getLocator()->getDba()->first($table);
+    }
+
+    public function dbDelete(string $table, string $id) : void
+    {
+        $this->getLocator()->getDba()->delete($table, $id);
+    }
+
+    public function dbNext(string $table) : ?string
+    {
+        return $this->getLocator()->getDba()->next($table);
     }
 
     public function &simplePack(int $formatType, &$data) : ?string

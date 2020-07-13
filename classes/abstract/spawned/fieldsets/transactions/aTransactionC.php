@@ -15,11 +15,8 @@ abstract class aTransactionC extends aTransaction
     public function createRaw() : aFieldSet
     {
         $this->raw = '';
-        $this->signedData = '';
-
         $this->compositeRaw();
 
         return $this;
     }
-
 }

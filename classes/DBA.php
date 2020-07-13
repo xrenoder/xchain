@@ -14,9 +14,17 @@ class DBA extends aBase
     private const RECORD_FIELD = 'rec';
     private const OPERATION_FIELD = 'op';
 
+    private const INSERT_OPERATION = 'rI';
+    private const UPDATE_OPERATION = 'rU';
+    private const DELETE_OPERATION = 'rD';
+
+    private const FIRST_OPERATION = 'rF';
+    private const NEXT_OPERATION = 'rN';
+
     private const RECORD_TABLE = 'tab';
     private const RECORD_ID = 'id';
     private const RECORD_VAL = 'val';
+    private const RECORD_FIRST_OPERATION = 'fop';
 
     public const INTEGRITY_TABLE = DbTableEnum::INTEGRITY;
 
@@ -29,6 +37,9 @@ class DBA extends aBase
     private $integrityPassed = false;
 
     protected static $dbaMode = "cd";
+
+    /** @var string  */
+    private $deleteValue = "DeLeTeD";
 
     /** @var string  */
     private $dbaHandler = null;
@@ -59,6 +70,9 @@ class DBA extends aBase
     private $transaction = false;
     public function inTransaction() : bool {return $this->transaction;}
     private $recordsStack = array();
+    private $recordsByTables = array();
+    private $tablePointers = array();
+    private $optimizeTables = array();
 
     private $dbhTables = array();
 
@@ -105,17 +119,21 @@ class DBA extends aBase
 // initialize integrity records
             $val = 'init';
 
-            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $integrityTable);
-            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $integrityLastRecordValue);
-            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_VALUE, $val);
+            $this->rI(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $integrityTable);
+            $this->rI(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $integrityLastRecordValue);
+            $this->rI(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_VALUE, $val);
 
-            $this->realInsert(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($integrityTable, $integrityLastRecordValue, $val));
+            $this->rI(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($integrityTable, $integrityLastRecordValue, $val));
         }
 // check DB for integrity
 
         $table = $this->fetch(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE);
         $id = $this->fetch(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID);
         $val = $this->fetch($table, $id);
+
+        if ($val === null) {
+            $val = $this->deleteValue;
+        }
 
         $hash = $this->fetch(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH);
 
@@ -157,12 +175,7 @@ class DBA extends aBase
             throw new Exception("DBA Bad code - cannot rollback DB-transaction already closed");
         }
 
-        if (count($this->recordsStack)) {
-            $this->recordsStack = array();
-        }
-
-        $this->transaction = false;
-        $this->unlock();
+        $this->closeTransaction();
 
         $this->dbg("DB transaction rollback");
     }
@@ -196,62 +209,126 @@ class DBA extends aBase
             $recordsCounter++;
 
             if ($recordsCounter === 1) {
-                $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
-                $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
+                $this->rU(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
+                $this->rU(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
             }
 
             $this->$operation($table, $id, $val);
         }
 
         if ($recordsCounter > 1) {
-            $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
-            $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
+            $this->rU(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_TABLE, $table);
+            $this->rU(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_ID, $id);
         }
 
         if ($recordsCounter > 0) {
-            $this->realUpdate(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($table, $id, $val));
+            $this->rU(self::INTEGRITY_TABLE, self::INTEGRITY_LAST_RECORD_HASH, $this->hash($table, $id, $val));
         }
 
-        $this->unlock();
+        if (count($this->optimizeTables)) {
+            foreach ($this->optimizeTables as $handle) {
+                $this->optimize($handle);
+            }
 
-        if (count($this->recordsStack)) {
-            $this->recordsStack = array();
+            $this->optimizeTables = array();
         }
+
+        $this->closeTransaction();
 
         $this->dbg("DB transaction commit suss");
-
-        $this->transaction = false;
     }
 
-    public function first(string $table) : string
+    public function &first(string $table) : ?string
+    {
+        return $this->firstOrNext($table, self::FIRST_OPERATION);
+    }
+
+    public function &next(string $table) : ?string
+    {
+        return $this->firstOrNext($table, self::NEXT_OPERATION);
+    }
+
+    public function &firstOrNext(string $table, string $operation) : ?string
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!$this->transaction) {
-            $this->lockSh();
+        if ($operation === self::FIRST_OPERATION) {
+            if (isset($this->tablePointers[$table])) {
+                unset($this->tablePointers[$table]);
+            }
         }
-
-        $id = dba_firstkey($this->dbhTables[$table]);
-
-        if (!$this->transaction) {
-            $this->unlock();
-        }
-
-        return $id;
-    }
-
-    public function next(string $table) : string
-    {
-        if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
         if (!$this->transaction) {
             $this->lockSh();
+
+            if ($operation === self::FIRST_OPERATION) {
+                $id = dba_firstkey($this->dbhTables[$table]);
+            } else {
+                $id = dba_nextkey($this->dbhTables[$table]);
+            }
+
+            $this->unlock();
+        } else {
+            if (!isset($this->tablePointers[$table])) {
+                $searchInDb = true;
+                $searchInCache = false;
+            } else {
+                $searchInDb = false;
+                $searchInCache = true;
+            }
+
+            $needSearch = true;
+
+            while($needSearch) {
+                if ($searchInDb) {
+                    if ($operation === self::FIRST_OPERATION) {
+                        $id = dba_firstkey($this->dbhTables[$table]);
+                    } else {
+                        $id = dba_nextkey($this->dbhTables[$table]);
+                    }
+
+                    $operation = self::NEXT_OPERATION;
+
+                    if ($id !== false) {
+                        if (!isset($this->recordsByTables[$table][$id]) || $this->recordsByTables[$table][$id] !== self::DELETE_OPERATION) {
+                            $needSearch = false;
+                        }
+                    } else {
+                        $searchInDb = false;
+                        $searchInCache = true;
+                    }
+                }
+
+                if ($searchInCache) {
+                    if (!isset($this->recordsByTables[$table])) {
+                        $needSearch = false;
+                    } else if ($this->tablePointers[$table] === false) {
+                        $needSearch = false;
+                    } else {
+                        if (!isset($this->tablePointers[$table])) {
+                            $this->tablePointers[$table] = true;
+                            reset($this->recordsByTables[$table]);
+                        } else {
+                            next($this->recordsByTables[$table]);
+                        }
+
+                        $id = key($this->recordsByTables[$table]);
+
+                        if ($id !== null) {
+                            if (current($this->recordsByTables[$table]) !== self::DELETE_OPERATION) {
+                                $needSearch = false;
+                            }
+                        } else {
+                            $this->tablePointers[$table] = false;
+                            $needSearch = false;
+                        }
+                    }
+                }
+            }
         }
 
-        $id = dba_nextkey($this->dbhTables[$table]);
-
-        if (!$this->transaction) {
-            $this->unlock();
+        if ($id === false) {
+            $id = null;
         }
 
         return $id;
@@ -271,7 +348,11 @@ class DBA extends aBase
                 $cacheId = $this->getCacheId($table, $id);
 
                 if (isset($this->recordsStack[$cacheId])) {
-                    $result = true;
+                    if ($this->recordsStack[$cacheId][self::OPERATION_FIELD] === self::DELETE_OPERATION) {
+                        $result = false;
+                    } else {
+                        $result = true;
+                    }
                 }
             }
         }
@@ -292,6 +373,7 @@ class DBA extends aBase
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
         $result = null;
+        $isDeleted = false;
 
         if (!$this->transaction) {
             $this->lockSh();
@@ -301,12 +383,16 @@ class DBA extends aBase
                 $cacheId = $this->getCacheId($table, $id);
 
                 if (isset($this->recordsStack[$cacheId])) {
-                    $result = $this->recordsStack[$cacheId][self::RECORD_FIELD][self::RECORD_VAL];
+                    if ($this->recordsStack[$cacheId][self::OPERATION_FIELD] === self::DELETE_OPERATION) {
+                        $isDeleted = true;
+                    } else {
+                        $result = $this->recordsStack[$cacheId][self::RECORD_FIELD][self::RECORD_VAL];
+                    }
                 }
             }
         }
 
-        if ($result === null) {
+        if ($result === null && !$isDeleted) {
             if (dba_exists($id, $this->dbhTables[$table])) {
                 $result = dba_fetch($id, $this->dbhTables[$table]);
             }
@@ -321,12 +407,17 @@ class DBA extends aBase
 
     public function insert(string $table, string $id, string &$val) : void
     {
-        $this->write('realInsert', $table, $id, $val);
+        $this->write(self::INSERT_OPERATION, $table, $id, $val);
     }
 
     public function update(string $table, string $id, string &$val) : void
     {
-        $this->write('realUpdate', $table, $id, $val);
+        $this->write(self::UPDATE_OPERATION, $table, $id, $val);
+    }
+
+    public function delete(string $table, string $id) : void
+    {
+        $this->write(self::DELETE_OPERATION, $table, $id, $this->deleteValue);
     }
 
     public function close() : void
@@ -354,16 +445,58 @@ class DBA extends aBase
 
             $cacheId = $this->getCacheId($table, $id);
 
+            $removeRecord = false;
+
             if (!isset($this->recordsStack[$cacheId])) {
                 $this->recordsStack[$cacheId][self::OPERATION_FIELD] = $operation;
+                $record[self::RECORD_FIRST_OPERATION] = $operation;
+            } else {
+                $record[self::RECORD_FIRST_OPERATION] = $this->recordsStack[$cacheId][self::RECORD_FIELD][self::RECORD_FIRST_OPERATION];
+
+                if ($operation === self::INSERT_OPERATION) {
+                    if ($record[self::RECORD_FIRST_OPERATION] === self::DELETE_OPERATION) {
+                        $this->recordsStack[$cacheId][self::OPERATION_FIELD] = self::UPDATE_OPERATION;
+                    } else {
+                        throw new RuntimeException("Cannot insert record into $table after " . $record[self::RECORD_FIRST_OPERATION]);
+                    }
+                } else if ($operation === self::UPDATE_OPERATION) {
+                    if ($record[self::RECORD_FIRST_OPERATION] === self::DELETE_OPERATION) {
+                        $this->recordsStack[$cacheId][self::OPERATION_FIELD] = self::UPDATE_OPERATION;
+                    }
+                } else if ($operation === self::DELETE_OPERATION) {
+                    if ($record[self::RECORD_FIRST_OPERATION] === self::DELETE_OPERATION) {
+                        throw new RuntimeException("Cannot delete record in $table after realDelete");
+                    }
+
+                    if ($record[self::RECORD_FIRST_OPERATION] === self::INSERT_OPERATION) {
+                        $removeRecord = true;
+                    } else if ($record[self::RECORD_FIRST_OPERATION] === self::UPDATE_OPERATION) {
+                        $this->recordsStack[$cacheId][self::OPERATION_FIELD] = self::DELETE_OPERATION;
+                    }
+                }
             }
 
-            $this->recordsStack[$cacheId][self::RECORD_FIELD] = $record;
+            if ($removeRecord) {
+                unset($this->recordsStack[$cacheId]);
 
+                if (isset($this->recordsByTables[$table][$id])) {
+                    unset($this->recordsByTables[$table][$id]);
+                }
+            } else {
+                $this->recordsStack[$cacheId][self::RECORD_FIELD] = $record;
+
+                if ($this->recordsStack[$cacheId][self::OPERATION_FIELD] !== self::UPDATE_OPERATION) {
+                    if (!isset($this->recordsByTables[$table])) {
+                        $this->recordsByTables[$table] = array();
+                    }
+
+                    $this->recordsByTables[$table][$id] = $this->recordsStack[$cacheId][self::OPERATION_FIELD];
+                }
+            }
         }
     }
 
-    private function realInsert(string $table, string $id, string &$val) : void
+    private function rI(string $table, string $id, string &$val) : void
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
@@ -372,13 +505,44 @@ class DBA extends aBase
         }
     }
 
-    public function realUpdate(string $table, string $id, string &$val) : void
+    private function rU(string $table, string $id, string &$val) : void
     {
         if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
 
-        if (!dba_replace($id, $val, $this->dbhTables[$table])) {
+        $handle = $this->dbhTables[$table];
+
+        if (!dba_replace($id, $val, $handle)) {
             throw new RuntimeException("Cannot replace record in " . $table);
         }
+
+        if  ($this->transaction) {
+            $this->optimizeTables[$table] = $handle;
+        } else {
+            $this->optimize($handle);
+        }
+    }
+
+    private function rD(string $table, string $id, string &$val) : void
+    {
+        if (!isset($this->dbhTables[$table])) $this->tableOpen($table);
+
+        $handle = $this->dbhTables[$table];
+
+        if (!dba_delete($id, $handle)) {
+            throw new RuntimeException("Cannot delete record in " . $table);
+        }
+
+        if  ($this->transaction) {
+            $this->optimizeTables[$table] = $handle;
+        } else {
+            $this->optimize($handle);
+        }
+    }
+
+    private function optimize($handle) : void
+    {
+        dba_sync($handle);
+        dba_optimize($handle);
     }
 
     private function tableOpen(string $table) : void
@@ -467,5 +631,24 @@ class DBA extends aBase
     private function getTableFile(string $table) : string
     {
         return $this->dbPath . $table . $this->dbExt;
+    }
+
+    private function closeTransaction() : void
+    {
+        if (count($this->recordsStack)) {
+            $this->recordsStack = array();
+        }
+
+        if (count($this->recordsByTables)) {
+            $this->recordsByTables = array();
+        }
+
+        if (count($this->tablePointers)) {
+            $this->tablePointers = array();
+        }
+
+        $this->transaction = false;
+
+        $this->unlock();
     }
 }

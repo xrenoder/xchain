@@ -85,6 +85,12 @@ abstract class aFieldSet extends aSpawnedFromEnum
                 continue;
             }
 
+            if ($this->fieldOffset >= $this->rawLength) {
+                $this->parsingError = true;
+                $this->dbg($this->getName() . " parsing error: $property offset $this->fieldOffset out of raw length $this->rawLength");
+                break;
+            }
+
             if (is_array($formatOrField)) {
                 $fieldType = $formatOrField[0];
 
@@ -231,14 +237,16 @@ abstract class aFieldSet extends aSpawnedFromEnum
 
                 if (isset($formatOrField[1]) && $formatOrField[1]) {
                     $objectMethod = $formatOrField[1];
-                    $value = $this->$property->$objectMethod();
 
-                    if ($value === null) {
-                        throw new Exception($this->getName() . " Bad code - value of $property->$objectMethod()");
+                    if (is_callable(array($this->$property, $objectMethod))) {
+                        throw new Exception($this->getName() . " Bad code - $property->$objectMethod() is not callable");
                     }
+
+                    $value = $this->$property->$objectMethod();
 
                     /** @var aField $fieldClassName */
                     $fieldClassName = $fieldClassEnum::getItem($fieldType);
+
                     $this->raw .= $fieldClassName::pack($this, $value);
                 } else {
                     $this->raw .= $this->simplePack($formatOrField, $this->$property);

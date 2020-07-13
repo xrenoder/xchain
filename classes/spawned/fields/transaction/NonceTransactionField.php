@@ -3,13 +3,11 @@
 
 class NonceTransactionField extends aTransactionField
 {
-    public function checkValue() : bool
+    public function postPrepare() :  bool
     {
-        if ($this->getValue() < 0) {
-            $this->dbg($this->getName() . " BAD DATA nonce must be >=0");
-            $this->parsingError = true;
-            return false;
-        }
+        $this->getTransaction()->addSignedData($this->getRawWithLength());
+
+        $this->getTransaction()->setHash();
 
         return true;
     }

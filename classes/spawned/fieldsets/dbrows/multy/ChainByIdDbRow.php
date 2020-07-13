@@ -12,7 +12,7 @@ class ChainByIdDbRow extends aMultyIdDbRow
     /* 'property' => '[fieldType, false or object method]' or 'formatType' */
     protected static $fieldSet = array(
         'chainName' =>                      FieldFormatClassEnum::ASIS_BYTE,
-        'signerNode' =>                     [DbRowFieldClassEnum::NODE, 'getType'],
+        'signerNodeType' =>                 FieldFormatClassEnum::ASIS_BYTE,
         'lastPreparedBlockId' =>            FieldFormatClassEnum::UBIG,
         'lastPreparedBlockTime' =>          FieldFormatClassEnum::ULONG,
         'lastPreparedBlockSignature' =>     FieldFormatClassEnum::ASIS_BYTE,
@@ -24,10 +24,10 @@ class ChainByIdDbRow extends aMultyIdDbRow
     public function setChainName(string &$val) : self {return $this->setNewValue($this->chainName, $val);}
     public function &getChainName() : ?string {return $this->chainName;}
 
-    /** @var aNode  */
-    protected $signerNode = null;
-    public function setSignerNode(aNode $val) : self {return $this->setNewValue($this->signerNode, $val);}
-    public function &getSignerNode() : ?aNode {return $this->signerNode;}
+    /** @var int  */
+    protected $signerNodeType = null;
+    public function setSignerNodeType(int $val) : self {return $this->setNewValue($this->signerNodeType, $val);}
+    public function getSignerNodeType() : ?int {return $this->signerNodeType;}
 
     /** @var int  */
     protected $lastPreparedBlockId = null;

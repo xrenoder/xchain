@@ -15,48 +15,38 @@ class Zero extends aBase
         $app = $this->getApp();
 
         $chainName = MAIN_CHAIN_NAME;
+        $chainId = 0;
         $chainLastSign = '';
-        $chainTime = time();
         $zero = 0;
-        $signerNode = aNode::spawn($app, NodeClassEnum::MASTER);
+        $signerNodeType = NodeEnum::MASTER;
 
-        $chain =
-            ChainByIdDbRow::create($app, 0)
-                ->setChainName($chainName)
-                ->setSignerNode($signerNode)
-                ->setLastPreparedBlockId($zero)
-                ->setLastPreparedBlockTime($chainTime)
-                ->setLastPreparedBlockSignature($chainLastSign)
-                ->setLastKnownBlockId($zero)
-                ->save()
+        $firstMnodeAddress = $this->getApp()->getMyAddress();
+        $signerAddress = $firstMnodeAddress;
+
+// create main chain
+        ChainByIdDbRow::create($app, $chainId)
+            ->setChainName($chainName)
+            ->setSignerNodeType($signerNodeType)
+            ->setLastPreparedBlockId($zero)
+            ->setLastPreparedBlockTime($zero)
+            ->setLastPreparedBlockSignature($chainLastSign)
+            ->setLastKnownBlockId($zero)
+            ->save()
         ;
 
-        $firstMnodeAddress = Address::createFromPrivateHex($app, FIRST_M_NODE_KEY);
+// create first master node transactions
+        NewPubKeyByAddrDbRow::create($app, $firstMnodeAddress->getAddressBin())
+            ->setAddressWithPubKey($firstMnodeAddress)
+            ->save();
 
-        $block = Block::createNew($app, $chain, $firstMnodeAddress);
-
-        $block
-            ->addTransaction(
-                RegisterPublicKeyTransaction::create($app)
-                    ->setAuthorAddress($firstMnodeAddress)
-                    ->setTargetAddress($firstMnodeAddress)
-                    ->setAuthorPubKeyAddress($firstMnodeAddress)
-            )
-
-            ->addTransaction(
-                RegisterNodeHostTransaction::create($app)
-                    ->setAuthorAddress($firstMnodeAddress)
-                    ->setHost(Host::create($app, Host::TRANSPORT_TCP, FIRST_M_NODE_HOST))
-                    ->setNodeName(FIRST_M_NODE_NAME)
-            )
-
+        RegisterNodeHostTransaction::create($app)
+            ->setAuthorAddress($firstMnodeAddress)
+            ->setHost(Host::create($app, Host::TRANSPORT_TCP, FIRST_M_NODE_HOST))
+            ->setNodeName(FIRST_M_NODE_NAME)
             ->createRaw()
+            ->saveAsNewTransaction()
         ;
 
-
-
-
-
-        $chain->save();
+        $block = Block::createNew($app, $chainId);
     }
 }

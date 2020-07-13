@@ -62,7 +62,7 @@ class Socket extends aBase
     /** @var aTask  */
     private $task;
     public function setTask(aTask $val) : self {$this->task = $val; $this->legate->setMyNodeType($this->task->getPool()->getMyNodeType()); return $this;}
-    public function unsetTask() : self {$this->task = null; $this->legate->setMyNodeType($this->getApp()->getMyNode()->getType()); return $this;}
+    public function unsetTask() : self {$this->task = null; $this->legate->setMyNodeType($this->getApp()->getMyNodeType()); return $this;}
     public function getTask() : ?aTask {return $this->task;}
 
     /**
@@ -77,7 +77,7 @@ class Socket extends aBase
         $me = new self($server);
 
         $me->setLegate(SocketLegate::create($me, $id));
-        $me->getLegate()->setMyNodeType($me->getLocator()->getMyNode()->getType());
+        $me->getLegate()->setMyNodeType($me->getLocator()->getMyNodeType());
 
         $me
             ->setHost($host)

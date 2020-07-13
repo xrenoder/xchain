@@ -29,12 +29,15 @@ abstract class aTransactionAa extends aTransactionA
 
     protected function rawTransactionAa() : void
     {
-        $rawAmount = AmountTransactionField::pack($this, $this->amount);
+        if ($this->amount === null) {
+            throw new Exception($this->getName() . " Bad code - amount cannot be null");
+        }
+
+        if ($this->amount <= 0) {
+            throw new Exception($this->getName() . " Bad code - amount must be >0");
+        }
 
         $this->rawTransactionA();
-
-        $this->signedData .= $rawAmount;
-        $this->raw .= $rawAmount;
+        $this->raw .= AmountTransactionField::pack($this, $this->amount);
     }
-
 }

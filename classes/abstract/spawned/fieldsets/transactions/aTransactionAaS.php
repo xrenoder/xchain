@@ -21,11 +21,15 @@ abstract class aTransactionAaS extends aTransactionAa
 
     protected function rawTransactionAaS() : void
     {
-        $rawData = ShortDataTransactionField::pack($this, $this->data->getRaw());
+        if ($this->data === null) {
+            throw new Exception($this->getName() . " Bad code - data cannot be null");
+        }
+
+        if (!($this->data instanceof aTransactionData)) {
+            throw new Exception($this->getName() . " Bad code - data must be insatance of aTransactionData");
+        }
 
         $this->rawTransactionAa();
-
-        $this->signedData .= $rawData;
-        $this->raw .= $rawData;
+        $this->raw .= ShortDataTransactionField::pack($this, $this->data->getRaw());
     }
 }

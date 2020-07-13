@@ -5,25 +5,25 @@ abstract class aSimpleMessage extends aMessage
 {
     use tMessageConstructor;
 
-    /* 'property' => [fieldType, isObject] */
+    /* 'property' => '[fieldType, objectMethod or false]' or 'formatType' */
     protected static $fieldSet = array(
-        'senderNode' => [MessageFieldClassEnum::NODE, 'getType'],
+        'senderNode' => [MessageFieldClassEnum::NODE, false],
         'sendingTime' => [MessageFieldClassEnum::TIME, false],
     );
 
-    /** @var aNode  */
-    protected $senderNode = null;
-    public function setSenderNode(aNode $val) : self {$this->senderNode = $val; return $this;}
-    public function getSenderNode() : aNode {return $this->senderNode;}
+    /** @var int  */
+    protected $senderNodeType = null;
+    public function setSenderNodeType(int $val) : self {$this->senderNodeType = $val; return $this;}
+    public function getSenderNodeType() : ?int {return $this->senderNodeType;}
 
     /** @var int  */
     protected $sendingTime = null;
     public function getSendingTime() : int {return $this->sendingTime;}
 
-    /** @var aNode  */
-    protected $myNode = null;
-    public function setMyNode(aNode $val) : self {$this->myNode = $val; return $this;}
-    public function getMyNode() : aNode {return $this->myNode;}
+    /** @var int  */
+    protected $myNodeType = null;
+    public function setMyNodeType(int $val) : self {$this->myNodeType = $val; return $this;}
+    public function getMyNodeType() : int {return $this->myNodeType;}
 
     public function setMaxLen() : aMessage
     {
@@ -43,7 +43,7 @@ abstract class aSimpleMessage extends aMessage
 
     protected function rawSimpleMessage() : void
     {
-        $rawNode = NodeMessageField::pack($this, $this->getLocator()->getMyNode()->getType());
+        $rawNode = NodeMessageField::pack($this, $this->getLocator()->getMyNodeType());
         $time = time();
         $rawTime = TimeMessageField::pack($this,$time);
 

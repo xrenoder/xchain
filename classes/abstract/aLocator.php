@@ -25,20 +25,15 @@ abstract class aLocator extends aBase
     public function setDba(DBA $val) : self {$this->dba = $val; return $this;}
     public function getDba() : DBA {return $this->dba;}
 
-    /** @var aNode */
-    private $myNode;
-    public function setMyNode(aNode $val) : self {$this->myNode = $val; return $this;}
-    public function getMyNode() : aNode {return $this->myNode;}
+    /** @var int */
+    private $myNodeType = null;
+    public function setMyNodeType(int $val) : self {$this->myNodeType = $val; return $this;}
+    public function &getMyNodeType() : ?int {return $this->myNodeType;}
 
     /** @var Address */
     private $myAddress;
     public function setMyAddress(Address $val) : self {$this->myAddress = $val; return $this;}
     public function getMyAddress() : Address {return $this->myAddress;}
-
-    /** @var Address */
-    private $zeroAddress;
-    public function setZeroAddress(Address $val) : self {$this->zeroAddress = $val; return $this;}
-    public function getZeroAddress() : Address {return $this->zeroAddress;}
 
     /**
      * App constructor.

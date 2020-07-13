@@ -30,9 +30,14 @@ abstract class aTransactionA extends aTransactionC
 
     protected function rawTransactionA() : void
     {
-        $rawTarget = TargetTransactionField::pack($this, $this->targetAddress->getAddressBin());
+        if ($this->targetAddress === null) {
+            throw new Exception($this->getName() . " Bad code - target address cannot be null");
+        }
 
-        $this->signedData = $rawTarget;
-        $this->raw = $rawTarget;
+        if (!($this->targetAddress instanceof Address)) {
+            throw new Exception($this->getName() . " Bad code - target address must be insatance of Address");
+        }
+
+        $this->raw = TargetTransactionField::pack($this, $this->targetAddress->getAddressBin());
     }
 }

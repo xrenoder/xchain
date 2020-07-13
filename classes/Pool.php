@@ -33,9 +33,9 @@ class Pool extends aBase
      * Use separate value of node ID (not Node-object from app) because my node can be changed, but current pool of tasks must be continued with old role
      * @var int
      */
-    private $myNodeId = null;
-    public function setMyNodeId(int $val) : self {$this->myNodeId = $val; return $this;}
-    public function getMyNodeType() : ?int {return $this->myNodeId;}
+    private $myNodeType = null;
+    public function setMyNodeType(int $val) : self {$this->myNodeType = $val; return $this;}
+    public function getMyNodeType() : ?int {return $this->myNodeType;}
 
     /** @var bool  */
     private $isAdded = false;
@@ -63,7 +63,7 @@ class Pool extends aBase
 
         $me
             ->setName($name)
-            ->setMyNodeId($me->getLocator()->getMyNode()->getType());
+            ->setMyNodeType($me->getLocator()->getMyNodeType());
 
         return $me;
     }

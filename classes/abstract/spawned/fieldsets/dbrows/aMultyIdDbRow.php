@@ -18,4 +18,6 @@ abstract class aMultyIdDbRow extends aDbRow
 
         return $me;
     }
+
+
 }

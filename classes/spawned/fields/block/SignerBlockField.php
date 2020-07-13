@@ -32,16 +32,16 @@ class SignerBlockField extends aBlockField
         }
 
         if (!$block->isAlreadySaved()) {
-            $signerNode = NodeByAddrDbRow::create($this, $this->getValue());
+            $signerNodeType = NodeByAddrDbRow::create($this, $this->getValue())->getNodeType();
 
-            if ($signerNode->getNode() === null) {
+            if ($signerNodeType === null) {
                 $this->err($this->getName() . " BAD DATA don't know about node with block signer address " . Address::binToBase16($this->getValue()));
                 $this->parsingError = true;
                 return false;
             }
 
-            if ($signerNode->getNode()->getType() !== $block->getChain()->getSignerNode()->getType()) {
-                $this->err($this->getName() . " BAD DATA block signer address " . Address::binToBase16($this->getValue()) . " not valid node type " . $block->getChain()->getSignerNode()->getType());
+            if ($signerNodeType !== $block->getChain()->getSignerNodeType()) {
+                $this->err($this->getName() . " BAD DATA block signer address " . Address::binToBase16($this->getValue()) . " node type $signerNodeType is not valid node type " . $block->getChain()->getSignerNodeType());
                 $this->parsingError = true;
                 return false;
             }

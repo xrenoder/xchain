@@ -1,7 +1,11 @@
 https://dou.ua/lenta/articles/12-konsensus-protocols/
+?	crypto-node	(C-node)
 
-16    master node (M-node)
-0111
+128	torrent-node (T-node)
+10000000
+
+64    master node (M-node)
+1000000
                 1st level
                 heart of network, create and keep critical network data
 
@@ -23,16 +27,16 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 must have own X capital + delegated Y capital
                 must have hi-perf CPU & good channel
 
-    6   master-aspirant node (MA-node) "I wanna be M-node!"
-    0110
+    48   master-aspirant node (MA-node) "I wanna be M-node!"
+    110000
                 must work as S-node
                 must be connected to BTC-network
                 must have own X capital + delegated Y capital
                 must have hi-perf CPU & good channel
                 sometimes work and tested as master node (if S-nodes reached optimal count)
 
-8    side node (S-node)
-0101
+16    side node (S-node)
+10000
                 2nd level
                 wheelhorse of network: create & keep utility network data
 
@@ -48,24 +52,24 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 middle level of network
                 connected with own F-nodes and with one own M-node, if own M-node not worked - connect with other M-node
 
-    4   side-aspirant node (SA-node)
-    0100
+    12   side-aspirant node (SA-node)
+    1100
                 must work as P-node
 
 4   Proxy node (P-node)
-0011
+100
                 3th level
 
                 check transaction hash for unique (need have saved transaction hashes)
 
                 30% of transaction reward
 
-    2   proxy-aspirant node (PA-node)
-    0010
+    3   proxy-aspirant node (PA-node)
+    11
                 must work as F-node
 
-2   front node (F-node)
-0001
+1   front node (F-node)
+1
                 4th level
 
                 check transaction signature (need have saved nodes public keys)
@@ -78,12 +82,6 @@ https://dou.ua/lenta/articles/12-konsensus-protocols/
                 optimal 512 F-nodes (8 per 1 S-node)
                 outside border of network
 
-1   client
+0   client
+0
 
-
-
-
-
-32	torrent-node (T-node)
-
-64	crypto-node	(C-node)

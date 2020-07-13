@@ -17,21 +17,21 @@ class SenderMessageField extends aMessageField
         /** @var aSimpleAddressMessage $message */
         $message = $this->getMessage();
 
-        $senderNodeType = $message->getSenderNode()->getType();
+        $senderNodeType = $message->getSenderNodeType();
 
 // if my node or remote node is client, not check node & public key in DB
-        if ($senderNodeType !== NodeClassEnum::CLIENT && $message->getMyNode()->getType() !== NodeClassEnum::CLIENT) {
+        if ($senderNodeType !== NodeEnum::CLIENT && $message->getMyNodeType() !== NodeEnum::CLIENT) {
             $locator = $this->getLocator();
-            $savedNode = NodeByAddrDbRow::create($locator, $this->getValue())->getNode();
+            $savedNodeType = NodeByAddrDbRow::create($locator, $this->getValue())->getNodeType();
 
-            if ($savedNode === null) {
+            if ($savedNodeType === null) {
                 $this->err($this->getName() . " BAD DATA don't know node with address " . Address::binToBase16($this->getValue()));
                 $this->parsingError = true;
                 return false;
             }
 
-            if ($savedNode->getType() !== $senderNodeType) {
-                $this->err($this->getName() . " BAD DATA address " . Address::binToBase16($this->getValue()) . " cannot be node " . NodeClassEnum::getName($senderNodeType) . " (is node " . $savedNode->getName() . ")");
+            if ($savedNodeType !== $senderNodeType) {
+                $this->err($this->getName() . " BAD DATA address " . Address::binToBase16($this->getValue()) . " cannot be node " . NodeEnum::getName($senderNodeType) . " (is node " . NodeEnum::getName($savedNodeType) . ")");
                 $this->parsingError = true;
                 return false;
             }

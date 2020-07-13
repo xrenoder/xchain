@@ -7,6 +7,8 @@ class FieldFormatClassEnum extends aClassEnum
 {
     protected static $baseClassName = 'aFieldFormat'; /* overrided */
 
+    public const MAX_ULONG = 2**32 - 1;
+
     private const SUBBYTE_MAX =  120; // value of SubByte format max value
     private const PERCENT_MAX =  10000; // value of Percent format max value (max 100%, min 0.01%)
     private const SUBSHORT_DEC =  1024; // value of SubShort format max value decrementation

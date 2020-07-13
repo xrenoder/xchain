@@ -5,6 +5,9 @@ class Block extends aFieldSet
 {
     protected static $dbgLvl = Logger::DBG_BLOCK;
 
+    protected static $newAuthorTransactionsTable = DbTableEnum::NEW_AUTHOR_TRANSACTIONS;
+    protected static $newSignerTransactionsTable = DbTableEnum::NEW_SIGNER_TRANSACTIONS;
+
     /** @var string  */
     protected $fieldClass = 'aBlockField'; /* overrided */
 
@@ -78,9 +81,17 @@ class Block extends aFieldSet
 //        $this->dbg(var_export($this->fields, true));
     }
 
-    public static function createNew(aBase $parent, ChainByIdDbRow $chain, Address $signerAddress) : self
+    public static function createNew(aBase $parent, int $chainId) : self
     {
         $me = new Block($parent);
+
+        $me->dbg('Block creating');
+
+        $me->dbTransBegin();
+
+        $chain = ChainByIdDbRow::create($parent, $chainId);
+
+        $signerAddress = $parent->getLocator()->getMyAddress();
 
         if (!$signerAddress->isFull()) {
             throw new Exception("Block Bad code - signer address must have private key");
@@ -93,9 +104,10 @@ class Block extends aFieldSet
         $me
             ->setChain($chain)
             ->setSignerAddress($signerAddress)
+            ->fillNewTransactions()
         ;
 
-        $parent->dbg('Block ' . $me->getId() . ' created');
+        $me->dbg('Block ' . $me->getId() . ' created');
 
         return $me;
     }
@@ -111,7 +123,52 @@ class Block extends aFieldSet
         return $me;
     }
 
-    public function addTransaction(aTransaction $transaction) : self
+    public function fillNewTransactions() : self
+    {
+        if ($this->dbFirst(static::$newSignerTransactionsTable) !== null) {
+            throw new Exception("Block Bad code - DB have signer transactions before block creating");
+        }
+
+        $this->fillAuthorTransactions();
+
+        $this->fillSignerTransactions();
+
+        return $this;
+    }
+
+    protected function fillAuthorTransactions() : void
+    {
+        $transactionHash = $this->dbFirst(static::$newAuthorTransactionsTable);
+
+        while($transactionHash !== null) {
+            $this->addTransaction(
+                NewAuthorTransactionByHashDbRow::create($this, $transactionHash)
+                    ->getTransaction()
+            );
+
+            $this->dbDelete(static::$newAuthorTransactionsTable, $transactionHash);
+
+            $transactionHash = $this->dbNext(static::$newAuthorTransactionsTable);
+        }
+    }
+
+    protected function fillSignerTransactions() : void
+    {
+        $transactionHash = $this->dbFirst(static::$newSignerTransactionsTable);
+
+        while($transactionHash !== null) {
+            $this->addTransaction(
+                NewSignerTransactionByHashDbRow::create($this, $transactionHash)
+                    ->getTransaction()
+            );
+
+            $this->dbDelete(static::$newSignerTransactionsTable, $transactionHash);
+
+            $transactionHash = $this->dbNext(static::$newSignerTransactionsTable);
+        }
+    }
+
+    protected function addTransaction(aTransaction $transaction) : self
     {
         $transactionType = $transaction->getType();
 
@@ -179,13 +236,28 @@ class Block extends aFieldSet
                 $this->dbTransRollback();
             } else {
                 $this->save();
-                $this->dbTransCommit();
             }
         }
     }
 
     public function save() : void {
+        if (!$this->dbInTransaction())  {
+            $this->dbTransBegin();
+        }
 
+        $this->chain
+            ->setLastPreparedBlockId($this->id)
+            ->setLastPreparedBlockTime($this->time)
+            ->setLastPreparedBlockSignature($this->signature)
+        ;
+
+        if ($this->chain->getLastKnownBlockId() < $this->id) {
+            $this->chain->setLastKnownBlockId($this->id);
+        }
+
+        $this->chain->save();
+
+        $this->dbTransCommit();
     }
 
     public function saveRawForLaterPreparing() : void {

@@ -1,7 +1,7 @@
 <?php
 
 
-class aHalfLongFieldFormat extends aFieldFormat
+abstract class aHalfLongFieldFormat extends aFieldFormat
 {
     protected function &packDataTransform(&$data) : string
     {

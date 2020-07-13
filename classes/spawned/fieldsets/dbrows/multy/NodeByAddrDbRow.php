@@ -4,18 +4,18 @@
 class NodeByAddrDbRow extends aMultyIdDbRow
 {
     /** @var string  */
-    protected $table = DbTableEnum::ADDR_NODES;     /* overrided */
+    protected $table = DbTableEnum::NODE_TYPES;     /* overrided */
 
     /** @var string  */
     protected $idFormatType = FieldFormatClassEnum::ADDR; /* overrided */
 
     /* 'property' => '[fieldType, false or object method]' or 'formatType' */
     protected static $fieldSet = array(
-        'node' => [DbRowFieldClassEnum::NODE, 'getType']
+        'nodeType' => FieldFormatClassEnum::UBYTE,
     );
 
-    /** @var aNode  */
-    protected $node = null;
-    public function setNode(aNode $val) : self {return $this->setNewValue($this->node, $val);}
-    public function getNode() : ?aNode {return $this->node;}
+    /** @var int  */
+    protected $nodeType = null;
+    public function setNodeType(int $val) : self {return $this->setNewValue($this->nodeType, $val);}
+    public function getNodeType() : ?int {return $this->nodeType;}
 }
