@@ -217,7 +217,7 @@ class Daemon extends aBase
             $this->dbg("Runtime $threadId runned");
         }
 
-        sleep(1);
+//        sleep(1);
 
         $this->dbg("All " . THREADS_COUNT . " workers are started");
     }
